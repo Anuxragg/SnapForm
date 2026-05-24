@@ -165,7 +165,7 @@ export default function BuilderPage() {
             <div className="flex items-center gap-1.5 group cursor-pointer">
               <span className="text-lg font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
                 <span className="text-brand-orange text-xl font-extrabold -mt-0.5">⚡</span>
-                formcraft
+                snapform
               </span>
               <span className="text-[8px] font-black text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono">
                 STUDIO

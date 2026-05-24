@@ -73,7 +73,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-1.5 cursor-pointer">
             <span className="text-2xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
               <span className="text-brand-orange text-3xl font-extrabold -mt-1">⚡</span>
-              formcraft
+              snapform
             </span>
           </div>
         </Link>
@@ -271,14 +271,14 @@ export default function LandingPage() {
                 COMPILER IS SPEED FOR DEV
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight">
-                <span className="text-brand-charcoal/30">FormCraft delivers fast, </span>
+                <span className="text-brand-charcoal/30">SnapForm delivers fast, </span>
                 <span className="text-brand-charcoal">type-safe React forms.</span>
               </h1>
             </div>
 
             {/* Subtext description */}
             <p className="text-sm md:text-base text-brand-charcoal/70 leading-relaxed max-w-xl">
-              Stop writing boilerplate input validation. FormCraft compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
+              Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
             </p>
 
             {/* CTAs */}
@@ -322,7 +322,7 @@ export default function LandingPage() {
                 <span className="text-brand-orange text-base font-extrabold pl-4.5 pr-2.5 select-none font-mono">⚡</span>
                 <input
                   type="text"
-                  placeholder="TRY THE SPEED OF FORMCRAFT..."
+                  placeholder="TRY THE SPEED OF SNAPFORM..."
                   value={promptInput}
                   onChange={(e) => setPromptInput(e.target.value)}
                   className="w-full bg-transparent border-none text-white placeholder-neutral-400 font-mono text-xs focus:outline-none focus:ring-0 py-2.5 pr-12"
@@ -345,8 +345,8 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* FormCraft Compilation Engine Section */}
-      <section id="lpu" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
+      {/* SnapForm Compilation Engine Section */}
+      <section id="engine" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
           <div className="text-left space-y-6">
@@ -354,10 +354,10 @@ export default function LandingPage() {
               FULL-STACK CODE GENERATION
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-brand-charcoal tracking-tight">
-              The FormCraft Compilation Engine
+              The SnapForm Compilation Engine
             </h2>
             <p className="text-sm text-brand-charcoal/70 leading-relaxed">
-              FormCraft compiles beautiful, production-ready form suites instantly, providing zero-boilerplate code setups. In milliseconds, our engine generates optimized React frontend components styled in lightweight Tailwind CSS utility classes, type-safe Zod validation schemas, and standard Next.js backend API routes to securely handle form submissions.
+              SnapForm compiles beautiful, production-ready form suites instantly, providing zero-boilerplate code setups. In milliseconds, our engine generates optimized React frontend components styled in lightweight Tailwind CSS utility classes, type-safe Zod validation schemas, and standard Next.js backend API routes to securely handle form submissions.
             </p>
             <div className="space-y-3 font-mono text-xs text-brand-charcoal/80">
               <div className="flex items-center gap-2">
@@ -588,7 +588,7 @@ export default function LandingPage() {
           {/* Try Free centered button */}
           <Link href="/builder">
             <Button className="rounded-full bg-white hover:bg-neutral-100 text-brand-orange text-xs font-black px-8 py-3 h-10 shadow transition-all hover:scale-105 active:scale-95 border-none cursor-pointer">
-              Try FormCraft for Free
+              Try SnapForm for Free
             </Button>
           </Link>
         </div>
@@ -604,12 +604,12 @@ export default function LandingPage() {
               <div className="flex items-center gap-1 cursor-pointer">
                 <span className="text-xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5 select-none">
                   <span className="text-brand-orange text-2xl font-extrabold -mt-1">⚡</span>
-                  formcraft
+                  snapform
                 </span>
               </div>
             </Link>
             <p className="text-[11px] font-mono text-neutral-400">
-              &copy; {new Date().getFullYear()} FormCraft Studio. All rights reserved.
+              &copy; {new Date().getFullYear()} SnapForm Studio. All rights reserved.
             </p>
           </div>
 

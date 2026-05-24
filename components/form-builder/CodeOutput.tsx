@@ -75,7 +75,7 @@ export default function CodeOutput({ code, formName, isLoading = false }: CodeOu
       const url = URL.createObjectURL(content);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `FormCraft-${formName.toLowerCase().replace(/\s+/g, '-')}.zip`;
+      link.download = `SnapForm-${formName.toLowerCase().replace(/\s+/g, '-')}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
