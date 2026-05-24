@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -11,145 +12,518 @@ import {
   Cpu,
   Layers,
   Zap,
-  CheckCircle2,
+  Mail,
+  CreditCard,
+  BarChart3,
+  MousePointerClick,
   FileCode2,
   Terminal,
   Server,
-  MousePointerClick,
+  Play,
+  Volume2,
+  Wand2,
 } from 'lucide-react';
 
 export default function LandingPage() {
-  return (
-    <div className="relative min-h-screen bg-[#07070a] text-neutral-100 overflow-clip font-sans flex flex-col">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-radial from-violet-600/10 to-transparent pointer-events-none rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-radial from-indigo-600/10 to-transparent pointer-events-none rounded-full blur-[140px]" />
+  const router = useRouter();
+  const [activeShowcase, setActiveShowcase] = useState<'contact' | 'payment' | 'survey'>('contact');
+  const [promptInput, setPromptInput] = useState('');
+  const [showcaseSubmitted, setShowcaseSubmitted] = useState(false);
+  const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
+  const [terminalCopied, setTerminalCopied] = useState(false);
 
-      {/* Premium Header */}
-      <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-b border-neutral-800/30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
-              Form<span className="text-violet-500">Craft</span>
+  const copyTerminalCode = () => {
+    const code = terminalTab === 'react'
+      ? `import { useForm } from 'react-hook-form';\nimport { zodResolver } from '@hookform/resolvers/zod';\nimport { z } from 'zod';\n\nconst FormSchema = z.object({\n  email: z.string().email(),\n  name: z.string().min(2)\n});`
+      : `import { NextResponse } from 'next/server';\nimport { FormSchema } from './schema';\n\nexport async function POST(req) {\n  const body = await req.json();\n  const result = FormSchema.safeParse(body);\n  return NextResponse.json({ success: result.success });\n}`;
+
+    navigator.clipboard.writeText(code);
+    setTerminalCopied(true);
+    setTimeout(() => setTerminalCopied(false), 2000);
+  };
+
+  // Speed Prompt pill submit logic
+  const handlePromptSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptInput.trim()) return;
+    router.push(`/builder?prompt=${encodeURIComponent(promptInput.trim())}`);
+  };
+
+  const triggerShowcaseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowcaseSubmitted(true);
+    setTimeout(() => setShowcaseSubmitted(false), 3000);
+  };
+
+  return (
+    <div className="relative min-h-screen bg-brand-sand text-brand-charcoal overflow-x-hidden font-sans flex flex-col antialiased">
+      {/* Subtle paper-like noise grain overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(#d5d0c5_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+
+      {/* Groq-Style Premium Header */}
+      <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-brand-border/60">
+        {/* Left Links */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-brand-charcoal/80">
+          <Link href="/builder" className="hover:text-brand-orange transition-colors">Studio</Link>
+          <a href="#features" className="hover:text-brand-orange transition-colors">Features</a>
+        </nav>
+
+        {/* Center Logo - Groq style lightning bold lower */}
+        <Link href="/">
+          <div className="flex items-center gap-1.5 cursor-pointer">
+            <span className="text-2xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
+              <span className="text-brand-orange text-3xl font-extrabold -mt-1">⚡</span>
+              formcraft
             </span>
-            <span className="text-[10px] font-bold text-violet-400/80 block uppercase tracking-widest mt-[-2px]">
-              Code Generator
-            </span>
           </div>
-        </div>
-        <Link href="/builder">
-          <Button className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold flex items-center gap-1.5 shadow-md shadow-violet-500/10 cursor-pointer">
-            Start Building <ArrowRight className="w-4 h-4" />
-          </Button>
         </Link>
+
+        {/* Right Buttons */}
+        <div className="flex items-center gap-6">
+          <Link href="/builder" className="text-sm font-medium text-brand-charcoal/80 hover:text-brand-orange hidden sm:inline-block transition-colors">
+            Developers
+          </Link>
+          <Link href="/builder">
+            <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-6 py-2.5 h-10 shadow-sm border border-brand-orange hover:scale-105 active:scale-95 transition-all cursor-pointer">
+              Start Building
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-20 pb-24 text-center">
-        {/* Animated Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900/60 border border-neutral-800 text-xs font-semibold text-neutral-300 mb-8 animate-fade-in shadow-inner">
-          <Badge className="bg-violet-600 text-white text-[10px] uppercase font-bold py-0 px-2 rounded-full border-none">
-            New
-          </Badge>
-          <span>Next.js 14+ App Router & Zod Integration Support</span>
-        </div>
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-16 pb-24 flex-1 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-        {/* Hero Title */}
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 max-w-4xl mx-auto leading-[1.08] bg-gradient-to-b from-white via-neutral-100 to-neutral-400 bg-clip-text text-transparent">
-          Generate Production-Ready <br className="hidden md:inline" />
-          <span className="bg-gradient-to-r from-violet-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-            React Forms
-          </span> in Seconds
-        </h1>
+          {/* Left Column: Interactive Form Showcase Card */}
+          <div className="lg:col-span-6 xl:col-span-7 order-2 lg:order-1">
+            <div className="relative w-full border border-brand-border bg-white rounded-3xl p-5 md:p-6 shadow-2xl shadow-brand-charcoal/5 overflow-hidden">
 
-        {/* Hero Subtitle */}
-        <p className="text-base md:text-lg text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-          FormCraft is a premium visual form code builder that compiles stunning UI layouts, robust Zod validation schemas, and secure server-side API routes automatically.
-        </p>
+              {/* Card Title Badges */}
+              <div className="flex items-center justify-between border-b border-brand-border/60 pb-4 mb-5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-brand-charcoal text-white tracking-widest uppercase">
+                    1.00 FPS
+                  </span>
+                  <span className="text-[10px] font-bold text-neutral-400 font-mono tracking-wider">
+                    INSTANT COMPILE
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5 px-2.5 py-1 rounded-full bg-brand-orange/10 text-brand-orange text-[10px] font-bold tracking-wider uppercase">
+                    <span className="w-1.5 h-1.5 bg-brand-orange rounded-full animate-ping mt-[2px]" />
+                    Interactive Showcase
+                  </div>
+                </div>
+              </div>
 
-        {/* Hero CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <Link href="/builder">
-            <Button size="lg" className="rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold px-8 h-14 flex items-center gap-2 shadow-xl shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
-              Launch Form Builder <ArrowRight className="w-5 h-5" />
-            </Button>
-          </Link>
-          <a href="#features">
-            <Button size="lg" variant="outline" className="rounded-2xl border-neutral-850 hover:bg-neutral-900/50 hover:text-white text-neutral-300 font-semibold px-8 h-14 cursor-pointer">
-              Explore Features
-            </Button>
-          </a>
-        </div>
+              {/* Showcase Tab Switcher */}
+              <div className="grid grid-cols-3 gap-2 p-1 bg-brand-sand rounded-xl border border-brand-border/60 mb-6">
+                {[
+                  { id: 'contact', label: 'Contact', icon: Mail },
+                  { id: 'payment', label: 'Billing', icon: CreditCard },
+                  { id: 'survey', label: 'Survey', icon: BarChart3 },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeShowcase === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveShowcase(tab.id as any);
+                        setShowcaseSubmitted(false);
+                      }}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${isActive
+                          ? 'bg-white text-brand-charcoal border border-brand-border shadow-sm'
+                          : 'text-brand-charcoal/60 hover:text-brand-charcoal hover:bg-white/40'
+                        }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-        {/* Visual Mock-up Grid */}
-        <div className="relative w-full max-w-5xl mx-auto border border-neutral-850 bg-neutral-900/30 backdrop-blur-md rounded-3xl p-4 md:p-6 shadow-2xl shadow-violet-500/5 overflow-hidden">
-          {/* Overlay shine effect */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
+              {/* Showcase Form Render Box */}
+              <div className="border border-brand-border/60 bg-brand-sand/30 rounded-2xl p-5 md:p-6 min-h-[290px] flex flex-col justify-between">
+                {showcaseSubmitted ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-8">
+                    <div className="w-12 h-12 rounded-full bg-brand-orange text-white flex items-center justify-center animate-bounce shadow shadow-brand-orange/30">
+                      <Zap className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-base font-bold text-brand-charcoal">Lightning-Fast Generation Triggered!</h4>
+                    <p className="text-xs text-neutral-500 max-w-sm">
+                      This dynamic showcase represents the visual output. The underlying React + Zod code compiles in milliseconds.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={triggerShowcaseSubmit} className="space-y-4 text-left">
+                    {activeShowcase === 'contact' && (
+                      <>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Full Name</label>
+                          <input type="text" placeholder="John Doe" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Email Address</label>
+                          <input type="email" placeholder="john@example.com" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Message</label>
+                          <textarea placeholder="Tell us about your project..." rows={2} required className="w-full rounded-xl border border-brand-border bg-white p-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange resize-none" />
+                        </div>
+                      </>
+                    )}
 
-          <div className="flex items-center gap-2 mb-4 bg-neutral-900/50 px-4 py-2.5 rounded-xl border border-neutral-850 w-full md:w-fit text-[11px] text-neutral-400 font-semibold">
-            <span className="w-2.5 h-2.5 bg-violet-500 rounded-full animate-ping mr-1" />
-            <span>Interactive Designer & Code Generator Suite</span>
+                    {activeShowcase === 'payment' && (
+                      <>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Cardholder Name</label>
+                          <input type="text" placeholder="Jane Smith" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Card Number</label>
+                            <input type="text" placeholder="•••• •••• •••• ••••" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Expiry / CVC</label>
+                            <input type="text" placeholder="MM/YY  CVC" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Subscription Tier</label>
+                          <select className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange">
+                            <option>Starter License ($19/mo)</option>
+                            <option>Developer License ($49/mo)</option>
+                            <option>Enterprise License ($99/mo)</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    {activeShowcase === 'survey' && (
+                      <>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Overall Satisfaction</label>
+                          <div className="grid grid-cols-4 gap-2 pt-1">
+                            {['Bad', 'Okay', 'Good', 'Love it'].map((opt) => (
+                              <label key={opt} className="flex flex-col items-center justify-center p-2 rounded-xl border border-brand-border bg-white cursor-pointer hover:border-brand-orange hover:bg-brand-orange/5 text-[10px] font-bold transition-all">
+                                <input type="radio" name="satisfaction" className="sr-only" />
+                                <span>{opt}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Favorite Studio Features</label>
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            {['Dynamic Zod Schema', 'Instant ZIP Export', 'Tailwind Configs', 'Next.js API Handler'].map((opt) => (
+                              <label key={opt} className="flex items-center gap-2 p-2 rounded-xl border border-brand-border bg-white text-[9px] font-semibold cursor-pointer hover:bg-neutral-50">
+                                <input type="checkbox" className="rounded text-brand-orange focus:ring-brand-orange" />
+                                <span>{opt}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <Button type="submit" className="w-full mt-2 rounded-xl bg-brand-charcoal hover:bg-neutral-900 text-white font-bold h-10 text-xs flex items-center justify-center gap-1.5 shadow transition-all cursor-pointer">
+                      <Zap className="w-3.5 h-3.5 text-brand-orange fill-brand-orange" /> Compile Live Code
+                    </Button>
+                  </form>
+                )}
+              </div>
+
+              {/* Developer Integration Ticker Bar */}
+              <div className="mt-6 border-t border-brand-border/60 pt-4 flex flex-col space-y-2">
+                <span className="text-[9px] font-extrabold uppercase font-mono text-neutral-400 tracking-widest text-left">
+                  SUPPORTED STACKS & INTEGRATIONS
+                </span>
+                <div className="w-full overflow-hidden relative">
+                  <div className="flex items-center justify-between text-xs font-mono font-black text-brand-charcoal/60 gap-4 flex-wrap">
+                    <span className="hover:text-brand-orange transition-colors">VERCEL</span>
+                    <span>•</span>
+                    <span className="hover:text-brand-orange transition-colors">NEXT.JS</span>
+                    <span>•</span>
+                    <span className="hover:text-brand-orange transition-colors">TAILWIND</span>
+                    <span>•</span>
+                    <span className="hover:text-brand-orange transition-colors">ZOD</span>
+                    <span>•</span>
+                    <span className="hover:text-brand-orange transition-colors">REACT</span>
+                    <span>•</span>
+                    <span className="hover:text-brand-orange transition-colors">SHADCN</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Mock left */}
-            <div className="lg:col-span-5 border border-neutral-850 bg-[#0c0c0e]/80 rounded-2xl p-6 text-left space-y-4">
-              <div className="text-sm font-bold text-white flex items-center gap-1.5">
-                <MousePointerClick className="w-4 h-4 text-violet-400" /> Visual Assembly
+          {/* Right Column: High-Impact Typography & Branding */}
+          <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-start text-left space-y-8 order-1 lg:order-2">
+
+            {/* INFERENCE IS FUEL styled mono tag */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] block animate-pulse">
+                COMPILER IS SPEED FOR DEV
+              </span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight">
+                <span className="text-brand-charcoal/30">FormCraft delivers fast, </span>
+                <span className="text-brand-charcoal">type-safe React forms.</span>
+              </h1>
+            </div>
+
+            {/* Subtext description */}
+            <p className="text-sm md:text-base text-brand-charcoal/70 leading-relaxed max-w-xl">
+              Stop writing boilerplate input validation. FormCraft compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <Link href="/builder">
+                <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
+                  Launch Studio <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <a href="#features">
+                <Button variant="outline" className="rounded-full border-brand-border bg-white text-brand-charcoal text-sm font-bold px-8 h-12 hover:bg-brand-sand-dark transition-all w-full sm:w-auto cursor-pointer">
+                  Explore Features
+                </Button>
+              </a>
+            </div>
+
+            {/* Tiny mini-cards underneath */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-brand-border/60">
+              <div className="border border-brand-border rounded-2xl bg-white/70 p-4 space-y-1.5 shadow-sm">
+                <span className="text-[9px] font-extrabold font-mono text-brand-orange tracking-wider uppercase block">
+                  PARTNER ARCHITECTURE
+                </span>
+                <h4 className="text-xs font-bold text-brand-charcoal leading-snug">
+                  Official Next.js & Zod TypeScript schemas.
+                </h4>
               </div>
-              <div className="space-y-2.5">
-                {[
-                  { label: 'Full Name', type: 'text', val: 'John Doe' },
-                  { label: 'Email Address', type: 'email', val: 'john@example.com' },
-                  { label: 'Project Description', type: 'textarea', val: 'We need a gorgeous...' }
-                ].map((item) => (
-                  <div key={item.label} className="space-y-1">
-                    <label className="text-[10px] font-bold text-neutral-400">{item.label}</label>
-                    <div className="h-8 rounded-lg bg-neutral-900 border border-neutral-800 text-[11px] px-3 flex items-center text-neutral-300">
-                      {item.val}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="h-8 rounded-lg bg-violet-600 text-white font-bold text-[11px] flex items-center justify-center cursor-pointer hover:bg-violet-700 shadow-md">
-                Submit Form
+
+              <div className="border border-brand-border rounded-2xl bg-white/70 p-4 space-y-1.5 shadow-sm">
+                <span className="text-[9px] font-extrabold font-mono text-brand-orange tracking-wider uppercase block">
+                  ZIP COMPRESSOR
+                </span>
+                <h4 className="text-xs font-bold text-brand-charcoal leading-snug">
+                  Download production modules in a structured directory.
+                </h4>
               </div>
             </div>
 
-            {/* Mock right */}
-            <div className="lg:col-span-7 border border-neutral-850 bg-[#0c0c0e]/80 rounded-2xl p-6 text-left space-y-4 font-mono text-[10px] text-neutral-400 h-full min-h-[220px] flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-neutral-850 pb-2">
-                <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                  <Code2 className="w-4 h-4 text-emerald-400" /> Code Output
-                </span>
-                <span className="text-[9px] bg-neutral-900 text-emerald-400 px-2 py-0.5 rounded border border-neutral-800">
-                  Ready
-                </span>
+            {/* Speed Prompt Bar - Black Pill */}
+            <div className="relative pt-4">
+              <form onSubmit={handlePromptSubmit} className="relative flex items-center p-1.5 rounded-full bg-brand-charcoal shadow-2xl border border-neutral-900 group">
+                <span className="text-brand-orange text-base font-extrabold pl-4.5 pr-2.5 select-none font-mono">⚡</span>
+                <input
+                  type="text"
+                  placeholder="TRY THE SPEED OF FORMCRAFT..."
+                  value={promptInput}
+                  onChange={(e) => setPromptInput(e.target.value)}
+                  className="w-full bg-transparent border-none text-white placeholder-neutral-400 font-mono text-xs focus:outline-none focus:ring-0 py-2.5 pr-12"
+                />
+                <button
+                  type="submit"
+                  title="Compile Immediately"
+                  className="absolute right-1.5 w-9 h-9 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow shadow-brand-orange/20"
+                >
+                  <Wand2 className="w-4 h-4" />
+                </button>
+              </form>
+              <span className="text-[9px] font-semibold text-neutral-400 font-mono block text-left mt-2 pl-4">
+                Type any form prompt (e.g. &quot;Signup with newsletter checkbox&quot;) to preload in builder.
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+      </main>
+
+      {/* FormCraft Compilation Engine Section */}
+      <section id="lpu" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+
+          <div className="text-left space-y-6">
+            <span className="text-[10px] font-black font-mono text-brand-orange uppercase tracking-[0.2em] px-2.5 py-1 rounded bg-brand-orange/10 w-fit block">
+              FULL-STACK CODE GENERATION
+            </span>
+            <h2 className="text-3xl md:text-4xl font-black text-brand-charcoal tracking-tight">
+              The FormCraft Compilation Engine
+            </h2>
+            <p className="text-sm text-brand-charcoal/70 leading-relaxed">
+              FormCraft compiles beautiful, production-ready form suites instantly, providing zero-boilerplate code setups. In milliseconds, our engine generates optimized React frontend components styled in lightweight Tailwind CSS utility classes, type-safe Zod validation schemas, and standard Next.js backend API routes to securely handle form submissions.
+            </p>
+            <div className="space-y-3 font-mono text-xs text-brand-charcoal/80">
+              <div className="flex items-center gap-2">
+                <span className="text-brand-orange font-bold">✔</span>
+                <span>Production-ready, customizable React components</span>
               </div>
-              <div className="flex-1 py-2 overflow-x-auto whitespace-pre">
-                <span className="text-violet-400">import</span> &#123; useForm &#125; <span className="text-violet-400">from</span> <span className="text-emerald-400">&apos;react-hook-form&apos;</span>;<br />
-                <span className="text-violet-400">import</span> &#123; zodResolver &#125; <span className="text-violet-400">from</span> <span className="text-emerald-400">&apos;@hookform/resolvers/zod&apos;</span>;<br />
-                <span className="text-violet-400">import</span> &#123; z &#125; <span className="text-violet-400">from</span> <span className="text-emerald-400">&apos;zod&apos;</span>;<br /><br />
-                <span className="text-violet-400">export const</span> <span className="text-indigo-400">FormSchema</span> = z.object(&#123;<br />
-                &nbsp;&nbsp;fullName: z.string().min(<span className="text-amber-500">2</span>),<br />
-                &nbsp;&nbsp;email: z.string().email(),<br />
-                &#125;);
+              <div className="flex items-center gap-2">
+                <span className="text-brand-orange font-bold">✔</span>
+                <span>Robust, schema-driven Zod client validation</span>
               </div>
-              <div className="flex items-center justify-between border-t border-neutral-850 pt-2 text-[9px] text-neutral-500">
-                <span>Zip bundle output</span>
-                <span className="flex items-center gap-1"><FileCode2 className="w-3 h-3" /> FormComponent.tsx, schema.ts, api.ts</span>
+              <div className="flex items-center gap-2">
+                <span className="text-brand-orange font-bold">✔</span>
+                <span>Secure, server-side Next.js route handlers</span>
               </div>
+            </div>
+          </div>
+
+          {/* Output bundle directory visual card */}
+          <div className="flex items-center justify-center p-8 bg-white border border-brand-border rounded-3xl shadow-xl shadow-brand-charcoal/5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-radial-gradient from-brand-orange/5 to-transparent pointer-events-none" />
+
+            {/* Folder structure container */}
+            <div className="w-full max-w-xs h-56 bg-brand-charcoal rounded-3xl border border-neutral-800 shadow-2xl p-6 font-mono text-[11px] leading-relaxed text-neutral-300 relative flex flex-col justify-center text-left">
+              <div className="absolute top-4 left-6 text-[9px] font-black font-mono text-neutral-500 uppercase tracking-widest">
+                ZIP Package Structure
+              </div>
+
+              <div className="space-y-3.5 pt-2">
+                {/* Zip Root Folder */}
+                <div className="flex items-center gap-2 text-brand-orange font-bold text-xs select-none">
+                  <span className="text-lg">📁</span>
+                  <span>form-bundle.zip</span>
+                </div>
+
+                {/* Sub-files */}
+                <div className="space-y-2.5 pl-4 border-l border-neutral-800/80 ml-2">
+
+                  {/* React Component */}
+                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
+                    <span className="text-emerald-400 select-none text-base">⚛</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white leading-none">FormComponent.tsx</span>
+                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">React Form & Tailwind CSS</span>
+                    </div>
+                  </div>
+
+                  {/* Zod Validation */}
+                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
+                    <span className="text-amber-400 select-none text-base">🛡</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white leading-none">schema.ts</span>
+                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">Zod validation rules</span>
+                    </div>
+                  </div>
+
+                  {/* Next.js API route */}
+                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
+                    <span className="text-cyan-400 select-none text-base">⚡</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white leading-none">route.ts</span>
+                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">Next.js API route handler</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Bottom tag */}
+              <div className="absolute bottom-4 right-6 text-[7px] font-mono text-neutral-600 uppercase tracking-wider">
+                Ready for production
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Tabbed Code Terminal Section */}
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 border-t border-brand-border/60 text-center">
+        {/* Start Now centered pill button */}
+        <div className="mb-10">
+          <Link href="/builder">
+            <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-black px-8 py-3.5 h-12 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer">
+              Start Now
+            </Button>
+          </Link>
+        </div>
+
+        {/* Tabbed dark code terminal */}
+        <div className="w-full max-w-7xl mx-auto border border-neutral-800 bg-brand-charcoal rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
+          {/* Header language tabs */}
+          <div className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-4">
+            <div className="flex items-center gap-6">
+              <button
+                type="button"
+                onClick={() => setTerminalTab('react')}
+                className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'react'
+                    ? 'text-brand-orange border-brand-orange'
+                    : 'text-neutral-400 border-transparent hover:text-white'
+                  }`}
+              >
+                REACT COMPONENT
+              </button>
+              <button
+                type="button"
+                onClick={() => setTerminalTab('nextjs')}
+                className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'nextjs'
+                    ? 'text-brand-orange border-brand-orange'
+                    : 'text-neutral-400 border-transparent hover:text-white'
+                  }`}
+              >
+                NEXT.JS API ROUTE
+              </button>
+            </div>
+
+            {/* Copy button */}
+            <button
+              type="button"
+              onClick={copyTerminalCode}
+              title="Copy Code"
+              className="p-2 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white transition-all cursor-pointer border border-neutral-700"
+            >
+              {terminalCopied ? <span className="text-[10px] font-bold text-brand-orange font-mono">COPIED!</span> : <FileCode2 className="w-4 h-4" />}
+            </button>
+          </div>
+
+          {/* Terminal content */}
+          <div className="font-mono text-[11px] md:text-xs leading-relaxed text-neutral-300 overflow-x-auto select-text whitespace-pre py-2 relative flex">
+            {/* Line numbers */}
+            <div className="text-neutral-600 text-right pr-4 select-none border-r border-neutral-800/80 mr-4 font-mono w-5">
+              {Array.from({ length: terminalTab === 'react' ? 8 : 7 }).map((_, i) => (
+                <div key={i}>{i + 1}</div>
+              ))}
+            </div>
+
+            {/* Code highlighter elements */}
+            <div className="flex-1">
+              {terminalTab === 'react' ? (
+                <code>
+                  <span className="text-pink-500">import</span> &#123; useForm &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;react-hook-form&apos;</span>;<br />
+                  <span className="text-pink-500">import</span> &#123; zodResolver &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;@hookform/resolvers/zod&apos;</span>;<br />
+                  <span className="text-pink-500">import</span> &#123; z &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;zod&apos;</span>;<br /><br />
+                  <span className="text-cyan-400">const</span> <span className="text-amber-400">FormSchema</span> = z.object(&#123;<br />
+                  &nbsp;&nbsp;email: z.string().email(),<br />
+                  &nbsp;&nbsp;name: z.string().min(<span className="text-purple-400">2</span>)<br />
+                  &#125;);
+                </code>
+              ) : (
+                <code>
+                  <span className="text-pink-500">import</span> &#123; NextResponse &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;next/server&apos;</span>;<br />
+                  <span className="text-pink-500">import</span> &#123; FormSchema &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;./schema&apos;</span>;<br /><br />
+                  <span className="text-pink-500">export async function</span> <span className="text-amber-400">POST</span>(req) &#123;<br />
+                  &nbsp;&nbsp;<span className="text-cyan-400">const</span> body = <span className="text-pink-500">await</span> req.json();<br />
+                  &nbsp;&nbsp;<span className="text-cyan-400">const</span> result = FormSchema.safeParse(body);<br />
+                  &nbsp;&nbsp;<span className="text-pink-500">return</span> NextResponse.json(&#123; success: result.success &#125;);<br />
+                  &#125;
+                </code>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* Feature section */}
-      <section id="features" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 border-t border-neutral-900/50">
-        <h2 className="text-3xl md:text-5xl font-black text-center mb-16 tracking-tight">
+      <section id="features" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
+        <h2 className="text-3xl md:text-4xl font-black text-center mb-16 tracking-tight">
           Supercharge Your Form Development
         </h2>
 
@@ -158,60 +532,94 @@ export default function LandingPage() {
             {
               icon: Cpu,
               title: '3-Layer Architecture',
-              desc: 'Get full production-ready setups matching frontend React component, Zod validation schema, and Next.js backend API routing.',
-              color: 'text-violet-500 bg-violet-500/5 border-violet-500/10'
+              desc: 'Get full production-ready setups matching frontend React components, Zod validation schemas, and Next.js backend API routing handlers.',
+              color: 'border-brand-border bg-white shadow-sm'
             },
             {
               icon: Layers,
               title: 'Tailored Styling Themes',
-              desc: 'Switch styles instantly between Modern, Corporate, or Stark Minimalist layouts matching your unique app aesthetic.',
-              color: 'text-indigo-500 bg-indigo-500/5 border-indigo-500/10'
+              desc: 'Switch styles instantly between Modern Glassmorphism, Stark Minimalist layouts, or Rigid Business Corporate interfaces matching your product branding.',
+              color: 'border-brand-border bg-white shadow-sm'
             },
             {
               icon: Zap,
               title: 'Instant ZIP Exports',
-              desc: 'Pack your generation codes instantly in a structured directory matching file imports, ready to drop in and play.',
-              color: 'text-emerald-500 bg-emerald-500/5 border-emerald-500/10'
+              desc: 'Pack your generation codes instantly in a structured directory matching proper ES6 file imports, ready to drop in and run.',
+              color: 'border-brand-border bg-white shadow-sm'
             }
           ].map((feat, index) => {
             const Icon = feat.icon;
             return (
               <div
                 key={index}
-                className={`p-8 rounded-3xl border bg-neutral-900/20 backdrop-blur-sm text-left hover:-translate-y-1 transition-all duration-300 ${feat.color}`}
+                className={`p-8 rounded-3xl border hover:-translate-y-1 transition-all duration-300 ${feat.color} text-left flex flex-col justify-between`}
               >
-                <div className="p-3 rounded-2xl w-fit bg-neutral-900 border border-neutral-800 mb-6">
-                  <Icon className="w-6 h-6" />
+                <div className="space-y-6">
+                  <div className="p-3.5 rounded-2xl w-fit bg-brand-sand border border-brand-border text-brand-orange shadow-inner">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-black text-brand-charcoal">{feat.title}</h3>
+                    <p className="text-xs text-neutral-500 leading-relaxed">{feat.desc}</p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{feat.title}</h3>
-                <p className="text-sm text-neutral-400 leading-relaxed">{feat.desc}</p>
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="relative z-10 w-full max-w-5xl mx-auto px-6 py-20 text-center mb-16">
-        <div className="border border-neutral-850 bg-gradient-to-b from-neutral-900/30 to-neutral-900/10 backdrop-blur-md rounded-3xl p-12 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-radial from-violet-500/5 to-transparent pointer-events-none" />
+      {/* Bottom solid orange CTA Banner */}
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 mb-16">
+        <div className="bg-brand-orange rounded-3xl p-12 md:p-16 text-center text-white relative overflow-hidden shadow-xl shadow-brand-orange/10 border border-brand-orange">
+          {/* Subtle lightning bolt icon */}
+          <span className="text-white text-3xl font-black block mb-5 select-none">⚡</span>
+
+          {/* Main Title */}
           <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-4">
-            Build Better Forms Faster
+            Build Fast
           </h2>
-          <p className="text-neutral-400 max-w-lg mx-auto mb-8 text-sm md:text-base leading-relaxed">
-            Eliminate boilerplate. Select templates, customize validation rules, and export fully functional TypeScript form modules instantly.
+
+          {/* Subtitle */}
+          <p className="text-white/95 text-xs md:text-sm max-w-xl mx-auto mb-8 font-semibold leading-relaxed">
+            Seamlessly compile custom forms starting with just a single text prompt
           </p>
+
+          {/* Try Free centered button */}
           <Link href="/builder">
-            <Button size="lg" className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 h-12 shadow-lg shadow-violet-500/20 cursor-pointer">
-              Launch FormCraft Studio
+            <Button className="rounded-full bg-white hover:bg-neutral-100 text-brand-orange text-xs font-black px-8 py-3 h-10 shadow transition-all hover:scale-105 active:scale-95 border-none cursor-pointer">
+              Try FormCraft for Free
             </Button>
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-neutral-900 py-8 text-center text-xs text-neutral-500">
-        <p>&copy; {new Date().getFullYear()} FormCraft Studio. Built with Next.js, Tailwind v4, & shadcn/ui.</p>
+      <footer className="relative z-20 border-t border-brand-border/60 py-12 bg-brand-sand">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Left side: Logo & Copyright */}
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left">
+            <Link href="/">
+              <div className="flex items-center gap-1 cursor-pointer">
+                <span className="text-xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5 select-none">
+                  <span className="text-brand-orange text-2xl font-extrabold -mt-1">⚡</span>
+                  formcraft
+                </span>
+              </div>
+            </Link>
+            <p className="text-[11px] font-mono text-neutral-400">
+              &copy; {new Date().getFullYear()} FormCraft Studio. All rights reserved.
+            </p>
+          </div>
+
+          {/* Right side: Functional links only */}
+          <div className="flex items-center gap-6 text-xs font-semibold text-brand-charcoal/80">
+            <Link href="/builder" className="hover:text-brand-orange transition-colors">Studio</Link>
+            <a href="#features" className="hover:text-brand-orange transition-colors">Features</a>
+          </div>
+
+        </div>
       </footer>
     </div>
   );

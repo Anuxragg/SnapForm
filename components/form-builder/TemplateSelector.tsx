@@ -21,24 +21,24 @@ const categoryIcons = {
 };
 
 const categoryGlow = {
-  contact: 'hover:border-indigo-500/50 hover:shadow-indigo-500/10',
-  payment: 'hover:border-emerald-500/50 hover:shadow-emerald-500/10',
-  survey: 'hover:border-slate-800/50 hover:shadow-slate-800/10',
-  booking: 'hover:border-pink-500/50 hover:shadow-pink-500/10',
+  contact: 'hover:border-brand-orange/60 hover:shadow-brand-charcoal/5',
+  payment: 'hover:border-brand-orange/60 hover:shadow-brand-charcoal/5',
+  survey: 'hover:border-brand-orange/60 hover:shadow-brand-charcoal/5',
+  booking: 'hover:border-brand-orange/60 hover:shadow-brand-charcoal/5',
 };
 
 const categoryBadge = {
-  contact: 'bg-indigo-50 text-indigo-700 border-indigo-200/50',
-  payment: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-  survey: 'bg-slate-100 text-slate-800 border-slate-200',
-  booking: 'bg-pink-50 text-pink-700 border-pink-200/50',
+  contact: 'bg-brand-charcoal text-white border-brand-charcoal',
+  payment: 'bg-brand-orange text-white border-brand-orange',
+  survey: 'bg-neutral-800 text-white border-neutral-800',
+  booking: 'bg-neutral-600 text-white border-neutral-600',
 };
 
 const categoryIconBg = {
-  contact: 'bg-indigo-50 text-indigo-600',
-  payment: 'bg-emerald-50 text-emerald-600',
-  survey: 'bg-slate-100 text-slate-700',
-  booking: 'bg-pink-50 text-pink-600',
+  contact: 'bg-brand-sand text-brand-charcoal border border-brand-border',
+  payment: 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20',
+  survey: 'bg-brand-sand text-brand-charcoal border border-brand-border',
+  booking: 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20',
 };
 
 export default function TemplateSelector({ templates, onSelect, isLoading = false }: TemplateSelectorProps) {
@@ -59,7 +59,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
         const glowClass = categoryGlow[template.category] || '';
         const badgeClass = categoryBadge[template.category] || '';
         const iconBg = categoryIconBg[template.category] || '';
-        
+
         return (
           <Card
             key={template.name}
@@ -68,7 +68,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
           >
             {/* Visual background gradient accents */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-neutral-50/50 to-transparent pointer-events-none rounded-full" />
-            
+
             <CardHeader className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className={`p-3 rounded-2xl transition-all duration-300 group-hover:scale-110 ${iconBg}`}>
@@ -79,7 +79,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 </Badge>
               </div>
               <div className="space-y-1.5">
-                <CardTitle className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-primary transition-colors">
+                <CardTitle className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-brand-orange transition-colors">
                   {template.name}
                 </CardTitle>
                 <CardDescription className="text-sm leading-relaxed text-neutral-500 min-h-[40px]">
@@ -87,7 +87,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 </CardDescription>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5">
                 Included Fields
@@ -103,7 +103,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 ))}
               </div>
             </CardContent>
-            
+
             <CardFooter className="border-t border-neutral-50/80 bg-neutral-50/30 pt-4 flex items-center justify-between">
               <span className="text-sm font-semibold text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 Start with this template

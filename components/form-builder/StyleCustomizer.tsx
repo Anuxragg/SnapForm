@@ -14,13 +14,13 @@ interface StyleCustomizerProps {
 }
 
 const colorPresets = [
+  { name: 'Orange-Red (Brand)', value: '#ff4f19' },
+  { name: 'Charcoal (Brand)', value: '#121212' },
   { name: 'Indigo', value: '#6366f1' },
   { name: 'Emerald', value: '#10b981' },
   { name: 'Violet', value: '#8b5cf6' },
   { name: 'Blue', value: '#3b82f6' },
   { name: 'Pink', value: '#ec4899' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Charcoal', value: '#0f172a' },
 ];
 
 export default function StyleCustomizer({ styling, onChange }: StyleCustomizerProps) {
@@ -35,7 +35,7 @@ export default function StyleCustomizer({ styling, onChange }: StyleCustomizerPr
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
+        <div className="p-2 rounded-xl bg-brand-orange/10 text-brand-orange border border-brand-orange/20">
           <Palette className="w-5 h-5" />
         </div>
         <div>
@@ -68,7 +68,7 @@ export default function StyleCustomizer({ styling, onChange }: StyleCustomizerPr
           <Label className="text-sm font-semibold text-neutral-700">Primary Color Accent</Label>
           <span className="text-xs font-mono text-neutral-400 uppercase">{styling.primaryColor}</span>
         </div>
-        
+
         {/* Presets Grid */}
         <div className="grid grid-cols-7 gap-2">
           {colorPresets.map((preset) => {

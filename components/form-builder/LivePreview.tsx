@@ -26,10 +26,10 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
   // Let's dynamically construct a Zod schema in the frontend to validate the interactive preview!
   const buildDynamicZodSchema = () => {
     const shape: any = {};
-    
+
     fields.forEach((field) => {
       let fieldValidation: any = z.string();
-      
+
       switch (field.type) {
         case 'email':
           fieldValidation = z.string().email('Invalid email address');
@@ -39,7 +39,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             fieldValidation = z.union([z.string().email('Invalid email address'), z.literal('')]).optional();
           }
           break;
-          
+
         case 'textarea':
         case 'text':
           fieldValidation = z.string();
@@ -48,7 +48,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
           } else {
             fieldValidation = fieldValidation.optional().or(z.literal(''));
           }
-          
+
           if (field.validation?.minLength && field.required) {
             if (field.validation.minLength > 1) {
               fieldValidation = fieldValidation.min(field.validation.minLength, `Minimum length is ${field.validation.minLength}`);
@@ -61,10 +61,10 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             try {
               const regex = new RegExp(field.validation.pattern);
               fieldValidation = fieldValidation.regex(regex, 'Invalid format');
-            } catch {}
+            } catch { }
           }
           break;
-          
+
         case 'select':
         case 'radio':
           if (field.options && field.options.length > 0) {
@@ -78,7 +78,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             fieldValidation = z.union([fieldValidation, z.literal('')]).optional();
           }
           break;
-          
+
         case 'checkbox':
           if (field.options && field.options.length > 0) {
             fieldValidation = z.array(z.string());
@@ -95,7 +95,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             }
           }
           break;
-          
+
         case 'file':
           if (field.required) {
             fieldValidation = z.any().refine((files) => {
@@ -105,11 +105,11 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             fieldValidation = z.any().optional();
           }
           break;
-          
+
         default:
           fieldValidation = z.string().optional();
       }
-      
+
       shape[field.id] = fieldValidation;
     });
 
@@ -159,9 +159,9 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
       break;
     case 'modern':
     default:
-      cardClass = 'border border-neutral-200/60 bg-white/85 backdrop-blur-md rounded-2xl shadow-xl shadow-neutral-100/30 p-8';
-      inputClass = 'rounded-xl border-neutral-200 focus:ring-2 focus:ring-violet-500/20';
-      buttonClass += 'rounded-xl shadow-lg shadow-violet-500/10 hover:scale-[1.01] active:scale-[0.99]';
+      cardClass = 'border border-brand-border bg-white rounded-2xl shadow-xl shadow-brand-charcoal/5 p-8';
+      inputClass = 'rounded-xl border-brand-border focus:ring-2 focus:ring-brand-orange/20';
+      buttonClass += 'rounded-xl shadow-lg shadow-brand-orange/10 hover:scale-[1.01] active:scale-[0.99]';
       break;
   }
 
@@ -187,17 +187,17 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
               Please fill out the form details below.
             </CardDescription>
           </CardHeader>
-          
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-5 text-left">
               {fields.map((field) => {
                 const requiredAsterisk = field.required ? (
                   <span className="text-rose-500 font-bold ml-0.5">*</span>
                 ) : null;
-                
+
                 let element = null;
                 const fieldErr = (errors as any)[field.id];
-                
+
                 switch (field.type) {
                   case 'text':
                   case 'email':
@@ -220,7 +220,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       </div>
                     );
                     break;
-                    
+
                   case 'textarea':
                     element = (
                       <div key={field.id} className="space-y-1.5">
@@ -240,7 +240,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       </div>
                     );
                     break;
-                    
+
                   case 'select':
                     element = (
                       <div key={field.id} className="space-y-1.5">
@@ -272,7 +272,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       </div>
                     );
                     break;
-                    
+
                   case 'radio':
                     element = (
                       <div key={field.id} className="space-y-1.5">
@@ -305,7 +305,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       </div>
                     );
                     break;
-                    
+
                   case 'checkbox':
                     if (field.options && field.options.length > 0) {
                       // Multi-checkbox
@@ -383,7 +383,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       );
                     }
                     break;
-                    
+
                   case 'file':
                     element = (
                       <div key={field.id} className="space-y-1.5">
@@ -403,15 +403,15 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       </div>
                     );
                     break;
-                    
+
                   default:
                     break;
                 }
-                
+
                 return element;
               })}
             </CardContent>
-            
+
             <CardFooter className="pt-3">
               <Button
                 type="submit"
