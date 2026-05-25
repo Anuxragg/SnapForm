@@ -6,29 +6,18 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Sparkles,
   ArrowRight,
-  Code2,
   Cpu,
   Layers,
   Zap,
-  Mail,
-  CreditCard,
-  BarChart3,
-  MousePointerClick,
   FileCode2,
-  Terminal,
-  Server,
-  Play,
-  Volume2,
   Wand2,
 } from 'lucide-react';
+import WorkflowDemo from '@/components/WorkflowDemo';
 
 export default function LandingPage() {
   const router = useRouter();
-  const [activeShowcase, setActiveShowcase] = useState<'contact' | 'payment' | 'survey'>('contact');
   const [promptInput, setPromptInput] = useState('');
-  const [showcaseSubmitted, setShowcaseSubmitted] = useState(false);
   const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
   const [terminalCopied, setTerminalCopied] = useState(false);
 
@@ -47,12 +36,6 @@ export default function LandingPage() {
     e.preventDefault();
     if (!promptInput.trim()) return;
     router.push(`/builder?prompt=${encodeURIComponent(promptInput.trim())}`);
-  };
-
-  const triggerShowcaseSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowcaseSubmitted(true);
-    setTimeout(() => setShowcaseSubmitted(false), 3000);
   };
 
   return (
@@ -95,171 +78,9 @@ export default function LandingPage() {
       <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-16 pb-24 flex-1 flex flex-col">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-          {/* Left Column: Interactive Form Showcase Card */}
+          {/* Left Column: Animated Workflow Demo */}
           <div className="lg:col-span-6 xl:col-span-7 order-2 lg:order-1">
-            <div className="relative w-full border border-brand-border bg-white rounded-3xl p-5 md:p-6 shadow-2xl shadow-brand-charcoal/5 overflow-hidden">
-
-              {/* Card Title Badges */}
-              <div className="flex items-center justify-between border-b border-brand-border/60 pb-4 mb-5">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-brand-charcoal text-white tracking-widest uppercase">
-                    1.00 FPS
-                  </span>
-                  <span className="text-[10px] font-bold text-neutral-400 font-mono tracking-wider">
-                    INSTANT COMPILE
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5 px-2.5 py-1 rounded-full bg-brand-orange/10 text-brand-orange text-[10px] font-bold tracking-wider uppercase">
-                    <span className="w-1.5 h-1.5 bg-brand-orange rounded-full animate-ping mt-[2px]" />
-                    Interactive Showcase
-                  </div>
-                </div>
-              </div>
-
-              {/* Showcase Tab Switcher */}
-              <div className="grid grid-cols-3 gap-2 p-1 bg-brand-sand rounded-xl border border-brand-border/60 mb-6">
-                {[
-                  { id: 'contact', label: 'Contact', icon: Mail },
-                  { id: 'payment', label: 'Billing', icon: CreditCard },
-                  { id: 'survey', label: 'Survey', icon: BarChart3 },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeShowcase === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveShowcase(tab.id as any);
-                        setShowcaseSubmitted(false);
-                      }}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${isActive
-                          ? 'bg-white text-brand-charcoal border border-brand-border shadow-sm'
-                          : 'text-brand-charcoal/60 hover:text-brand-charcoal hover:bg-white/40'
-                        }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Showcase Form Render Box */}
-              <div className="border border-brand-border/60 bg-brand-sand/30 rounded-2xl p-5 md:p-6 min-h-[290px] flex flex-col justify-between">
-                {showcaseSubmitted ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-8">
-                    <div className="w-12 h-12 rounded-full bg-brand-orange text-white flex items-center justify-center animate-bounce shadow shadow-brand-orange/30">
-                      <Zap className="w-6 h-6" />
-                    </div>
-                    <h4 className="text-base font-bold text-brand-charcoal">Lightning-Fast Generation Triggered!</h4>
-                    <p className="text-xs text-neutral-500 max-w-sm">
-                      This dynamic showcase represents the visual output. The underlying React + Zod code compiles in milliseconds.
-                    </p>
-                  </div>
-                ) : (
-                  <form onSubmit={triggerShowcaseSubmit} className="space-y-4 text-left">
-                    {activeShowcase === 'contact' && (
-                      <>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Full Name</label>
-                          <input type="text" placeholder="John Doe" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Email Address</label>
-                          <input type="email" placeholder="john@example.com" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Message</label>
-                          <textarea placeholder="Tell us about your project..." rows={2} required className="w-full rounded-xl border border-brand-border bg-white p-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange resize-none" />
-                        </div>
-                      </>
-                    )}
-
-                    {activeShowcase === 'payment' && (
-                      <>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Cardholder Name</label>
-                          <input type="text" placeholder="Jane Smith" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Card Number</label>
-                            <input type="text" placeholder="•••• •••• •••• ••••" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Expiry / CVC</label>
-                            <input type="text" placeholder="MM/YY  CVC" required className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange" />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Subscription Tier</label>
-                          <select className="w-full h-9 rounded-xl border border-brand-border bg-white px-3 text-xs focus:outline-none focus:ring-1 focus:ring-brand-orange">
-                            <option>Starter License ($19/mo)</option>
-                            <option>Developer License ($49/mo)</option>
-                            <option>Enterprise License ($99/mo)</option>
-                          </select>
-                        </div>
-                      </>
-                    )}
-
-                    {activeShowcase === 'survey' && (
-                      <>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Overall Satisfaction</label>
-                          <div className="grid grid-cols-4 gap-2 pt-1">
-                            {['Bad', 'Okay', 'Good', 'Love it'].map((opt) => (
-                              <label key={opt} className="flex flex-col items-center justify-center p-2 rounded-xl border border-brand-border bg-white cursor-pointer hover:border-brand-orange hover:bg-brand-orange/5 text-[10px] font-bold transition-all">
-                                <input type="radio" name="satisfaction" className="sr-only" />
-                                <span>{opt}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-brand-charcoal/70 uppercase font-mono tracking-wider">Favorite Studio Features</label>
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            {['Dynamic Zod Schema', 'Instant ZIP Export', 'Tailwind Configs', 'Next.js API Handler'].map((opt) => (
-                              <label key={opt} className="flex items-center gap-2 p-2 rounded-xl border border-brand-border bg-white text-[9px] font-semibold cursor-pointer hover:bg-neutral-50">
-                                <input type="checkbox" className="rounded text-brand-orange focus:ring-brand-orange" />
-                                <span>{opt}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    <Button type="submit" className="w-full mt-2 rounded-xl bg-brand-charcoal hover:bg-neutral-900 text-white font-bold h-10 text-xs flex items-center justify-center gap-1.5 shadow transition-all cursor-pointer">
-                      <Zap className="w-3.5 h-3.5 text-brand-orange fill-brand-orange" /> Compile Live Code
-                    </Button>
-                  </form>
-                )}
-              </div>
-
-              {/* Developer Integration Ticker Bar */}
-              <div className="mt-6 border-t border-brand-border/60 pt-4 flex flex-col space-y-2">
-                <span className="text-[9px] font-extrabold uppercase font-mono text-neutral-400 tracking-widest text-left">
-                  SUPPORTED STACKS & INTEGRATIONS
-                </span>
-                <div className="w-full overflow-hidden relative">
-                  <div className="flex items-center justify-between text-xs font-mono font-black text-brand-charcoal/60 gap-4 flex-wrap">
-                    <span className="hover:text-brand-orange transition-colors">VERCEL</span>
-                    <span>•</span>
-                    <span className="hover:text-brand-orange transition-colors">NEXT.JS</span>
-                    <span>•</span>
-                    <span className="hover:text-brand-orange transition-colors">TAILWIND</span>
-                    <span>•</span>
-                    <span className="hover:text-brand-orange transition-colors">ZOD</span>
-                    <span>•</span>
-                    <span className="hover:text-brand-orange transition-colors">REACT</span>
-                    <span>•</span>
-                    <span className="hover:text-brand-orange transition-colors">SHADCN</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            <WorkflowDemo />
           </div>
 
           {/* Right Column: High-Impact Typography & Branding */}
@@ -295,26 +116,7 @@ export default function LandingPage() {
               </a>
             </div>
 
-            {/* Tiny mini-cards underneath */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-brand-border/60">
-              <div className="border border-brand-border rounded-2xl bg-white/70 p-4 space-y-1.5 shadow-sm">
-                <span className="text-[9px] font-extrabold font-mono text-brand-orange tracking-wider uppercase block">
-                  PARTNER ARCHITECTURE
-                </span>
-                <h4 className="text-xs font-bold text-brand-charcoal leading-snug">
-                  Official Next.js & Zod TypeScript schemas.
-                </h4>
-              </div>
 
-              <div className="border border-brand-border rounded-2xl bg-white/70 p-4 space-y-1.5 shadow-sm">
-                <span className="text-[9px] font-extrabold font-mono text-brand-orange tracking-wider uppercase block">
-                  ZIP COMPRESSOR
-                </span>
-                <h4 className="text-xs font-bold text-brand-charcoal leading-snug">
-                  Download production modules in a structured directory.
-                </h4>
-              </div>
-            </div>
 
             {/* Speed Prompt Bar - Black Pill */}
             <div className="relative pt-4">

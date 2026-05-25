@@ -1,9 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Mail, CreditCard, BarChart3, Calendar, ArrowRight } from 'lucide-react';
 import { ISeedFormTemplate } from '@/lib/templates';
 
@@ -61,34 +59,39 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
         const iconBg = categoryIconBg[template.category] || '';
 
         return (
-          <Card
-            key={template.name}
-            className={`group relative overflow-hidden bg-white/80 backdrop-blur-md border border-neutral-200/60 shadow-xl shadow-neutral-100/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer ${glowClass}`}
+          <div
+            key={`${template.name}-${template.category}`}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(template)}
+            onKeyDown={(e) => e.key === 'Enter' && onSelect(template)}
+            className={`group relative overflow-hidden bg-white/80 backdrop-blur-md border border-neutral-200/60 shadow-xl shadow-neutral-100/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer rounded-xl ${glowClass}`}
           >
             {/* Visual background gradient accents */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-neutral-50/50 to-transparent pointer-events-none rounded-full" />
 
-            <CardHeader className="space-y-4">
+            {/* Header */}
+            <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div className={`p-3 rounded-2xl transition-all duration-300 group-hover:scale-110 ${iconBg}`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <Badge variant="outline" className={`font-semibold capitalize px-2.5 py-0.5 rounded-full ${badgeClass}`}>
+                <Badge variant="outline" className={`font-semibold capitalize px-2.5 py-0.5 rounded-full pointer-events-none ${badgeClass}`}>
                   {template.category}
                 </Badge>
               </div>
               <div className="space-y-1.5">
-                <CardTitle className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-brand-orange transition-colors">
+                <h3 className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-brand-orange transition-colors">
                   {template.name}
-                </CardTitle>
-                <CardDescription className="text-sm leading-relaxed text-neutral-500 min-h-[40px]">
+                </h3>
+                <p className="text-sm leading-relaxed text-neutral-500 min-h-[40px]">
                   {template.description}
-                </CardDescription>
+                </p>
               </div>
-            </CardHeader>
+            </div>
 
-            <CardContent>
+            {/* Fields */}
+            <div className="px-6 pb-4">
               <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5">
                 Included Fields
               </div>
@@ -96,27 +99,24 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 {template.fields.map((field) => (
                   <span
                     key={field.id}
-                    className="inline-flex items-center text-xs font-medium bg-neutral-50 border border-neutral-200/50 text-neutral-600 px-2 py-0.5 rounded-md"
+                    className="inline-flex items-center text-xs font-medium bg-neutral-50 border border-neutral-200/50 text-neutral-600 px-2 py-0.5 rounded-md pointer-events-none"
                   >
                     {field.label}
                   </span>
                 ))}
               </div>
-            </CardContent>
+            </div>
 
-            <CardFooter className="border-t border-neutral-50/80 bg-neutral-50/30 pt-4 flex items-center justify-between">
+            {/* Footer */}
+            <div className="border-t border-neutral-100 bg-neutral-50/30 px-6 py-4 flex items-center justify-between pointer-events-none">
               <span className="text-sm font-semibold text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 Start with this template
               </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="rounded-xl group-hover:bg-neutral-100/80 group-hover:translate-x-1 transition-all duration-300"
-              >
+              <span className="w-8 h-8 rounded-xl flex items-center justify-center group-hover:bg-neutral-100/80 group-hover:translate-x-1 transition-all duration-300">
                 <ArrowRight className="w-4 h-4 text-neutral-700" />
-              </Button>
-            </CardFooter>
-          </Card>
+              </span>
+            </div>
+          </div>
         );
       })}
     </div>

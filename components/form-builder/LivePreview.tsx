@@ -41,29 +41,37 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
           break;
 
         case 'textarea':
-        case 'text':
-          fieldValidation = z.string();
+        case 'text': {
+          let base = z.string();
+
+          // Apply min length first
           if (field.required) {
-            fieldValidation = fieldValidation.min(field.validation?.minLength || 1, `${field.label} is required`);
-          } else {
-            fieldValidation = fieldValidation.optional().or(z.literal(''));
+            const minLen = field.validation?.minLength ?? 1;
+            const minMsg = minLen > 1
+              ? `${field.label} must be at least ${minLen} characters`
+              : `${field.label} is required`;
+            base = base.min(minLen, minMsg);
+          } else if (field.validation?.minLength) {
+            base = base.min(field.validation.minLength, `Minimum length is ${field.validation.minLength}`);
           }
 
-          if (field.validation?.minLength && field.required) {
-            if (field.validation.minLength > 1) {
-              fieldValidation = fieldValidation.min(field.validation.minLength, `Minimum length is ${field.validation.minLength}`);
-            }
-          }
+          // Max length
           if (field.validation?.maxLength) {
-            fieldValidation = fieldValidation.max(field.validation.maxLength, `Maximum length is ${field.validation.maxLength}`);
+            base = base.max(field.validation.maxLength, `Maximum length is ${field.validation.maxLength}`);
           }
+
+          // Regex pattern
           if (field.validation?.pattern) {
             try {
               const regex = new RegExp(field.validation.pattern);
-              fieldValidation = fieldValidation.regex(regex, 'Invalid format');
-            } catch { }
+              base = base.regex(regex, 'Invalid format');
+            } catch { /* ignore invalid regex */ }
           }
+
+          // Make optional last
+          fieldValidation = field.required ? base : base.optional().or(z.literal(''));
           break;
+        }
 
         case 'select':
         case 'radio':
@@ -188,7 +196,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
             </CardDescription>
           </CardHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form key={fields.map(f => `${f.id}-${f.required}`).join('-')} onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-5 text-left">
               {fields.map((field) => {
                 const requiredAsterisk = field.required ? (

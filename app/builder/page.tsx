@@ -7,11 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import {
-  Sparkles,
-  ArrowLeft,
   Settings2,
   Palette,
-  Layers,
   Wand2,
   ChevronLeft,
   ExternalLink,
@@ -26,8 +23,8 @@ import { ISeedFormTemplate, PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 
 export default function BuilderPage() {
-  // State variables
-  const [templates, setTemplates] = useState<ISeedFormTemplate[]>([]);
+  // Initialize with predefined templates immediately — no loading delay
+  const [templates, setTemplates] = useState<ISeedFormTemplate[]>(PREDEFINED_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<ISeedFormTemplate | null>(null);
   const [formName, setFormName] = useState<string>('');
   const [fields, setFields] = useState<IFormField[]>([]);
@@ -39,101 +36,112 @@ export default function BuilderPage() {
     apiRoute: string;
   } | null>(null);
 
-  const [templatesLoading, setTemplatesLoading] = useState<boolean>(true);
+  const [templatesLoading] = useState<boolean>(false);
   const [generationLoading, setGenerationLoading] = useState<boolean>(false);
 
-  // Fetch templates from API route on load
-
+  // ─── Background template sync from API ───────────────────────────────────────
   useEffect(() => {
-    async function fetchTemplates() {
+    async function fetchTemplatesInBackground() {
       try {
-        setTemplatesLoading(true);
         const res = await fetch('/api/templates');
         const json = await res.json();
-        if (json.success && json.data) {
-          setTemplates(json.data);
-        } else {
-          setTemplates(PREDEFINED_TEMPLATES);
+        if (json.success && json.data && json.data.length > 0) {
+          const normalized: ISeedFormTemplate[] = json.data.map((t: any) => ({
+            name: t.name || 'Untitled',
+            category: t.category || 'contact',
+            description: t.description || '',
+            fields: Array.isArray(t.fields) ? t.fields : [],
+            styling: {
+              theme: t.styling?.theme || 'modern',
+              primaryColor: t.styling?.primaryColor || '#ff4f19',
+            },
+          }));
+          setTemplates(normalized);
         }
       } catch (err) {
-        console.error('Failed to load templates from API, falling back to local files:', err);
-        setTemplates(PREDEFINED_TEMPLATES);
-      } finally {
-        setTemplatesLoading(false);
+        console.warn('Background template sync failed, using local templates:', err);
       }
     }
-    fetchTemplates();
+    fetchTemplatesInBackground();
   }, []);
 
-  // Parse prompt parameter from URL
-  useEffect(() => {
-    if (typeof window !== 'undefined' && templates.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const prompt = params.get('prompt');
-      if (prompt) {
-        const promptLower = prompt.toLowerCase();
-        let targetTemplate = templates[0] || PREDEFINED_TEMPLATES[0];
-
-        if (promptLower.includes('pay') || promptLower.includes('bill') || promptLower.includes('sub')) {
-          targetTemplate = templates.find(t => t.category === 'payment') || PREDEFINED_TEMPLATES[1];
-        } else if (promptLower.includes('survey') || promptLower.includes('feed') || promptLower.includes('rate')) {
-          targetTemplate = templates.find(t => t.category === 'survey') || PREDEFINED_TEMPLATES[2];
-        } else if (promptLower.includes('book') || promptLower.includes('sched') || promptLower.includes('date')) {
-          targetTemplate = templates.find(t => t.category === 'booking') || PREDEFINED_TEMPLATES[3];
-        }
-
-        setSelectedTemplate(targetTemplate);
-        setFormName(prompt.length > 40 ? prompt.substring(0, 40) + '...' : prompt);
-        setFields(targetTemplate.fields as IFormField[]);
-        setStyling({
-          theme: 'modern',
-          primaryColor: '#ff4f19',
-        });
-
-        // Remove search param from URL to avoid re-triggering if templates change
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-      }
-    }
-  }, [templates]);
-
-  // Handle template selection
-  const handleSelectTemplate = (template: ISeedFormTemplate) => {
+  // ─── Core: apply a template into React state ─────────────────────────────────
+  const applyTemplate = useCallback((template: ISeedFormTemplate) => {
+    const safeFields = Array.isArray(template.fields) ? template.fields as IFormField[] : [];
+    const safeTheme = template.styling?.theme || 'modern';
     setSelectedTemplate(template);
-    setFormName(template.name);
-    setFields(template.fields as IFormField[]);
-    setStyling({
-      theme: template.styling.theme as any,
-      primaryColor: '#ff4f19', // Use signature orange as default
-    });
-  };
-
-  // Reset/Deselect template to go back to choice view
-  const handleDeselectTemplate = () => {
-    setSelectedTemplate(null);
+    setFormName(template.name || 'My Form');
+    setFields(safeFields);
     setGeneratedCode(null);
+    setStyling({ theme: safeTheme as any, primaryColor: '#ff4f19' });
+  }, []);
+
+  // ─── Browser back button → popstate → return to template picker ──────────────
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (!e.state?.templateSelected) {
+        // Back to /builder base — show template picker
+        setSelectedTemplate(null);
+        setGeneratedCode(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // ─── URL: parse ?prompt= on first load ───────────────────────────────────────
+  useEffect(() => {
+    if (typeof window === 'undefined' || templates.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const prompt = params.get('prompt');
+    if (prompt) {
+      const pl = prompt.toLowerCase();
+      let target = templates[0] || PREDEFINED_TEMPLATES[0];
+      if (pl.includes('pay') || pl.includes('bill') || pl.includes('sub'))
+        target = templates.find(t => t.category === 'payment') || PREDEFINED_TEMPLATES[1];
+      else if (pl.includes('survey') || pl.includes('feed') || pl.includes('rate'))
+        target = templates.find(t => t.category === 'survey') || PREDEFINED_TEMPLATES[2];
+      else if (pl.includes('book') || pl.includes('sched') || pl.includes('date'))
+        target = templates.find(t => t.category === 'booking') || PREDEFINED_TEMPLATES[3];
+
+      applyTemplate(target);
+      // replaceState — don't pollute history for auto-selections
+      window.history.replaceState(
+        { templateSelected: true, category: target.category },
+        '',
+        `/builder?t=${target.category}`
+      );
+    }
+  }, [templates, applyTemplate]);
+
+  // ─── Select a template: pushState so back button works ───────────────────────
+  const handleSelectTemplate = (template: ISeedFormTemplate) => {
+    applyTemplate(template);
+    // Push new history entry → browser back fires popstate → returns to picker
+    window.history.pushState(
+      { templateSelected: true, category: template.category },
+      '',
+      `/builder?t=${encodeURIComponent(template.category)}`
+    );
   };
 
-  // Perform code compilation using /api/generate
+  // ─── Deselect: history.back() so the URL also resets cleanly ─────────────────
+  const handleDeselectTemplate = () => {
+    window.history.back();
+  };
+
+  // ─── Code generation ──────────────────────────────────────────────────────────
   const handleGenerateCode = useCallback(async () => {
     if (fields.length === 0) return;
     try {
       setGenerationLoading(true);
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fields,
-          styling,
-          name: formName || 'Form',
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, styling, name: formName || 'Form' }),
       });
       const json = await res.json();
-      if (json.success && json.data) {
-        setGeneratedCode(json.data);
-      }
+      if (json.success && json.data) setGeneratedCode(json.data);
     } catch (err) {
       console.error('Code generation request failed:', err);
     } finally {
@@ -141,12 +149,10 @@ export default function BuilderPage() {
     }
   }, [fields, styling, formName]);
 
-  // Debounced auto-compilation on layout changes for an ultra-premium reactive developer experience
+  // Debounced auto-compilation
   useEffect(() => {
     if (!selectedTemplate) return;
-    const timer = setTimeout(() => {
-      handleGenerateCode();
-    }, 500); // 500ms debounce
+    const timer = setTimeout(() => handleGenerateCode(), 500);
     return () => clearTimeout(timer);
   }, [fields, styling, formName, selectedTemplate, handleGenerateCode]);
 
@@ -227,7 +233,7 @@ export default function BuilderPage() {
       {/* Main Panel Canvas Area */}
       <main className="relative z-10 flex-1 w-full max-w-none flex flex-col overflow-hidden">
         {!selectedTemplate ? (
-          /* Landing Template Selector Panel */
+          /* Template Selector Panel */
           <div className="flex-1 overflow-y-auto px-6 py-12 text-center w-full">
             <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
               <div className="space-y-2">
@@ -250,10 +256,10 @@ export default function BuilderPage() {
             </div>
           </div>
         ) : (
-          /* Multi-Panel Studio Editor Split */
+          /* Multi-Panel Studio Editor */
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 border-t border-brand-border/60 h-full overflow-hidden">
 
-            {/* Left Panel: Configuration Fields + Style Customizer */}
+            {/* Left Panel */}
             <div className="lg:col-span-4 border-r border-brand-border/60 bg-white flex flex-col overflow-hidden h-full">
               <Tabs defaultValue="fields" className="w-full flex-1 flex flex-col overflow-hidden">
                 <TabsList className="grid grid-cols-2 rounded-none border-b border-brand-border/60 bg-brand-sand/30 p-0 h-11 w-full shrink-0">
@@ -287,12 +293,12 @@ export default function BuilderPage() {
               </Tabs>
             </div>
 
-            {/* Center Panel: Visual Live Preview Canvas */}
+            {/* Center Panel */}
             <div className="lg:col-span-4 bg-brand-sand/30 border-r border-brand-border/60 overflow-y-auto p-8 h-full flex flex-col justify-start">
               <LivePreview fields={fields} styling={styling} formName={formName} />
             </div>
 
-            {/* Right Panel: Syntax highlighted Code Output tabs */}
+            {/* Right Panel */}
             <div className="lg:col-span-4 bg-white overflow-hidden p-5 h-full">
               <CodeOutput
                 code={generatedCode}
