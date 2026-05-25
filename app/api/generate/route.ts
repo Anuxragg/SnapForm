@@ -22,7 +22,7 @@ async function createZipArchive(
     });
 
     output.on('close', () => resolve());
-    archive.on('error', (err) => reject(err));
+    archive.on('error', (err: any) => reject(err));
 
     archive.pipe(output);
     archive.append(componentCode, { name: 'form-bundle/FormComponent.tsx' });
