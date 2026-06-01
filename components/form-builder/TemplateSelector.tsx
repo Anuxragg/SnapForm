@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Mail, CreditCard, BarChart3, Calendar, ArrowRight } from 'lucide-react';
+import { Mail, CreditCard, BarChart3, Calendar, ArrowRight, Sparkles } from 'lucide-react';
 import { ISeedFormTemplate } from '@/lib/templates';
 
 interface TemplateSelectorProps {
@@ -53,14 +53,15 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto">
       {templates.map((template) => {
-        const Icon = categoryIcons[template.category] || Mail;
-        const glowClass = categoryGlow[template.category] || '';
-        const badgeClass = categoryBadge[template.category] || '';
-        const iconBg = categoryIconBg[template.category] || '';
+        const isCustom = !!(template as any).userId;
+        const Icon = isCustom ? Sparkles : (categoryIcons[template.category] || Mail);
+        const glowClass = isCustom ? 'hover:border-amber-400/80 hover:shadow-amber-100/5' : (categoryGlow[template.category] || '');
+        const badgeClass = isCustom ? 'bg-amber-500 text-white border-amber-500' : (categoryBadge[template.category] || '');
+        const iconBg = isCustom ? 'bg-amber-50 text-amber-600 border border-amber-200' : (categoryIconBg[template.category] || '');
 
         return (
           <div
-            key={`${template.name}-${template.category}`}
+            key={`${template.name}-${template.category}-${(template as any)._id || ''}`}
             role="button"
             tabIndex={0}
             onClick={() => onSelect(template)}
@@ -77,7 +78,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                   <Icon className="w-6 h-6" />
                 </div>
                 <Badge variant="outline" className={`font-semibold capitalize px-2.5 py-0.5 rounded-full pointer-events-none ${badgeClass}`}>
-                  {template.category}
+                  {isCustom ? 'Saved Form' : template.category}
                 </Badge>
               </div>
               <div className="space-y-1.5">

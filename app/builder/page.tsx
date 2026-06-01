@@ -13,6 +13,10 @@ import {
   ChevronLeft,
   ExternalLink,
   Laptop,
+  Save,
+  LogOut,
+  User as UserIcon,
+  ChevronDown,
 } from 'lucide-react';
 import TemplateSelector from '@/components/form-builder/TemplateSelector';
 import FieldEditor from '@/components/form-builder/FieldEditor';
@@ -21,8 +25,15 @@ import LivePreview from '@/components/form-builder/LivePreview';
 import CodeOutput from '@/components/form-builder/CodeOutput';
 import { ISeedFormTemplate, PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
+import { useAuth } from '@/components/AuthProvider';
+import { toast } from 'sonner';
 
 export default function BuilderPage() {
+  const { user, logout, openAuthModal } = useAuth();
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
   // Initialize with predefined templates immediately — no loading delay
   const [templates, setTemplates] = useState<ISeedFormTemplate[]>(PREDEFINED_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<ISeedFormTemplate | null>(null);
@@ -63,7 +74,7 @@ export default function BuilderPage() {
       }
     }
     fetchTemplatesInBackground();
-  }, []);
+  }, [refreshCounter]);
 
   // ─── Core: apply a template into React state ─────────────────────────────────
   const applyTemplate = useCallback((template: ISeedFormTemplate) => {
@@ -149,6 +160,45 @@ export default function BuilderPage() {
     }
   }, [fields, styling, formName]);
 
+  // Handle Save Custom Form to User Profile
+  const handleSaveForm = async () => {
+    if (!user) {
+      toast.warning('Please Sign In to save forms to your profile!');
+      openAuthModal('login');
+      return;
+    }
+
+    if (fields.length === 0) return;
+
+    setSavingTemplate(true);
+    try {
+      const res = await fetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formName || 'My Saved Form',
+          category: selectedTemplate?.category || 'contact',
+          description: `Custom saved form compiled by ${user.name}`,
+          fields,
+          styling,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        toast.success(json.message || 'Form template saved successfully!');
+        // Trigger templates refetch
+        setRefreshCounter(prev => prev + 1);
+      } else {
+        toast.error(json.message || 'Failed to save template');
+      }
+    } catch (err) {
+      toast.error('Network error while saving template');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
   // Debounced auto-compilation
   useEffect(() => {
     if (!selectedTemplate) return;
@@ -215,16 +265,75 @@ export default function BuilderPage() {
 
         <div className="flex items-center gap-3">
           {selectedTemplate && (
-            <Button
-              size="sm"
-              onClick={handleGenerateCode}
-              disabled={generationLoading || fields.length === 0}
-              className="rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold h-8 px-3 shadow border border-brand-orange flex items-center gap-1.5 cursor-pointer text-xs transition-all hover:scale-105 active:scale-95"
-            >
-              <Wand2 className="w-3.5 h-3.5" /> Compile Code
-            </Button>
+            <>
+              <Button
+                size="sm"
+                onClick={handleSaveForm}
+                disabled={savingTemplate || fields.length === 0}
+                className="rounded-xl border border-brand-border bg-white text-brand-charcoal hover:bg-brand-sand-dark font-bold h-8 px-3 flex items-center gap-1.5 cursor-pointer text-xs transition-all hover:scale-105 active:scale-95 shadow-sm"
+              >
+                {savingTemplate ? (
+                  <div className="w-3.5 h-3.5 border border-brand-charcoal border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5 text-brand-orange" />
+                )}
+                Save to Profile
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={handleGenerateCode}
+                disabled={generationLoading || fields.length === 0}
+                className="rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold h-8 px-3 shadow border border-brand-orange flex items-center gap-1.5 cursor-pointer text-xs transition-all hover:scale-105 active:scale-95"
+              >
+                <Wand2 className="w-3.5 h-3.5" /> Compile Code
+              </Button>
+            </>
           )}
-          <Link href="/" className="text-xs font-bold text-neutral-500 hover:text-brand-orange flex items-center gap-1 transition-colors">
+
+          {/* Dynamic Builder Login Session Display */}
+          {!user ? (
+            <button
+              onClick={() => openAuthModal('login')}
+              className="text-xs font-bold text-brand-charcoal hover:text-brand-orange cursor-pointer px-2.5 py-1 rounded-lg hover:bg-white hover:border-brand-border transition-all border border-transparent"
+            >
+              Sign In
+            </button>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-1 p-0.5 rounded-full border border-brand-border bg-white shadow-sm hover:border-brand-orange/60 transition-all cursor-pointer"
+              >
+                <div className="w-6.5 h-6.5 rounded-full bg-brand-orange text-white text-[10px] font-black flex items-center justify-center">
+                  {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+              </button>
+
+              {profileDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setProfileDropdownOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-48 bg-[#fdfcf9] border border-brand-border rounded-xl shadow-lg p-2.5 z-40 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
+                    <div className="px-2 py-1 mb-1.5 border-b border-brand-border/60">
+                      <p className="text-[9px] font-bold text-neutral-400 tracking-wider uppercase">User</p>
+                      <p className="text-xs font-extrabold text-brand-charcoal truncate">{user.name}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        logout();
+                      }}
+                      className="w-full text-left px-2 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <Link href="/" className="text-xs font-bold text-neutral-500 hover:text-brand-orange flex items-center gap-1 transition-colors pl-1">
             Home <ExternalLink className="w-3 h-3" />
           </Link>
         </div>

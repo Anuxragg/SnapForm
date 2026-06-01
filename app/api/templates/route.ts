@@ -2,15 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
+import { getSession } from '@/lib/auth';
 
-// GET all templates
+// GET all templates (combining seeds and user's custom templates)
 export async function GET() {
   try {
     await connectToDatabase();
-    const templates = await FormTemplate.find({}).sort({ createdAt: -1 });
+    const session = await getSession();
+    
+    let query = {};
+    if (session && session.id) {
+      // Find global static seeds or user's custom saved templates
+      query = {
+        $or: [
+          { userId: { $exists: false } },
+          { userId: null },
+          { userId: session.id },
+        ],
+      };
+    } else {
+      // Only return public static templates for anonymous users
+      query = {
+        $or: [
+          { userId: { $exists: false } },
+          { userId: null },
+        ],
+      };
+    }
+
+    const templates = await FormTemplate.find(query).sort({ createdAt: -1 });
 
     if (templates.length === 0) {
-      // If db is connected but empty, return predefined static ones as a fallback
       return NextResponse.json({
         success: true,
         source: 'static-empty-db',
@@ -25,7 +47,6 @@ export async function GET() {
     });
   } catch (error: any) {
     console.warn('MongoDB connection failed, falling back to static templates:', error.message);
-    // Graceful offline fallback
     return NextResponse.json({
       success: true,
       source: 'static-fallback',
@@ -34,7 +55,7 @@ export async function GET() {
   }
 }
 
-// POST new custom template
+// POST new custom template associated with logged-in user if active
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -48,19 +69,29 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
+    const session = await getSession();
     
-    // Create new template
-    const newTemplate = await FormTemplate.create({
+    // Build insert payload
+    const templateData: any = {
       name: body.name,
       category: body.category,
       description: body.description || 'Custom generated form template',
       fields: body.fields,
       styling: body.styling,
-    });
+    };
+
+    // Attach active user ownership
+    if (session && session.id) {
+      templateData.userId = session.id;
+    }
+
+    const newTemplate = await FormTemplate.create(templateData);
 
     return NextResponse.json({
       success: true,
-      message: 'Custom form template saved successfully!',
+      message: session
+        ? 'Custom form template saved to your profile successfully!'
+        : 'Custom form template compiled successfully (Anonymous)!',
       data: newTemplate,
     });
   } catch (error: any) {

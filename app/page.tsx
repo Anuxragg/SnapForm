@@ -12,14 +12,20 @@ import {
   Zap,
   FileCode2,
   Wand2,
+  User as UserIcon,
+  LogOut,
+  ChevronDown,
 } from 'lucide-react';
 import WorkflowDemo from '@/components/WorkflowDemo';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function LandingPage() {
   const router = useRouter();
+  const { user, logout, openAuthModal } = useAuth();
   const [promptInput, setPromptInput] = useState('');
   const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
   const [terminalCopied, setTerminalCopied] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const copyTerminalCode = () => {
     const code = terminalTab === 'react'
@@ -62,20 +68,87 @@ export default function LandingPage() {
         </Link>
 
         {/* Right Buttons */}
-        <div className="flex items-center gap-6">
-          <Link href="/builder" className="text-sm font-medium text-brand-charcoal/80 hover:text-brand-orange hidden sm:inline-block transition-colors">
-            Developers
+        <div className="flex items-center gap-4 relative">
+          <Link href="/builder" className="text-sm font-semibold text-brand-charcoal/80 hover:text-brand-orange hidden sm:inline-block transition-colors mr-2">
+            Studio
           </Link>
-          <Link href="/builder">
-            <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-6 py-2.5 h-10 shadow-sm border border-brand-orange hover:scale-105 active:scale-95 transition-all cursor-pointer">
-              Start Building
-            </Button>
-          </Link>
+
+          {!user ? (
+            <>
+              <button
+                onClick={() => openAuthModal('login')}
+                className="text-sm font-bold text-brand-charcoal/80 hover:text-brand-orange cursor-pointer transition-colors px-3 py-1.5 rounded-full hover:bg-brand-sand-dark"
+              >
+                Sign In
+              </button>
+              <Link href="/builder">
+                <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-6 py-2.5 h-10 shadow-sm border border-brand-orange hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                  Start Building
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <div className="relative">
+              {/* Profile Avatar Trigger Button */}
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-1.5 p-1 rounded-full border border-brand-border bg-white shadow-sm hover:border-brand-orange/60 hover:shadow transition-all cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-black flex items-center justify-center shadow-inner">
+                  {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-neutral-500 mr-1" />
+              </button>
+
+              {/* Custom State Dropdown Menu */}
+              {profileDropdownOpen && (
+                <>
+                  {/* Backdrop overlay to close when clicking outside */}
+                  <div 
+                    className="fixed inset-0 z-30" 
+                    onClick={() => setProfileDropdownOpen(false)}
+                  />
+                  
+                  <div className="absolute right-0 mt-2 w-52 bg-[#fdfcf9] border border-brand-border rounded-2xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-2.5 py-2 border-b border-brand-border/60 mb-2">
+                      <p className="text-[10px] font-black font-mono text-neutral-400 uppercase tracking-widest leading-none">
+                        Logged in as
+                      </p>
+                      <p className="text-xs font-bold text-brand-charcoal truncate mt-1">
+                        {user.name}
+                      </p>
+                      <p className="text-[10px] font-medium text-neutral-500 truncate leading-none mt-0.5">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <Link href="/builder" onClick={() => setProfileDropdownOpen(false)}>
+                      <button className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-charcoal hover:bg-brand-sand hover:text-brand-orange transition-all cursor-pointer flex items-center gap-2">
+                        <UserIcon className="w-3.5 h-3.5" />
+                        Launch Studio
+                      </button>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        logout();
+                      }}
+                      className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer flex items-center gap-2 mt-1"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-16 pb-24 flex-1 flex flex-col">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 pb-20 flex-1 flex flex-col">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
           {/* Left Column: Animated Workflow Demo */}
@@ -84,16 +157,16 @@ export default function LandingPage() {
           </div>
 
           {/* Right Column: High-Impact Typography & Branding */}
-          <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-start text-left space-y-8 order-1 lg:order-2">
+          <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-start text-left space-y-5 order-1 lg:order-2">
 
             {/* INFERENCE IS FUEL styled mono tag */}
             <div className="space-y-1">
               <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] block animate-pulse">
                 COMPILER IS SPEED FOR DEV
               </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight">
-                <span className="text-brand-charcoal/30">SnapForm delivers fast, </span>
-                <span className="text-brand-charcoal">type-safe React forms.</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-brand-charcoal">
+                <span className="text-brand-orange">SnapForm </span>
+                delivers fast, type-safe React forms.
               </h1>
             </div>
 

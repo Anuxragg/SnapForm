@@ -27,6 +27,7 @@ export interface IFormTemplate extends Document {
   description: string;
   fields: IFormField[];
   styling: IFormStyling;
+  userId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,6 +72,7 @@ const FormTemplateSchema = new Schema<IFormTemplate>(
     description: { type: String, required: true },
     fields: [FormFieldSchema],
     styling: { type: FormStylingSchema, required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   },
   {
     timestamps: true,
