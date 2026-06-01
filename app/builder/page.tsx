@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +30,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { toast } from 'sonner';
 
 export default function BuilderPage() {
+  const router = useRouter();
   const { user, logout, openAuthModal } = useAuth();
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [savingTemplate, setSavingTemplate] = useState(false);
@@ -58,6 +60,7 @@ export default function BuilderPage() {
         const json = await res.json();
         if (json.success && json.data && json.data.length > 0) {
           const normalized: ISeedFormTemplate[] = json.data.map((t: any) => ({
+            _id: t._id,
             name: t.name || 'Untitled',
             category: t.category || 'contact',
             description: t.description || '',
@@ -100,11 +103,27 @@ export default function BuilderPage() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // ─── URL: parse ?prompt= on first load ───────────────────────────────────────
+  // ─── URL: parse ?prompt= and ?id= on first load ───────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined' || templates.length === 0) return;
     const params = new URLSearchParams(window.location.search);
     const prompt = params.get('prompt');
+    const id = params.get('id');
+
+    if (id) {
+      const target = templates.find(t => t._id === id);
+      if (target) {
+        applyTemplate(target);
+        // ReplaceState to clean URL representation
+        window.history.replaceState(
+          { templateSelected: true, category: target.category, id: target._id },
+          '',
+          `/builder?t=${target.category}&id=${target._id}`
+        );
+        return;
+      }
+    }
+
     if (prompt) {
       const pl = prompt.toLowerCase();
       let target = templates[0] || PREDEFINED_TEMPLATES[0];
@@ -189,6 +208,11 @@ export default function BuilderPage() {
         toast.success(json.message || 'Form template saved successfully!');
         // Trigger templates refetch
         setRefreshCounter(prev => prev + 1);
+
+        // Redirect to developer console dashboard so they see their custom form card
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1200);
       } else {
         toast.error(json.message || 'Failed to save template');
       }
@@ -217,7 +241,7 @@ export default function BuilderPage() {
       {/* Builder Top Bar */}
       <header className="relative z-10 bg-brand-sand border-b border-brand-border/60 px-6 py-4 flex flex-row items-center justify-between sticky top-0 shadow-sm backdrop-blur-md bg-brand-sand/90 font-sans">
         <div className="flex items-center gap-4">
-          <Link href="/">
+          <Link href="/dashboard">
             <div className="flex items-center gap-1.5 group cursor-pointer">
               <span className="text-lg font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
                 <span className="text-brand-orange text-xl font-extrabold -mt-0.5">⚡</span>
@@ -333,8 +357,8 @@ export default function BuilderPage() {
             </div>
           )}
 
-          <Link href="/" className="text-xs font-bold text-neutral-500 hover:text-brand-orange flex items-center gap-1 transition-colors pl-1">
-            Home <ExternalLink className="w-3 h-3" />
+          <Link href="/dashboard" className="text-xs font-bold text-neutral-500 hover:text-brand-orange flex items-center gap-1 transition-colors pl-1">
+            Console <ExternalLink className="w-3 h-3" />
           </Link>
         </div>
       </header>

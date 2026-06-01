@@ -70,11 +70,14 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-md animate-in fade-in duration-300">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-md animate-in fade-in duration-300 cursor-pointer"
+      onClick={closeAuthModal}
+    >
       
       {/* Light box container */}
       <div 
-        className="relative w-full max-w-md bg-[#fdfcf9] border border-brand-border rounded-3xl p-8 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-md bg-[#fdfcf9] border border-brand-border rounded-3xl p-8 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Subtle noise grain overlay */}
@@ -83,7 +86,7 @@ export default function AuthModal() {
         {/* Close Button */}
         <button
           onClick={closeAuthModal}
-          className="absolute top-5 right-5 p-2 rounded-full hover:bg-brand-sand transition-all text-neutral-400 hover:text-brand-charcoal cursor-pointer border border-transparent hover:border-brand-border/60"
+          className="absolute top-5 right-5 z-50 p-2 rounded-full hover:bg-brand-sand transition-all text-neutral-400 hover:text-brand-charcoal cursor-pointer border border-transparent hover:border-brand-border/60"
         >
           <X className="w-4 h-4" />
         </button>

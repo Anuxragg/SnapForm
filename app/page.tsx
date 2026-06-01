@@ -53,8 +53,9 @@ export default function LandingPage() {
       <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-brand-border/60">
         {/* Left Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-brand-charcoal/80">
+          <Link href="/dashboard" className="hover:text-brand-orange transition-colors">Console</Link>
           <Link href="/builder" className="hover:text-brand-orange transition-colors">Studio</Link>
-          <a href="#features" className="hover:text-brand-orange transition-colors">Features</a>
+          <Link href="/docs" className="hover:text-brand-orange transition-colors">Docs</Link>
         </nav>
 
         {/* Center Logo - Groq style lightning bold lower */}
@@ -69,8 +70,8 @@ export default function LandingPage() {
 
         {/* Right Buttons */}
         <div className="flex items-center gap-4 relative">
-          <Link href="/builder" className="text-sm font-semibold text-brand-charcoal/80 hover:text-brand-orange hidden sm:inline-block transition-colors mr-2">
-            Studio
+          <Link href="/dashboard" className="text-sm font-semibold text-brand-charcoal/80 hover:text-brand-orange hidden sm:inline-block transition-colors mr-2">
+            Console
           </Link>
 
           {!user ? (
@@ -81,7 +82,7 @@ export default function LandingPage() {
               >
                 Sign In
               </button>
-              <Link href="/builder">
+              <Link href="/dashboard">
                 <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-6 py-2.5 h-10 shadow-sm border border-brand-orange hover:scale-105 active:scale-95 transition-all cursor-pointer">
                   Start Building
                 </Button>
@@ -122,8 +123,15 @@ export default function LandingPage() {
                       </p>
                     </div>
 
-                    <Link href="/builder" onClick={() => setProfileDropdownOpen(false)}>
+                    <Link href="/dashboard" onClick={() => setProfileDropdownOpen(false)}>
                       <button className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-charcoal hover:bg-brand-sand hover:text-brand-orange transition-all cursor-pointer flex items-center gap-2">
+                        <Cpu className="w-3.5 h-3.5" />
+                        Developer Console
+                      </button>
+                    </Link>
+
+                    <Link href="/builder" onClick={() => setProfileDropdownOpen(false)}>
+                      <button className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-charcoal hover:bg-brand-sand hover:text-brand-orange transition-all cursor-pointer flex items-center gap-2 mt-1">
                         <UserIcon className="w-3.5 h-3.5" />
                         Launch Studio
                       </button>
@@ -177,7 +185,7 @@ export default function LandingPage() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <Link href="/builder">
+              <Link href="/dashboard">
                 <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
                   Launch Studio <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -314,7 +322,7 @@ export default function LandingPage() {
       <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 border-t border-brand-border/60 text-center">
         {/* Start Now centered pill button */}
         <div className="mb-10">
-          <Link href="/builder">
+          <Link href="/dashboard">
             <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-black px-8 py-3.5 h-12 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer">
               Start Now
             </Button>
@@ -461,7 +469,7 @@ export default function LandingPage() {
           </p>
 
           {/* Try Free centered button */}
-          <Link href="/builder">
+          <Link href="/dashboard">
             <Button className="rounded-full bg-white hover:bg-neutral-100 text-brand-orange text-xs font-black px-8 py-3 h-10 shadow transition-all hover:scale-105 active:scale-95 border-none cursor-pointer">
               Try SnapForm for Free
             </Button>
@@ -490,8 +498,9 @@ export default function LandingPage() {
 
           {/* Right side: Functional links only */}
           <div className="flex items-center gap-6 text-xs font-semibold text-brand-charcoal/80">
+            <Link href="/dashboard" className="hover:text-brand-orange transition-colors">Console</Link>
             <Link href="/builder" className="hover:text-brand-orange transition-colors">Studio</Link>
-            <a href="#features" className="hover:text-brand-orange transition-colors">Features</a>
+            <Link href="/docs" className="hover:text-brand-orange transition-colors">Docs</Link>
           </div>
 
         </div>

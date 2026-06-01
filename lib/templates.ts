@@ -20,6 +20,7 @@ export interface ISeedFormStyling {
 }
 
 export interface ISeedFormTemplate {
+  _id?: string;
   name: string;
   category: 'contact' | 'payment' | 'survey' | 'booking';
   description: string;

@@ -106,3 +106,57 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// DELETE a custom template associated with logged-in user
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Missing template ID' },
+        { status: 400 }
+      );
+    }
+
+    await connectToDatabase();
+    const session = await getSession();
+
+    if (!session || !session.id) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Find and delete the template, ensuring it belongs to the active user
+    const deleted = await FormTemplate.findOneAndDelete({
+      _id: id,
+      userId: session.id,
+    });
+
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, message: 'Form template not found or unauthorized to delete' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Custom form template deleted successfully!',
+    });
+  } catch (error: any) {
+    console.error('Error deleting template:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to delete template. Please check database connection.',
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
