@@ -37,13 +37,13 @@ export default function CodeOutput({ code, formName, isLoading = false }: CodeOu
 
   if (!code) {
     return (
-      <Card className="border border-neutral-200/60 bg-white/60 backdrop-blur-sm p-12 text-center rounded-2xl flex flex-col items-center justify-center min-h-[350px]">
+      <Card className="border border-neutral-200/60 bg-white/60 backdrop-blur-sm p-12 text-center rounded-2xl flex flex-col items-center justify-center min-h-87.5">
         <div className="p-4 rounded-full bg-amber-50 text-amber-600 mb-4 border border-amber-100">
           <ShieldAlert className="w-8 h-8" />
         </div>
         <CardTitle className="text-base font-bold text-neutral-800">No generated code</CardTitle>
         <CardDescription className="text-sm text-neutral-500 mt-1 max-w-sm">
-          Click the &quot;Generate Production Code&quot; button in the builder options to compile your custom configurations.
+          Click the &quot;Compile Code&quot; button, or select a template and let the right-side panel populate automatically.
         </CardDescription>
       </Card>
     );

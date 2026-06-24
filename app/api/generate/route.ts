@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateReactComponent } from '@/lib/generators/componentGenerator';
 import { generateZodSchema } from '@/lib/generators/zodGenerator';
 import { generateApiRoute } from '@/lib/generators/apiGenerator';
-import * as archiverNamespace from 'archiver';
 import fs from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
 
-const archiver = (archiverNamespace.default || archiverNamespace) as any;
+const require = createRequire(import.meta.url);
+const { ZipArchive } = require('archiver') as any;
 
 // Helper to write ZIP archive using streams in a Promise
 async function createZipArchive(
@@ -17,7 +18,7 @@ async function createZipArchive(
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const output = fs.createWriteStream(outputFilePath);
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 },
     });
 
