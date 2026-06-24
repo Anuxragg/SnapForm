@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -31,10 +31,11 @@ import { toast } from 'sonner';
 
 export default function BuilderPage() {
   const router = useRouter();
-  const { user, logout, openAuthModal } = useAuth();
+  const { user, loading, logout, openAuthModal } = useAuth();
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const promptedForAuthRef = useRef(false);
 
   // Initialize with predefined templates immediately — no loading delay
   const [templates, setTemplates] = useState<ISeedFormTemplate[]>(PREDEFINED_TEMPLATES);
@@ -105,10 +106,21 @@ export default function BuilderPage() {
 
   // ─── URL: parse ?prompt= and ?id= on first load ───────────────────────────────────────
   useEffect(() => {
-    if (typeof window === 'undefined' || templates.length === 0) return;
+    if (typeof window === 'undefined' || templates.length === 0 || loading) return;
     const params = new URLSearchParams(window.location.search);
     const prompt = params.get('prompt');
     const id = params.get('id');
+    const hasStarterIntent = Boolean(prompt || id);
+
+    if (hasStarterIntent && !user) {
+      if (!promptedForAuthRef.current) {
+        promptedForAuthRef.current = true;
+        toast.warning('Please sign in first to start working.');
+        openAuthModal('login');
+      }
+      window.history.replaceState({}, '', '/builder');
+      return;
+    }
 
     if (id) {
       const target = templates.find(t => t._id === id);
@@ -142,10 +154,16 @@ export default function BuilderPage() {
         `/builder?t=${target.category}`
       );
     }
-  }, [templates, applyTemplate]);
+  }, [templates, applyTemplate, loading, user, openAuthModal]);
 
   // ─── Select a template: pushState so back button works ───────────────────────
   const handleSelectTemplate = (template: ISeedFormTemplate) => {
+    if (!user) {
+      toast.warning('Please sign in first to start working.');
+      openAuthModal('login');
+      return;
+    }
+
     applyTemplate(template);
     // Push new history entry → browser back fires popstate → returns to picker
     window.history.pushState(
@@ -445,3 +463,5 @@ export default function BuilderPage() {
     </div>
   );
 }
+
+
