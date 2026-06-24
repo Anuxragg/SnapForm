@@ -2,35 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateReactComponent } from '@/lib/generators/componentGenerator';
 import { generateZodSchema } from '@/lib/generators/zodGenerator';
 import { generateApiRoute } from '@/lib/generators/apiGenerator';
-import fs from 'fs';
-import path from 'path';
-import { createRequire } from 'module';
+import JSZip from 'jszip';
 
-const require = createRequire(import.meta.url);
-const { ZipArchive } = require('archiver') as any;
+export const runtime = 'nodejs';
 
 // Helper to write ZIP archive using streams in a Promise
 async function createZipArchive(
-  outputFilePath: string,
   componentCode: string,
   schemaCode: string,
   routeCode: string
-): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    const output = fs.createWriteStream(outputFilePath);
-    const archive = new ZipArchive({
-      zlib: { level: 9 },
-    });
+): Promise<Buffer> {
+  const zip = new JSZip();
+  zip.file('form-bundle/FormComponent.tsx', componentCode);
+  zip.file('form-bundle/schema.ts', schemaCode);
+  zip.file('form-bundle/route.ts', routeCode);
 
-    output.on('close', () => resolve());
-    archive.on('error', (err: any) => reject(err));
-
-    archive.pipe(output);
-    archive.append(componentCode, { name: 'form-bundle/FormComponent.tsx' });
-    archive.append(schemaCode, { name: 'form-bundle/schema.ts' });
-    archive.append(routeCode, { name: 'form-bundle/route.ts' });
-    archive.finalize();
-  });
+  return zip.generateAsync({ type: 'nodebuffer' });
 }
 
 export async function POST(req: NextRequest) {
@@ -172,20 +159,11 @@ Input fields config to build: ${JSON.stringify(fields, null, 2)}
       routeCode = generateApiRoute(fields, prompt);
     }
 
-    // 3. Zipping generated files using archiver package
+    // 3. Package generated files in memory so the route works on serverless hosts.
     const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const zipFileName = `SnapForm-${id}.zip`;
-    const outputDirectory = path.join(process.cwd(), 'public', 'downloads');
-
-    // Ensure output directory exists
-    if (!fs.existsSync(outputDirectory)) {
-      fs.mkdirSync(outputDirectory, { recursive: true });
-    }
-
-    const outputFilePath = path.join(outputDirectory, zipFileName);
-    await createZipArchive(outputFilePath, componentCode, schemaCode, routeCode);
-
-    const downloadUrl = `/downloads/${zipFileName}`;
+    const zipBuffer = await createZipArchive(componentCode, schemaCode, routeCode);
+    const downloadUrl = `data:application/zip;base64,${zipBuffer.toString('base64')}`;
 
     // 4. Return JSON response matching both API spec and builder compatibility
     return NextResponse.json({
