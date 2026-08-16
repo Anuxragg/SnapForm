@@ -59,22 +59,29 @@ export default function BuilderPage() {
       try {
         const res = await fetch('/api/templates');
         const json = await res.json();
-        if (json.success && json.data && json.data.length > 0) {
-          const normalized: ISeedFormTemplate[] = json.data.map((t: any) => ({
-            _id: t._id,
-            name: t.name || 'Untitled',
-            category: t.category || 'contact',
-            description: t.description || '',
-            fields: Array.isArray(t.fields) ? t.fields : [],
-            styling: {
-              theme: t.styling?.theme || 'modern',
-              primaryColor: t.styling?.primaryColor || '#ff4f19',
-            },
-          }));
-          setTemplates(normalized);
+        if (json.success && Array.isArray(json.data)) {
+          const userCustoms: ISeedFormTemplate[] = json.data
+            .filter((t: any) => t.userId)
+            .map((t: any) => ({
+              _id: t._id,
+              id: t._id,
+              name: t.name || 'Untitled Form',
+              category: t.category || 'contact',
+              description: t.description || 'Custom saved form',
+              fields: Array.isArray(t.fields) ? t.fields : [],
+              styling: {
+                theme: t.styling?.theme || 'modern',
+                primaryColor: t.styling?.primaryColor || '#ff4f19',
+              },
+              userId: t.userId,
+            }));
+
+          // Always include user custom forms + all predefined templates catalog
+          setTemplates([...userCustoms, ...PREDEFINED_TEMPLATES]);
         }
       } catch (err) {
         console.warn('Background template sync failed, using local templates:', err);
+        setTemplates(PREDEFINED_TEMPLATES);
       }
     }
     fetchTemplatesInBackground();
@@ -308,6 +315,22 @@ export default function BuilderPage() {
         <div className="flex items-center gap-3">
           {selectedTemplate && (
             <>
+              {(selectedTemplate as any)._id || selectedTemplate.id ? (
+                <Link
+                  href={`/f/${(selectedTemplate as any)._id || selectedTemplate.id}`}
+                  target="_blank"
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl border border-brand-border bg-white text-neutral-600 hover:text-brand-orange hover:bg-brand-sand font-bold h-8 px-3 flex items-center gap-1.5 cursor-pointer text-xs transition-all shadow-sm"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
+                    Live Link
+                  </Button>
+                </Link>
+              ) : null}
+
               <Button
                 size="sm"
                 onClick={handleSaveForm}
@@ -386,7 +409,7 @@ export default function BuilderPage() {
         {!selectedTemplate ? (
           /* Template Selector Panel */
           <div className="flex-1 overflow-y-auto px-6 py-12 text-center w-full">
-            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
+            <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
               <div className="space-y-2">
                 <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em]">
                   STARTER TEMPLATES

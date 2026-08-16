@@ -21,9 +21,18 @@ export interface IFormStyling {
   primaryColor: string;
 }
 
+export type FormCategory =
+  | 'contact'
+  | 'payment'
+  | 'survey'
+  | 'booking'
+  | 'registration'
+  | 'feedback'
+  | 'application';
+
 export interface IFormTemplate extends Document {
   name: string;
-  category: 'contact' | 'payment' | 'survey' | 'booking';
+  category: FormCategory;
   description: string;
   fields: IFormField[];
   styling: IFormStyling;
@@ -58,7 +67,7 @@ const FormStylingSchema = new Schema<IFormStyling>({
     enum: ['minimal', 'modern', 'corporate'],
     default: 'modern',
   },
-  primaryColor: { type: String, default: '#6366f1' }, // Default Indigo
+  primaryColor: { type: String, default: '#ff4f19' },
 });
 
 const FormTemplateSchema = new Schema<IFormTemplate>(
@@ -66,7 +75,6 @@ const FormTemplateSchema = new Schema<IFormTemplate>(
     name: { type: String, required: true },
     category: {
       type: String,
-      enum: ['contact', 'payment', 'survey', 'booking'],
       required: true,
     },
     description: { type: String, required: true },

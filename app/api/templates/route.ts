@@ -4,46 +4,27 @@ import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { getSession } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET all templates (combining seeds and user's custom templates)
 export async function GET() {
   try {
     await connectToDatabase();
     const session = await getSession();
     
-    let query = {};
+    let userCustomTemplates: any[] = [];
     if (session && session.id) {
-      // Find global static seeds or user's custom saved templates
-      query = {
-        $or: [
-          { userId: { $exists: false } },
-          { userId: null },
-          { userId: session.id },
-        ],
-      };
-    } else {
-      // Only return public static templates for anonymous users
-      query = {
-        $or: [
-          { userId: { $exists: false } },
-          { userId: null },
-        ],
-      };
+      userCustomTemplates = await FormTemplate.find({ userId: session.id }).sort({ createdAt: -1 }).lean();
     }
 
-    const templates = await FormTemplate.find(query).sort({ createdAt: -1 });
-
-    if (templates.length === 0) {
-      return NextResponse.json({
-        success: true,
-        source: 'static-empty-db',
-        data: PREDEFINED_TEMPLATES,
-      });
-    }
+    // Combine user's custom saved templates at the top + standard predefined blueprints catalog
+    const allTemplates = [...userCustomTemplates, ...PREDEFINED_TEMPLATES];
 
     return NextResponse.json({
       success: true,
-      source: 'database',
-      data: templates,
+      source: 'database-and-catalog',
+      data: allTemplates,
     });
   } catch (error: any) {
     console.warn('MongoDB connection failed, falling back to static templates:', error.message);

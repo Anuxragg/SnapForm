@@ -19,7 +19,6 @@ import Navbar from '@/components/Navbar';
 export default function LandingPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [promptInput, setPromptInput] = useState('');
   const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
   const [terminalCopied, setTerminalCopied] = useState(false);
 
@@ -31,13 +30,6 @@ export default function LandingPage() {
     navigator.clipboard.writeText(code);
     setTerminalCopied(true);
     setTimeout(() => setTerminalCopied(false), 2000);
-  };
-
-  // Speed Prompt pill submit logic
-  const handlePromptSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!promptInput.trim()) return;
-    router.push(`/builder?prompt=${encodeURIComponent(promptInput.trim())}`);
   };
 
   return (
@@ -77,7 +69,7 @@ export default function LandingPage() {
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <Link href="/dashboard">
                 <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
                   Launch Studio <ArrowRight className="w-4 h-4" />
@@ -88,32 +80,6 @@ export default function LandingPage() {
                   Explore Features
                 </Button>
               </a>
-            </div>
-
-
-
-            {/* Speed Prompt Bar - Black Pill */}
-            <div className="relative pt-4">
-              <form onSubmit={handlePromptSubmit} className="relative flex items-center p-1.5 rounded-full bg-brand-charcoal shadow-2xl border border-neutral-900 group">
-                <span className="text-brand-orange text-base font-extrabold pl-4.5 pr-2.5 select-none font-mono">⚡</span>
-                <input
-                  type="text"
-                  placeholder="TRY THE SPEED OF SNAPFORM..."
-                  value={promptInput}
-                  onChange={(e) => setPromptInput(e.target.value)}
-                  className="w-full bg-transparent border-none text-white placeholder-neutral-400 font-mono text-xs focus:outline-none focus:ring-0 py-2.5 pr-12"
-                />
-                <button
-                  type="submit"
-                  title="Compile Immediately"
-                  className="absolute right-1.5 w-9 h-9 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow shadow-brand-orange/20"
-                >
-                  <Wand2 className="w-4 h-4" />
-                </button>
-              </form>
-              <span className="text-[9px] font-semibold text-neutral-400 font-mono block text-left mt-2 pl-4">
-                Type any form prompt (e.g. &quot;Signup with newsletter checkbox&quot;) to preload in builder.
-              </span>
             </div>
 
           </div>
