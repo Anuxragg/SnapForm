@@ -16,9 +16,10 @@
 # next.js
 /.next/
 /out/
-
+/.codex
 # production
 /build
+/.github
 
 # misc
 .DS_Store
