@@ -83,9 +83,14 @@ export default function Footer() {
               href="https://github.com/Anuxragg"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-bold text-neutral-900 hover:text-brand-orange transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 font-semibold text-neutral-900 hover:text-brand-orange transition-colors cursor-pointer"
             >
-              <span className="text-sm">👤</span> Anurag
+              <img
+                src="/fair.png"
+                alt="Avatar"
+                className="w-4 h-4 rounded-full inline-block object-cover border border-neutral-300"
+              />
+              
             </a>
           </div>
         </div>
