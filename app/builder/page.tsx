@@ -266,6 +266,7 @@ export default function BuilderPage() {
 
       {/* Builder Top Bar */}
       <header className="relative z-10 bg-brand-sand border-b border-brand-border/60 px-6 py-4 flex flex-row items-center justify-between sticky top-0 shadow-sm backdrop-blur-md bg-brand-sand/90 font-sans">
+        <div className="flex items-center gap-4">
           <Logo href="/dashboard" badgeText="STUDIO" textClassName="text-base font-black tracking-tight text-brand-charcoal" />
 
           {selectedTemplate && (
