@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronDown, LogOut, LayoutDashboard, Wand2, Star, BookOpen } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
+import Logo from '@/components/Logo';
 
 export default function Navbar() {
   const router = useRouter();
@@ -54,13 +55,7 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 border-b border-brand-border/80 shadow-sm shadow-brand-charcoal/5 backdrop-blur-xl flex items-center">
         <div className="w-full max-w-[1640px] mx-auto px-5 sm:px-8 lg:px-20 flex items-center gap-6">
-          <Link
-            href="/"
-            className="flex items-center gap-3 shrink-0 group"
-          >
-            <span className="text-[28px] leading-none text-brand-orange transition-transform duration-200 group-hover:scale-105" aria-hidden="true">⚡</span>
-            <span className="text-brand-charcoal font-black text-[24px] leading-none tracking-tight">snapform</span>
-          </Link>
+          <Logo href="/" textClassName="text-brand-charcoal font-black text-[22px] leading-none tracking-tight" />
 
           <nav className="hidden md:flex items-center gap-9 ml-3">
             {[

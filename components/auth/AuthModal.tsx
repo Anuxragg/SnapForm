@@ -5,6 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { X, Mail, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Logo from '@/components/Logo';
 
 export default function AuthModal() {
   const {
@@ -92,13 +93,8 @@ export default function AuthModal() {
         </button>
 
         {/* Header Logo & Title */}
-        <div className="text-center space-y-2 mb-8 relative z-10">
-          <div className="flex items-center justify-center gap-1">
-            <span className="text-2xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5 select-none">
-              <span className="text-brand-orange text-3xl font-extrabold -mt-1">⚡</span>
-              snapform
-            </span>
-          </div>
+        <div className="text-center space-y-2 mb-8 relative z-10 flex flex-col items-center">
+          <Logo href="" textClassName="text-2xl font-black tracking-tight text-brand-charcoal" />
           <span className="text-[9px] font-black text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded tracking-widest leading-none font-mono uppercase inline-block">
             {authModalMode === 'login' ? 'Welcome Back' : 'Create SaaS Profile'}
           </span>

@@ -11,6 +11,11 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "SnapForm — High-Speed React Form Compiler",
   description: "Generate beautiful, production-ready React forms with robust Zod validation and Next.js API routes at hyper-speed.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

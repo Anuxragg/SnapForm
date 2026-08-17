@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
+import { SnapFormIcon } from '@/components/Logo';
 
 interface PublicFormData {
   id: string;
@@ -504,9 +505,9 @@ export default function HostedFormPage() {
         <div className="mt-8 text-center flex flex-col items-center gap-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-400 hover:text-zinc-200 transition-colors shadow-sm"
           >
-            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            <SnapFormIcon className="w-3.5 h-4 text-orange-500" fill="#ff4f19" />
             Powered by <strong className="text-white">SnapForm</strong>
           </Link>
           <p className="text-xs text-zinc-600">

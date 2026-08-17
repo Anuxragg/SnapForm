@@ -15,6 +15,7 @@ import {
 import WorkflowDemo from '@/components/WorkflowDemo';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -197,8 +198,8 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => setTerminalTab('react')}
                 className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'react'
-                    ? 'text-brand-orange border-brand-orange'
-                    : 'text-neutral-400 border-transparent hover:text-white'
+                  ? 'text-brand-orange border-brand-orange'
+                  : 'text-neutral-400 border-transparent hover:text-white'
                   }`}
               >
                 REACT COMPONENT
@@ -207,8 +208,8 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => setTerminalTab('nextjs')}
                 className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'nextjs'
-                    ? 'text-brand-orange border-brand-orange'
-                    : 'text-neutral-400 border-transparent hover:text-white'
+                  ? 'text-brand-orange border-brand-orange'
+                  : 'text-neutral-400 border-transparent hover:text-white'
                   }`}
               >
                 NEXT.JS API ROUTE
@@ -311,59 +312,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Bottom solid orange CTA Banner */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 mb-16">
-        <div className="bg-brand-orange rounded-3xl p-12 md:p-16 text-center text-white relative overflow-hidden shadow-xl shadow-brand-orange/10 border border-brand-orange">
-          {/* Subtle lightning bolt icon */}
-          <span className="text-white text-3xl font-black block mb-5 select-none">⚡</span>
-
-          {/* Main Title */}
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-4">
-            Build Fast
-          </h2>
-
-          {/* Subtitle */}
-          <p className="text-white/95 text-xs md:text-sm max-w-xl mx-auto mb-8 font-semibold leading-relaxed">
-            Seamlessly compile custom forms starting with just a single text prompt
-          </p>
-
-          {/* Try Free centered button */}
-          <Link href="/dashboard">
-            <Button className="rounded-full bg-white hover:bg-neutral-100 text-brand-orange text-xs font-black px-8 py-3 h-10 shadow transition-all hover:scale-105 active:scale-95 border-none cursor-pointer">
-              Try SnapForm for Free
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-20 border-t border-brand-border/60 py-12 bg-brand-sand">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          
-          {/* Left side: Logo & Copyright */}
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left">
-            <Link href="/">
-              <div className="flex items-center gap-1 cursor-pointer">
-                <span className="text-xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5 select-none">
-                  <span className="text-brand-orange text-2xl font-extrabold -mt-1">⚡</span>
-                  snapform
-                </span>
-              </div>
-            </Link>
-            <p className="text-[11px] font-mono text-neutral-400">
-              &copy; {new Date().getFullYear()} SnapForm Studio. All rights reserved.
-            </p>
-          </div>
-
-          {/* Right side: Functional links only */}
-          <div className="flex items-center gap-6 text-xs font-semibold text-brand-charcoal/80">
-            <Link href="/dashboard" className="hover:text-brand-orange transition-colors">Console</Link>
-            <Link href="/builder" className="hover:text-brand-orange transition-colors">Studio</Link>
-            <Link href="/docs" className="hover:text-brand-orange transition-colors">Docs</Link>
-          </div>
-
-        </div>
-      </footer>
+      {/* Bottom Minimal Footer */}
+      <Footer />
     </div>
   );
 }

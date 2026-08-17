@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
+import Logo from '@/components/Logo';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import {
@@ -258,17 +259,7 @@ export default function DashboardPage() {
 
       {/* Global SaaS Header */}
       <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-brand-border/60">
-        <Link href="/">
-          <div className="flex items-center gap-1.5 cursor-pointer">
-            <span className="text-xl font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
-              <span className="text-brand-orange text-2xl font-extrabold -mt-1">⚡</span>
-              snapform
-            </span>
-            <span className="text-[8px] font-black text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono mt-0.5">
-              CONSOLE
-            </span>
-          </div>
-        </Link>
+        <Logo href="/" badgeText="CONSOLE" textClassName="text-xl font-black tracking-tight text-brand-charcoal" />
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-brand-charcoal/80">
           <Link href="/dashboard" className="text-brand-orange">

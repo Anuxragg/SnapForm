@@ -27,6 +27,7 @@ import CodeOutput from '@/components/form-builder/CodeOutput';
 import { ISeedFormTemplate, PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { useAuth } from '@/components/AuthProvider';
+import Logo from '@/components/Logo';
 import { toast } from 'sonner';
 
 export default function BuilderPage() {
@@ -265,18 +266,7 @@ export default function BuilderPage() {
 
       {/* Builder Top Bar */}
       <header className="relative z-10 bg-brand-sand border-b border-brand-border/60 px-6 py-4 flex flex-row items-center justify-between sticky top-0 shadow-sm backdrop-blur-md bg-brand-sand/90 font-sans">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard">
-            <div className="flex items-center gap-1.5 group cursor-pointer">
-              <span className="text-lg font-black tracking-tight text-brand-charcoal flex items-center gap-0.5">
-                <span className="text-brand-orange text-xl font-extrabold -mt-0.5">⚡</span>
-                snapform
-              </span>
-              <span className="text-[8px] font-black text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono">
-                STUDIO
-              </span>
-            </div>
-          </Link>
+          <Logo href="/dashboard" badgeText="STUDIO" textClassName="text-base font-black tracking-tight text-brand-charcoal" />
 
           {selectedTemplate && (
             <>
