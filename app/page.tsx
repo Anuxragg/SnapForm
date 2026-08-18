@@ -10,12 +10,12 @@ import {
   Layers,
   Zap,
   FileCode2,
-  Wand2,
 } from 'lucide-react';
 import WorkflowDemo from '@/components/WorkflowDemo';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import HomeShaderBackground from '@/components/HomeShaderBackground';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -34,15 +34,15 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-brand-sand text-brand-charcoal overflow-x-hidden font-sans flex flex-col antialiased">
-      {/* Subtle paper-like noise grain overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(#d5d0c5_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+    <div className="relative min-h-screen bg-black text-white overflow-x-hidden font-sans flex flex-col antialiased">
+      {/* 100% Pure 3D Shader Gradient Canvas (No white/milky overlay layer) */}
+      <HomeShaderBackground />
 
-      {/* beUI-style dark navbar */}
+      {/* Navbar */}
       <Navbar />
 
       {/* Hero Section */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 pb-20 flex-1 flex flex-col">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-24 pb-20 flex-1 flex flex-col">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
           {/* Left Column: Animated Workflow Demo */}
@@ -58,26 +58,26 @@ export default function LandingPage() {
               <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] block animate-pulse">
                 COMPILER IS SPEED FOR DEV
               </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-brand-charcoal">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-white">
                 <span className="text-brand-orange">SnapForm </span>
                 delivers fast, type-safe React forms.
               </h1>
             </div>
 
             {/* Subtext description */}
-            <p className="text-sm md:text-base text-brand-charcoal/70 leading-relaxed max-w-xl">
+            <p className="text-sm md:text-base text-neutral-300 leading-relaxed max-w-xl">
               Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               <Link href="/dashboard">
-                <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
+                <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
                   Launch Studio <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
               <a href="#features">
-                <Button variant="outline" className="rounded-full border-brand-border bg-white text-brand-charcoal text-sm font-bold px-8 h-12 hover:bg-brand-sand-dark transition-all w-full sm:w-auto cursor-pointer">
+                <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 transition-all w-full sm:w-auto cursor-pointer">
                   Explore Features
                 </Button>
               </a>
@@ -89,20 +89,20 @@ export default function LandingPage() {
       </main>
 
       {/* SnapForm Compilation Engine Section */}
-      <section id="engine" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
+      <section id="engine" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
           <div className="text-left space-y-6">
-            <span className="text-[10px] font-black font-mono text-brand-orange uppercase tracking-[0.2em] px-2.5 py-1 rounded bg-brand-orange/10 w-fit block">
+            <span className="text-[10px] font-black font-mono text-brand-orange uppercase tracking-[0.2em] px-2.5 py-1 rounded bg-brand-orange/20 border border-brand-orange/30 w-fit block">
               FULL-STACK CODE GENERATION
             </span>
-            <h2 className="text-3xl md:text-4xl font-black text-brand-charcoal tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
               The SnapForm Compilation Engine
             </h2>
-            <p className="text-sm text-brand-charcoal/70 leading-relaxed">
+            <p className="text-sm text-neutral-300 leading-relaxed">
               SnapForm compiles beautiful, production-ready form suites instantly, providing zero-boilerplate code setups. In milliseconds, our engine generates optimized React frontend components styled in lightweight Tailwind CSS utility classes, type-safe Zod validation schemas, and standard Next.js backend API routes to securely handle form submissions.
             </p>
-            <div className="space-y-3 font-mono text-xs text-brand-charcoal/80">
+            <div className="space-y-3 font-mono text-xs text-neutral-300">
               <div className="flex items-center gap-2">
                 <span className="text-brand-orange font-bold">✔</span>
                 <span>Production-ready, customizable React components</span>
@@ -119,11 +119,11 @@ export default function LandingPage() {
           </div>
 
           {/* Output bundle directory visual card */}
-          <div className="flex items-center justify-center p-8 bg-white border border-brand-border rounded-3xl shadow-xl shadow-brand-charcoal/5 relative overflow-hidden">
-            <div className="absolute inset-0 bg-radial-gradient from-brand-orange/5 to-transparent pointer-events-none" />
+          <div className="flex items-center justify-center p-8 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-radial-gradient from-brand-orange/10 to-transparent pointer-events-none" />
 
             {/* Folder structure container */}
-            <div className="w-full max-w-xs h-56 bg-brand-charcoal rounded-3xl border border-neutral-800 shadow-2xl p-6 font-mono text-[11px] leading-relaxed text-neutral-300 relative flex flex-col justify-center text-left">
+            <div className="w-full max-w-xs h-56 bg-black/90 rounded-3xl border border-neutral-800 shadow-2xl p-6 font-mono text-[11px] leading-relaxed text-neutral-300 relative flex flex-col justify-center text-left">
               <div className="absolute top-4 left-6 text-[9px] font-black font-mono text-neutral-500 uppercase tracking-widest">
                 ZIP Package Structure
               </div>
@@ -179,7 +179,7 @@ export default function LandingPage() {
       </section>
 
       {/* Tabbed Code Terminal Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 border-t border-brand-border/60 text-center">
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 border-t border-white/10 text-center">
         {/* Start Now centered pill button */}
         <div className="mb-10">
           <Link href="/dashboard">
@@ -190,9 +190,9 @@ export default function LandingPage() {
         </div>
 
         {/* Tabbed dark code terminal */}
-        <div className="w-full max-w-7xl mx-auto border border-neutral-800 bg-brand-charcoal rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto border border-white/15 bg-black/75 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
           {/* Header language tabs */}
-          <div className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
             <div className="flex items-center gap-6">
               <button
                 type="button"
@@ -221,7 +221,7 @@ export default function LandingPage() {
               type="button"
               onClick={copyTerminalCode}
               title="Copy Code"
-              className="p-2 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white transition-all cursor-pointer border border-neutral-700"
+              className="p-2 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all cursor-pointer border border-neutral-700"
             >
               {terminalCopied ? <span className="text-[10px] font-bold text-brand-orange font-mono">COPIED!</span> : <FileCode2 className="w-4 h-4" />}
             </button>
@@ -265,8 +265,8 @@ export default function LandingPage() {
       </section>
 
       {/* Feature section */}
-      <section id="features" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-brand-border/60">
-        <h2 className="text-3xl md:text-4xl font-black text-center mb-16 tracking-tight">
+      <section id="features" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
+        <h2 className="text-3xl md:text-4xl font-black text-center mb-16 tracking-tight text-white">
           Supercharge Your Form Development
         </h2>
 
@@ -276,34 +276,31 @@ export default function LandingPage() {
               icon: Cpu,
               title: '3-Layer Architecture',
               desc: 'Get full production-ready setups matching frontend React components, Zod validation schemas, and Next.js backend API routing handlers.',
-              color: 'border-brand-border bg-white shadow-sm'
             },
             {
               icon: Layers,
               title: 'Tailored Styling Themes',
               desc: 'Switch styles instantly between Modern Glassmorphism, Stark Minimalist layouts, or Rigid Business Corporate interfaces matching your product branding.',
-              color: 'border-brand-border bg-white shadow-sm'
             },
             {
               icon: Zap,
               title: 'Instant ZIP Exports',
               desc: 'Pack your generation codes instantly in a structured directory matching proper ES6 file imports, ready to drop in and run.',
-              color: 'border-brand-border bg-white shadow-sm'
             }
           ].map((feat, index) => {
             const Icon = feat.icon;
             return (
               <div
                 key={index}
-                className={`p-8 rounded-3xl border hover:-translate-y-1 transition-all duration-300 ${feat.color} text-left flex flex-col justify-between`}
+                className="p-8 rounded-3xl border border-white/10 bg-black/60 backdrop-blur-2xl shadow-xl hover:-translate-y-1 hover:border-brand-orange/40 transition-all duration-300 text-left flex flex-col justify-between"
               >
                 <div className="space-y-6">
-                  <div className="p-3.5 rounded-2xl w-fit bg-brand-sand border border-brand-border text-brand-orange shadow-inner">
+                  <div className="p-3.5 rounded-2xl w-fit bg-white/5 border border-white/10 text-brand-orange shadow-inner">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-black text-brand-charcoal">{feat.title}</h3>
-                    <p className="text-xs text-neutral-500 leading-relaxed">{feat.desc}</p>
+                    <h3 className="text-lg font-black text-white">{feat.title}</h3>
+                    <p className="text-xs text-neutral-400 leading-relaxed">{feat.desc}</p>
                   </div>
                 </div>
               </div>
@@ -317,9 +314,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-
-
-
-
-

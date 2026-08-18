@@ -5,7 +5,7 @@ import { SnapFormIcon } from '@/components/Logo';
 
 interface TrailItem {
   key: string;
-  intensity: number; // 1 = bright, 2 = medium, 3 = dim
+  intensity: number; // 1 to 5 (1 = brightest head, 5 = dimmest tail)
 }
 
 export default function AuthVisualCard() {
@@ -14,9 +14,9 @@ export default function AuthVisualCard() {
   const trailRef = useRef<string[]>([]);
   const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 10x12 Uniform Grid dimensions
-  const cols = 10;
-  const rows = 12;
+  // 14 cols x 17 rows fine grid
+  const cols = 14;
+  const rows = 17;
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -33,15 +33,15 @@ export default function AuthVisualCard() {
     if (col >= 0 && col < cols && row >= 0 && row < rows) {
       const key = `${row}-${col}`;
       
-      // Update trail: keep last 3 distinct positions for the moving snake effect
+      // Update trail: keep last 5 distinct positions for a 5-stage moving snake glow
       if (trailRef.current[0] !== key) {
-        const newHistory = [key, ...trailRef.current.filter((k) => k !== key)].slice(0, 3);
+        const newHistory = [key, ...trailRef.current.filter((k) => k !== key)].slice(0, 5);
         trailRef.current = newHistory;
 
         setTrail(
           newHistory.map((k, idx) => ({
             key: k,
-            intensity: idx + 1, // 1 = brightest, 2 = medium, 3 = dimmest
+            intensity: idx + 1, // 1 to 5
           }))
         );
 
@@ -49,7 +49,7 @@ export default function AuthVisualCard() {
         fadeTimeoutRef.current = setTimeout(() => {
           trailRef.current = [];
           setTrail([]);
-        }, 1200);
+        }, 1400);
       }
     }
   }, [cols, rows]);
@@ -71,17 +71,26 @@ export default function AuthVisualCard() {
       return 'bg-[#08080a]';
     }
 
+    // 5-Stage Gradual Brightness Trail
     if (activeItem.intensity === 1) {
-      // Head of the snake: Brightest Vibrant Orange Glow
-      return 'bg-[#ff551f] shadow-[0_0_24px_#ff4f19,inset_0_0_12px_#ff7e47] z-10 scale-[1.02] transition-all duration-75';
+      // 1. Brightest (Head)
+      return 'bg-[#ff551f] shadow-[0_0_24px_#ff4f19,inset_0_0_12px_#ff7e47] z-20 scale-[1.04] transition-all duration-75';
     }
     if (activeItem.intensity === 2) {
-      // Body 1: Little Dim Tile
-      return 'bg-[#ff7236]/80 shadow-[0_0_14px_#ff4f1977] z-0 transition-all duration-150';
+      // 2. High brightness
+      return 'bg-[#ff6d31]/90 shadow-[0_0_18px_#ff4f1999] z-10 scale-[1.02] transition-all duration-100';
     }
     if (activeItem.intensity === 3) {
-      // Body 2: More Dim Tile
-      return 'bg-[#ff8f5a]/40 shadow-[0_0_8px_#ff4f1933] transition-all duration-300';
+      // 3. Medium brightness
+      return 'bg-[#ff8348]/70 shadow-[0_0_12px_#ff4f1966] z-0 scale-[1.01] transition-all duration-150';
+    }
+    if (activeItem.intensity === 4) {
+      // 4. Low brightness (Less bright)
+      return 'bg-[#ff9c65]/45 shadow-[0_0_8px_#ff4f1933] transition-all duration-200';
+    }
+    if (activeItem.intensity === 5) {
+      // 5. Subtle dim glow (Tail)
+      return 'bg-[#ffb688]/25 shadow-[0_0_4px_#ff4f1922] transition-all duration-300';
     }
 
     return 'bg-[#08080a]';
@@ -99,7 +108,13 @@ export default function AuthVisualCard() {
       <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-rose-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* ─── Seamless Edge-to-Edge Grid with Ultra-Thin Hairline Lines ─── */}
-      <div className="absolute inset-0 grid grid-cols-10 grid-rows-12 border-t border-l border-white/[0.045]">
+      <div 
+        className="absolute inset-0 grid border-t border-l border-white/[0.045]"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+        }}
+      >
         {Array.from({ length: rows }).map((_, r) =>
           Array.from({ length: cols }).map((_, c) => (
             <div

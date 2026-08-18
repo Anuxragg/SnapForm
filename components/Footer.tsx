@@ -5,25 +5,25 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="relative w-full bg-[#f4f3ef] text-[#121212] pt-14 pb-10 font-sans border-t border-brand-border/40">
+    <footer className="relative z-10 w-full bg-black/80 backdrop-blur-2xl text-white pt-14 pb-10 font-sans border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-4">
         
         {/* Row 1: Brand Logo & Social Icons */}
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl font-bold tracking-tight text-neutral-900">
+            <span className="text-xl font-bold tracking-tight text-white">
               SnapForm
             </span>
           </Link>
 
           {/* Social Icons (X & GitHub) */}
-          <div className="flex items-center gap-3 text-neutral-900">
+          <div className="flex items-center gap-3 text-white">
             {/* X / Twitter (@anuragossips) */}
             <a
               href="https://x.com/anuragossips"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1 rounded-md text-neutral-800 hover:text-black transition-colors"
+              className="p-1 rounded-md text-neutral-400 hover:text-white transition-colors"
               aria-label="X (Twitter) - @anuragossips"
               title="@anuragossips"
             >
@@ -37,7 +37,7 @@ export default function Footer() {
               href="https://github.com/Anuxragg"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1 rounded-md text-neutral-800 hover:text-black transition-colors"
+              className="p-1 rounded-md text-neutral-400 hover:text-white transition-colors"
               aria-label="GitHub - @Anuxragg"
               title="@Anuxragg"
             >
@@ -53,29 +53,29 @@ export default function Footer() {
         </div>
 
         {/* Row 2: Nav Links */}
-        <div className="flex items-center gap-6 text-[13px] font-medium text-neutral-500 pb-2">
-          <Link href="/builder" className="hover:text-neutral-900 transition-colors">
+        <div className="flex items-center gap-6 text-[13px] font-medium text-neutral-400 pb-2">
+          <Link href="/builder" className="hover:text-white transition-colors">
             Features
           </Link>
-          <Link href="/builder" className="hover:text-neutral-900 transition-colors">
+          <Link href="/builder" className="hover:text-white transition-colors">
             Preview
           </Link>
-          <Link href="/docs" className="hover:text-neutral-900 transition-colors">
+          <Link href="/docs" className="hover:text-white transition-colors">
             Proof
           </Link>
-          <Link href="/docs" className="hover:text-neutral-900 transition-colors">
+          <Link href="/docs" className="hover:text-white transition-colors">
             Docs
           </Link>
-          <Link href="/dashboard" className="hover:text-neutral-900 transition-colors">
+          <Link href="/dashboard" className="hover:text-white transition-colors">
             Console
           </Link>
         </div>
 
         {/* Row 3: Thin Divider & Copyright / Attribution Bar */}
-        <div className="pt-4 border-t border-neutral-300/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
+        <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400">
           <p>© {new Date().getFullYear()} SnapForm. All rights reserved.</p>
           
-          <div className="flex items-center gap-1.5 text-neutral-600">
+          <div className="flex items-center gap-1.5 text-neutral-400">
             <span>Built with</span>
             <span className="text-rose-500">❤️</span>
             <span>by</span>
@@ -83,14 +83,13 @@ export default function Footer() {
               href="https://github.com/Anuxragg"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-semibold text-neutral-900 hover:text-brand-orange transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-brand-orange transition-colors cursor-pointer"
             >
               <img
                 src="/fair.png"
                 alt="Avatar"
-                className="w-4 h-4 rounded-full inline-block object-cover border border-neutral-300"
+                className="w-4 h-4 rounded-full inline-block object-cover border border-white/20"
               />
-              
             </a>
           </div>
         </div>
