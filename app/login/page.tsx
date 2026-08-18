@@ -1,137 +1,91 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { X, Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { SnapFormIcon } from '@/components/Logo';
-import AuthVisualCard from './AuthVisualCard';
+import AuthVisualCard from '@/components/auth/AuthVisualCard';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
-export default function AuthModal() {
-  const {
-    authModalOpen,
-    authModalMode,
-    closeAuthModal,
-    openAuthModal,
-    login,
-    signup,
-  } = useAuth();
+export default function LoginPage() {
+  const router = useRouter();
+  const { login, user } = useAuth();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; general?: string }>({});
+  const [error, setError] = useState('');
 
-  if (!authModalOpen) return null;
-
-  const validate = () => {
-    const newErrors: typeof errors = {};
-    if (authModalMode === 'signup' && (!name || name.trim().length < 2)) {
-      newErrors.name = 'Name must be at least 2 characters';
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
     }
-    if (!email || !email.includes('@')) {
-      newErrors.email = 'Please provide a valid email address';
-    }
-    if (!password || password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    
-    if (!validate()) return;
-    
+    setError('');
+
+    if (!email || !email.includes('@')) {
+      setError('Please provide a valid email address');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      let success = false;
-      if (authModalMode === 'login') {
-        success = await login(email, password);
-      } else {
-        success = await signup(name, email, password);
-      }
-      
+      const success = await login(email, password);
       if (success) {
-        setName('');
-        setEmail('');
-        setPassword('');
+        router.push('/dashboard');
+      } else {
+        setError('Invalid email or password');
       }
     } catch (err) {
-      setErrors({ general: 'Something went wrong. Please try again.' });
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 w-screen h-screen bg-[#070709] text-white font-sans overflow-y-auto flex flex-col justify-center animate-in fade-in duration-200"
-    >
-      {/* Top Right Exit Button */}
-      <button
-        onClick={closeAuthModal}
-        className="fixed top-6 right-6 z-50 p-2.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all cursor-pointer border border-neutral-800 shadow-xl"
-        aria-label="Close"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
+    <div className="min-h-screen bg-[#070709] text-white flex flex-col justify-center font-sans">
       {/* Seamless Edge-to-Edge Grid (No outer card border) */}
       <div className="w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         
-        {/* ─── Left Side: Auth Form directly on screen ────────────────────── */}
+        {/* ─── Left Side: Sign In Form ──────────────────────────────────── */}
         <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-center max-w-md w-full mx-auto lg:mx-0 space-y-6">
           {/* Logo Mark */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-inner">
+          <Link href="/" className="inline-block">
+            <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-inner hover:border-neutral-700 transition-colors">
               <SnapFormIcon className="w-4 h-6 text-white" fill="#ffffff" />
             </div>
-          </div>
+          </Link>
 
-          {/* Header Title & Subtitle */}
+          {/* Headline */}
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-              {authModalMode === 'login' ? 'Welcome back!' : 'Create an account'}
+              Welcome back!
             </h1>
             <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-normal">
-              {authModalMode === 'login'
-                ? 'Build, validate, and manage production-ready React forms with automated Zod schemas and server endpoints.'
-                : 'Start building, compiling, and exporting production-grade React forms in seconds.'}
+              Build, validate, and manage production-ready React forms with automated Zod schemas and server endpoints.
             </p>
           </div>
 
-          {/* General Error Message */}
-          {errors.general && (
+          {/* Error Message */}
+          {error && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
-              {errors.general}
+              {error}
             </div>
           )}
 
-          {/* Form */}
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name (Sign up only) */}
-            {authModalMode === 'signup' && (
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Alex Rivera"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
-                />
-                {errors.name && <p className="text-[11px] text-rose-400 mt-1">{errors.name}</p>}
-              </div>
-            )}
-
-            {/* Email Address */}
+            {/* Email */}
             <div className="space-y-1.5 text-left">
               <label className="text-xs font-bold text-neutral-300 block">
                 Email
@@ -143,7 +97,6 @@ export default function AuthModal() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
               />
-              {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
@@ -154,7 +107,7 @@ export default function AuthModal() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder={authModalMode === 'signup' ? 'Create a password' : 'Enter your password'}
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-4 pr-11 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
@@ -167,10 +120,9 @@ export default function AuthModal() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password}</p>}
             </div>
 
-            {/* Submit Button */}
+            {/* Sign In CTA */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -179,10 +131,10 @@ export default function AuthModal() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Signing in...</span>
                 </>
               ) : (
-                <span>{authModalMode === 'login' ? 'Sign in' : 'Create account'}</span>
+                <span>Sign in</span>
               )}
             </button>
           </form>
@@ -195,12 +147,11 @@ export default function AuthModal() {
             </span>
           </div>
 
-          {/* OAuth Social Buttons */}
+          {/* OAuth Buttons */}
           <div className="grid grid-cols-3 gap-3">
             <button
               type="button"
               onClick={() => {
-                setName('Demo User');
                 setEmail('demo@snapform.io');
                 setPassword('password123');
               }}
@@ -218,7 +169,6 @@ export default function AuthModal() {
             <button
               type="button"
               onClick={() => {
-                setName('GitHub Developer');
                 setEmail('developer@github.com');
                 setPassword('password123');
               }}
@@ -233,7 +183,6 @@ export default function AuthModal() {
             <button
               type="button"
               onClick={() => {
-                setName('Apple User');
                 setEmail('user@icloud.com');
                 setPassword('password123');
               }}
@@ -246,32 +195,13 @@ export default function AuthModal() {
             </button>
           </div>
 
-          {/* Switch Mode */}
+          {/* Switch to Signup */}
           <div className="text-center pt-2">
             <p className="text-xs text-neutral-400">
-              {authModalMode === 'login' ? (
-                <>
-                  Don&apos;t have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => openAuthModal('signup')}
-                    className="text-brand-orange font-bold hover:underline cursor-pointer ml-1"
-                  >
-                    Sign up
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => openAuthModal('login')}
-                    className="text-brand-orange font-bold hover:underline cursor-pointer ml-1"
-                  >
-                    Sign in
-                  </button>
-                </>
-              )}
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-brand-orange font-bold hover:underline cursor-pointer ml-1">
+                Sign up
+              </Link>
             </p>
           </div>
         </div>
