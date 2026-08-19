@@ -3,14 +3,14 @@ import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import EmailOtp from '@/models/EmailOtp';
 import { generateSalt, hashPassword, setSessionCookie } from '@/lib/auth';
-import { validateStandardEmail } from '@/lib/emailValidator';
+import { validateStandardEmailAsync } from '@/lib/emailValidator';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, email, password } = body;
 
-    const validation = validateStandardEmail(email);
+    const validation = await validateStandardEmailAsync(email);
     if (!validation.isValid) {
       return NextResponse.json(
         { success: false, message: validation.error || 'Please provide a valid standard email' },

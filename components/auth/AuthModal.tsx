@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
-import { X, Eye, EyeOff, Loader2, RefreshCw, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { X, Eye, EyeOff, Loader2, RefreshCw, CheckCircle2, ArrowLeft, Check, Circle } from 'lucide-react';
 import { SnapFormIcon } from '@/components/Logo';
 import AuthVisualCard from './AuthVisualCard';
 import {
@@ -11,8 +11,6 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from '@/components/ui/input-otp';
-
-type SignupStep = 'info' | 'otp' | 'password';
 
 export default function AuthModal() {
   const {
@@ -23,24 +21,29 @@ export default function AuthModal() {
     login,
   } = useAuth();
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
 
-  // Signup step state
-  const [signupStep, setSignupStep] = useState<SignupStep>('info');
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  // Signup step state: 'form' | 'otp'
+  const [signupStep, setSignupStep] = useState<'form' | 'otp'>('form');
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [errors, setErrors] = useState<{ general?: string; email?: string; otp?: string; password?: string; name?: string }>({});
+  const [errors, setErrors] = useState<{ general?: string; email?: string; otp?: string; password?: string }>({});
+
+  // Password mandatory requirement checks
+  const hasMinLength = password.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+  const hasMixedChars = hasLetter && hasNumber && hasSymbol;
+  const isPasswordValid = hasMinLength && hasMixedChars;
 
   // Reset states when modal mode changes
   useEffect(() => {
-    setSignupStep('info');
-    setIsEmailVerified(false);
+    setSignupStep('form');
     setOtpCode('');
     setErrors({});
   }, [authModalMode, authModalOpen]);
@@ -55,13 +58,18 @@ export default function AuthModal() {
 
   if (!authModalOpen) return null;
 
-  // 1. Send OTP to email
-  const handleSendOtp = async (e?: React.FormEvent) => {
+  // 1. Submit Sign Up (Validate Email & Password -> Send OTP)
+  const handleStartSignup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrors({});
 
     if (!email || !email.includes('@')) {
       setErrors({ email: 'Please enter a valid standard email address' });
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setErrors({ password: 'Password does not meet the mandatory security requirements' });
       return;
     }
 
@@ -87,8 +95,8 @@ export default function AuthModal() {
     }
   };
 
-  // 2. Verify 6-digit OTP code
-  const handleVerifyOtp = async (e?: React.FormEvent) => {
+  // 2. Verify 6-digit OTP and complete Account Creation
+  const handleVerifyOtpAndCreate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrors({});
 
@@ -99,57 +107,39 @@ export default function AuthModal() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      // Step A: Verify OTP
+      const verifyRes = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), code: otpCode.trim() }),
       });
-      const data = await res.json();
+      const verifyData = await verifyRes.json();
 
-      if (res.ok && data.success) {
-        setIsEmailVerified(true);
-        setSignupStep('password');
-      } else {
-        setErrors({ otp: data.message || 'Incorrect verification code' });
+      if (!verifyRes.ok || !verifyData.success) {
+        setErrors({ otp: verifyData.message || 'Incorrect verification code' });
+        setIsSubmitting(false);
+        return;
       }
-    } catch (err: any) {
-      setErrors({ otp: 'Network error during verification' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
-  // 3. Complete Signup
-  const handleCompleteSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-
-    if (!password || password.length < 6) {
-      setErrors({ password: 'Password must be at least 6 characters' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/auth/signup', {
+      // Step B: Finalize Signup with pre-entered password
+      const signupRes = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
           email: email.trim(),
           password,
         }),
       });
-      const data = await res.json();
+      const signupData = await signupRes.json();
 
-      if (res.ok && data.success) {
+      if (signupRes.ok && signupData.success) {
         closeAuthModal();
         window.location.href = '/dashboard';
       } else {
-        setErrors({ general: data.message || 'Failed to create account' });
+        setErrors({ general: signupData.message || 'Failed to create account' });
       }
     } catch (err: any) {
-      setErrors({ general: 'Something went wrong. Please try again.' });
+      setErrors({ otp: 'Network error during account verification' });
     } finally {
       setIsSubmitting(false);
     }
@@ -173,7 +163,6 @@ export default function AuthModal() {
     try {
       const success = await login(email.trim(), password);
       if (success) {
-        setName('');
         setEmail('');
         setPassword('');
       }
@@ -201,7 +190,7 @@ export default function AuthModal() {
       <div className="w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         
         {/* ─── Left Side: Auth Content ────────────────────────────────────── */}
-        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-center max-w-md w-full mx-auto lg:mx-0 space-y-6">
+        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-center max-w-md w-full mx-auto lg:mx-0 space-y-5">
           {/* Logo Mark */}
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-inner">
@@ -210,14 +199,12 @@ export default function AuthModal() {
           </div>
 
           {/* Header Title & Subtitle */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
               {authModalMode === 'login'
                 ? 'Welcome back!'
                 : signupStep === 'otp'
                 ? 'Verify your email'
-                : signupStep === 'password'
-                ? 'Set your password'
                 : 'Create an account'}
             </h1>
             <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-normal">
@@ -228,8 +215,6 @@ export default function AuthModal() {
                   Enter the 6-digit verification code we sent to{' '}
                   <span className="font-semibold text-white">{email}</span>.
                 </>
-              ) : signupStep === 'password' ? (
-                'Create a secure password to complete your account registration.'
               ) : (
                 'Start building, compiling, and exporting production-grade React forms in seconds.'
               )}
@@ -238,7 +223,7 @@ export default function AuthModal() {
 
           {/* General Error Message */}
           {errors.general && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
               {errors.general}
             </div>
           )}
@@ -250,7 +235,7 @@ export default function AuthModal() {
                 <label className="text-xs font-bold text-neutral-300 block">Email</label>
                 <input
                   type="email"
-                  placeholder="youremail@yourdomain.com"
+                  placeholder="alan.turing@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
@@ -296,15 +281,16 @@ export default function AuthModal() {
             </form>
           )}
 
-          {/* ─── SIGNUP STEP 1: EMAIL WITH VERIFY BUTTON ─────────────────── */}
-          {authModalMode === 'signup' && signupStep === 'info' && (
-            <form onSubmit={handleSendOtp} className="space-y-4">
+          {/* ─── SIGNUP STEP 1: EMAIL, PASSWORD & REQUIREMENTS ────────────── */}
+          {authModalMode === 'signup' && signupStep === 'form' && (
+            <form onSubmit={handleStartSignup} className="space-y-4">
+              {/* Email */}
               <div className="space-y-1.5 text-left">
                 <label className="text-xs font-bold text-neutral-300 block">Email</label>
                 <div className="relative flex items-center">
                   <input
                     type="email"
-                    placeholder="youremail@yourdomain.com"
+                    placeholder="alan.turing@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-4 pr-24 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
@@ -312,8 +298,8 @@ export default function AuthModal() {
                   {email.includes('@') && email.length > 5 && (
                     <button
                       type="button"
-                      onClick={() => handleSendOtp()}
-                      disabled={isSubmitting}
+                      onClick={() => handleStartSignup()}
+                      disabled={isSubmitting || !isPasswordValid}
                       className="absolute right-2 px-3 py-1.5 rounded-lg bg-brand-orange hover:bg-brand-orange-hover text-white text-[11px] font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
                     >
                       {isSubmitting ? 'Sending...' : 'Verify'}
@@ -323,10 +309,50 @@ export default function AuthModal() {
                 {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>}
               </div>
 
+              {/* Password */}
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-bold text-neutral-300 block">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-4 pr-11 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* ─── Mandatory Password Requirements Checklist ───────── */}
+                <div className="space-y-1 pt-1.5 text-[11px]">
+                  <div className={`flex items-center gap-2 transition-colors ${hasMinLength ? 'text-emerald-400 font-medium' : 'text-neutral-400'}`}>
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">
+                      {hasMinLength ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-2.5 h-2.5" />}
+                    </span>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`flex items-center gap-2 transition-colors ${hasMixedChars ? 'text-emerald-400 font-medium' : 'text-neutral-400'}`}>
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">
+                      {hasMixedChars ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-2.5 h-2.5" />}
+                    </span>
+                    <span>Mix of letters, numbers, and symbols</span>
+                  </div>
+                </div>
+
+                {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password}</p>}
+              </div>
+
+              {/* Create account CTA */}
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 mt-2"
+                disabled={isSubmitting || !isPasswordValid || !email.includes('@')}
+                className="w-full py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 disabled:opacity-40 disabled:pointer-events-none mt-2"
               >
                 {isSubmitting ? (
                   <>
@@ -334,7 +360,7 @@ export default function AuthModal() {
                     <span>Sending Code...</span>
                   </>
                 ) : (
-                  <span>Continue with Email</span>
+                  <span>Create account</span>
                 )}
               </button>
             </form>
@@ -346,16 +372,16 @@ export default function AuthModal() {
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => setSignupStep('info')}
+                  onClick={() => setSignupStep('form')}
                   className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Change email</span>
+                  <span>Back to form</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => handleSendOtp()}
+                  onClick={() => handleStartSignup()}
                   disabled={resendCooldown > 0 || isSubmitting}
                   className="inline-flex items-center gap-1 text-xs text-brand-orange hover:text-brand-orange-hover font-semibold transition-colors disabled:opacity-40 cursor-pointer"
                 >
@@ -396,73 +422,26 @@ export default function AuthModal() {
 
               <button
                 type="button"
-                onClick={handleVerifyOtp}
+                onClick={handleVerifyOtpAndCreate}
                 disabled={isSubmitting || otpCode.length !== 6}
                 className="w-full py-3 px-4 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-orange/20 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Verifying...</span>
+                    <span>Verifying & Creating Account...</span>
                   </>
                 ) : (
-                  <span>Verify Code</span>
+                  <span>Verify Code & Complete</span>
                 )}
               </button>
             </div>
           )}
 
-          {/* ─── SIGNUP STEP 3: PASSWORD CREATION ──────────────────────────── */}
-          {authModalMode === 'signup' && signupStep === 'password' && (
-            <form onSubmit={handleCompleteSignup} className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span className="truncate">{email} verified</span>
-              </div>
-
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Create a password (min 6 characters)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoFocus
-                    className="w-full pl-4 pr-11 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password}</p>}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-brand-orange/20"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Creating Account...</span>
-                  </>
-                ) : (
-                  <span>Complete Registration</span>
-                )}
-              </button>
-            </form>
-          )}
-
-          {/* ─── OAuth Buttons & Divider (Only on main Login / Signup Step 1) ── */}
-          {(authModalMode === 'login' || (authModalMode === 'signup' && signupStep === 'info')) && (
+          {/* ─── OAuth Buttons & Divider (Only on main Form views) ──────────── */}
+          {(authModalMode === 'login' || (authModalMode === 'signup' && signupStep === 'form')) && (
             <>
-              <div className="relative flex items-center justify-center pt-2">
+              <div className="relative flex items-center justify-center pt-1">
                 <div className="border-t border-neutral-800 w-full" />
                 <span className="bg-[#070709] px-3 text-[11px] font-medium text-neutral-500 uppercase tracking-widest absolute">
                   or
@@ -473,9 +452,8 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setName('Demo User');
                     setEmail('demo@snapform.io');
-                    setPassword('password123');
+                    setPassword('Password123!');
                   }}
                   className="py-3 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 flex items-center justify-center transition-all cursor-pointer hover:border-neutral-700 shadow-sm"
                   title="Continue with Google"
@@ -491,9 +469,8 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setName('GitHub Developer');
                     setEmail('developer@github.com');
-                    setPassword('password123');
+                    setPassword('Password123!');
                   }}
                   className="py-3 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 flex items-center justify-center transition-all cursor-pointer hover:border-neutral-700 shadow-sm"
                   title="Continue with GitHub"
@@ -506,9 +483,8 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setName('Apple User');
                     setEmail('user@icloud.com');
-                    setPassword('password123');
+                    setPassword('Password123!');
                   }}
                   className="py-3 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 flex items-center justify-center transition-all cursor-pointer hover:border-neutral-700 shadow-sm"
                   title="Continue with Apple"
@@ -522,7 +498,7 @@ export default function AuthModal() {
           )}
 
           {/* Mode Switcher */}
-          <div className="text-center pt-2">
+          <div className="text-center pt-1">
             <p className="text-xs text-neutral-400">
               {authModalMode === 'login' ? (
                 <>

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import EmailOtp from '@/models/EmailOtp';
-import { validateStandardEmail } from '@/lib/emailValidator';
+import { validateStandardEmailAsync } from '@/lib/emailValidator';
 import { sendVerificationOtpEmail } from '@/lib/emailService';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, name } = body;
 
-    // 1. IP & Email Rate Limiting: Max 4 requests per 10 minutes
+    // 1. IP Rate Limiting
     const ipLimit = checkRateLimit(`send_otp_ip:${clientIp}`, {
       limit: 5,
       windowMs: 10 * 60 * 1000,
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate standard email format and reject disposable providers
-    const validation = validateStandardEmail(email);
+    // 2. Real-time DNS MX & Disposable Email Validation
+    const validation = await validateStandardEmailAsync(email);
     if (!validation.isValid) {
       return NextResponse.json(
         { success: false, message: validation.error || 'Please enter a valid standard email' },
