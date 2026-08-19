@@ -207,18 +207,12 @@ export default function AuthModal() {
                 ? 'Verify your email'
                 : 'Create an account'}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-normal">
-              {authModalMode === 'login' ? (
-                'Build, validate, and manage production-ready React forms with automated Zod schemas and server endpoints.'
-              ) : signupStep === 'otp' ? (
-                <>
-                  Enter the 6-digit verification code we sent to{' '}
-                  <span className="font-semibold text-white">{email}</span>.
-                </>
-              ) : (
-                'Start building, compiling, and exporting production-grade React forms in seconds.'
-              )}
-            </p>
+            {signupStep === 'otp' ? (
+              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-normal">
+                Enter the 6-digit verification code we sent to{' '}
+                <span className="font-semibold text-white">{email}</span>.
+              </p>
+            ) : null}
           </div>
 
           {/* General Error Message */}
@@ -231,43 +225,43 @@ export default function AuthModal() {
           {/* ─── LOGIN VIEW ───────────────────────────────────────────────── */}
           {authModalMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">Email</label>
+              <div className="space-y-2 text-left">
+                <label className="text-sm font-semibold text-neutral-200 block">Email</label>
                 <input
                   type="email"
                   placeholder="alan.turing@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
+                  className="w-full px-4.5 py-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner"
                 />
-                {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-xs text-rose-400 mt-1">{errors.email}</p>}
               </div>
 
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">Password</label>
+              <div className="space-y-2 text-left">
+                <label className="text-sm font-semibold text-neutral-200 block">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-4 pr-11 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
+                    className="w-full pl-4.5 pr-12 py-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password}</p>}
+                {errors.password && <p className="text-xs text-rose-400 mt-1">{errors.password}</p>}
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60"
+                className="w-full py-3.5 px-5 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 mt-1"
               >
                 {isSubmitting ? (
                   <>
@@ -285,74 +279,74 @@ export default function AuthModal() {
           {authModalMode === 'signup' && signupStep === 'form' && (
             <form onSubmit={handleStartSignup} className="space-y-4">
               {/* Email */}
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">Email</label>
+              <div className="space-y-2 text-left">
+                <label className="text-sm font-semibold text-neutral-200 block">Email</label>
                 <div className="relative flex items-center">
                   <input
                     type="email"
                     placeholder="alan.turing@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-4 pr-24 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
+                    className="w-full pl-4.5 pr-24 py-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner"
                   />
                   {email.includes('@') && email.length > 5 && (
                     <button
                       type="button"
                       onClick={() => handleStartSignup()}
                       disabled={isSubmitting || !isPasswordValid}
-                      className="absolute right-2 px-3 py-1.5 rounded-lg bg-brand-orange hover:bg-brand-orange-hover text-white text-[11px] font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                      className="absolute right-2.5 px-3.5 py-2 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
                     >
                       {isSubmitting ? 'Sending...' : 'Verify'}
                     </button>
                   )}
                 </div>
-                {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-xs text-rose-400 mt-1">{errors.email}</p>}
               </div>
 
               {/* Password */}
-              <div className="space-y-1.5 text-left">
-                <label className="text-xs font-bold text-neutral-300 block">Password</label>
+              <div className="space-y-2 text-left">
+                <label className="text-sm font-semibold text-neutral-200 block">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-4 pr-11 py-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"
+                    className="w-full pl-4.5 pr-12 py-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
                 {/* ─── Mandatory Password Requirements Checklist ───────── */}
-                <div className="space-y-1 pt-1.5 text-[11px]">
+                <div className="space-y-1.5 pt-1.5 text-xs">
                   <div className={`flex items-center gap-2 transition-colors ${hasMinLength ? 'text-emerald-400 font-medium' : 'text-neutral-400'}`}>
-                    <span className="w-3.5 h-3.5 flex items-center justify-center">
-                      {hasMinLength ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-2.5 h-2.5" />}
+                    <span className="w-4 h-4 flex items-center justify-center">
+                      {hasMinLength ? <Check className="w-4 h-4" /> : <Circle className="w-3 h-3" />}
                     </span>
                     <span>At least 8 characters</span>
                   </div>
                   <div className={`flex items-center gap-2 transition-colors ${hasMixedChars ? 'text-emerald-400 font-medium' : 'text-neutral-400'}`}>
-                    <span className="w-3.5 h-3.5 flex items-center justify-center">
-                      {hasMixedChars ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-2.5 h-2.5" />}
+                    <span className="w-4 h-4 flex items-center justify-center">
+                      {hasMixedChars ? <Check className="w-4 h-4" /> : <Circle className="w-3 h-3" />}
                     </span>
                     <span>Mix of letters, numbers, and symbols</span>
                   </div>
                 </div>
 
-                {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password}</p>}
+                {errors.password && <p className="text-xs text-rose-400 mt-1">{errors.password}</p>}
               </div>
 
               {/* Create account CTA */}
               <button
                 type="submit"
                 disabled={isSubmitting || !isPasswordValid || !email.includes('@')}
-                className="w-full py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 disabled:opacity-40 disabled:pointer-events-none mt-2"
+                className="w-full py-3.5 px-5 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 disabled:opacity-40 disabled:pointer-events-none mt-2"
               >
                 {isSubmitting ? (
                   <>
