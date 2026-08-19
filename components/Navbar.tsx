@@ -93,8 +93,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-black/75 border-b border-white/10 shadow-2xl backdrop-blur-2xl flex items-center text-white font-sans">
-        <div className="w-full max-w-[1640px] mx-auto px-4 sm:px-8 lg:px-20 flex items-center justify-between gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 h-[58px] bg-black/75 border-b border-white/10 shadow-2xl backdrop-blur-2xl flex items-center text-white font-sans transition duration-500 ease-in-out">
+        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-15 h-[58px] flex items-center justify-between gap-4 transition duration-500 ease-in-out">
           
           {/* Logo & Desktop Nav */}
           <div className="flex items-center gap-6">
@@ -240,7 +240,7 @@ export default function Navbar() {
       {/* ─── Full Mobile Navigation Drawer (Outside Header to avoid height clipping) ─── */}
       {mobileMenuOpen && (
         <div 
-          className="sm:hidden fixed inset-x-0 top-16 bottom-0 w-full h-[calc(100dvh-4rem)] bg-[#070709] z-[9999] flex flex-col justify-between p-6 animate-in fade-in slide-in-from-top-4 duration-200 overflow-y-auto"
+          className="sm:hidden fixed inset-x-0 top-[58px] bottom-0 w-full h-[calc(100dvh-58px)] bg-[#070709] z-[9999] flex flex-col justify-between p-6 animate-in fade-in slide-in-from-top-4 duration-200 overflow-y-auto"
           style={{ overscrollBehavior: 'contain' }}
         >
           <div className="space-y-6">
