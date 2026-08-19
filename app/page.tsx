@@ -6,10 +6,16 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
-  Cpu,
-  Layers,
-  Zap,
+  ShieldCheck,
+  Globe,
+  Radio,
+  Lock,
   FileCode2,
+  Server,
+  Fingerprint,
+  Gauge,
+  Sliders,
+  Package,
 } from 'lucide-react';
 import WorkflowDemo from '@/components/WorkflowDemo';
 import { useAuth } from '@/components/AuthProvider';
@@ -35,162 +41,72 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-x-hidden font-sans flex flex-col antialiased">
-      {/* 100% Pure 3D Shader Gradient Canvas (No white/milky overlay layer) */}
+      {/* 100% Pure 3D Shader Gradient Canvas */}
       <HomeShaderBackground />
 
       {/* Navbar */}
       <Navbar />
 
       {/* Hero Section */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-24 pb-20 flex-1 flex flex-col">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-
-          {/* Left Column: Animated Workflow Demo */}
-          <div className="lg:col-span-6 xl:col-span-7 order-2 lg:order-1">
-            <WorkflowDemo />
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20 flex-1 flex flex-col items-center">
+        
+        {/* Top Centered: High-Impact Typography & Branding */}
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-6 pb-12 sm:pb-16">
+          
+          {/* Tag & Headline */}
+          <div className="space-y-3">
+            <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] inline-block animate-pulse px-3.5 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/25">
+              COMPILER IS SPEED FOR DEV
+            </span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.08] tracking-tight text-white max-w-2xl mx-auto">
+              <span className="text-brand-orange">SnapForm </span>
+              delivers fast, type-safe React forms.
+            </h1>
           </div>
 
-          {/* Right Column: High-Impact Typography & Branding */}
-          <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-start text-left space-y-5 order-1 lg:order-2">
+          {/* Subtext description */}
+          <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-xl mx-auto">
+            Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
+          </p>
 
-            {/* INFERENCE IS FUEL styled mono tag */}
-            <div className="space-y-1">
-              <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] block animate-pulse">
-                COMPILER IS SPEED FOR DEV
-              </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-white">
-                <span className="text-brand-orange">SnapForm </span>
-                delivers fast, type-safe React forms.
-              </h1>
-            </div>
-
-            {/* Subtext description */}
-            <p className="text-sm md:text-base text-neutral-300 leading-relaxed max-w-xl">
-              Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <Link href="/dashboard">
-                <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
-                  Launch Studio <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <a href="#features">
-                <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 transition-all w-full sm:w-auto cursor-pointer">
-                  Explore Features
-                </Button>
-              </a>
-            </div>
-
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1 w-full sm:w-auto">
+            <Link href="/dashboard" className="w-full sm:w-auto">
+              <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
+                Launch Studio <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <a href="#features" className="w-full sm:w-auto">
+              <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 transition-all w-full sm:w-auto cursor-pointer">
+                Explore Features
+              </Button>
+            </a>
           </div>
 
         </div>
+
+        {/* Bottom Centered: Animated Workflow Demo */}
+        <div className="w-full max-w-4xl lg:max-w-5xl mx-auto">
+          <WorkflowDemo />
+        </div>
+
       </main>
 
-      {/* SnapForm Compilation Engine Section */}
-      <section id="engine" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      {/* ─── SECTION: "Integrate this afternoon" Showcase & Code Terminal ─── */}
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-20 pb-20 border-t border-white/10 text-center flex flex-col items-center">
+        
+        {/* Headline */}
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
+          Integrate <span className="text-brand-orange">this afternoon</span>
+        </h2>
 
-          <div className="text-left space-y-6">
-            <span className="text-[10px] font-black font-mono text-brand-orange uppercase tracking-[0.2em] px-2.5 py-1 rounded bg-brand-orange/20 border border-brand-orange/30 w-fit block">
-              FULL-STACK CODE GENERATION
-            </span>
-            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-              The SnapForm Compilation Engine
-            </h2>
-            <p className="text-sm text-neutral-300 leading-relaxed">
-              SnapForm compiles beautiful, production-ready form suites instantly, providing zero-boilerplate code setups. In milliseconds, our engine generates optimized React frontend components styled in lightweight Tailwind CSS utility classes, type-safe Zod validation schemas, and standard Next.js backend API routes to securely handle form submissions.
-            </p>
-            <div className="space-y-3 font-mono text-xs text-neutral-300">
-              <div className="flex items-center gap-2">
-                <span className="text-brand-orange font-bold">✔</span>
-                <span>Production-ready, customizable React components</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-brand-orange font-bold">✔</span>
-                <span>Robust, schema-driven Zod client validation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-brand-orange font-bold">✔</span>
-                <span>Secure, server-side Next.js route handlers</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Output bundle directory visual card */}
-          <div className="flex items-center justify-center p-8 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-radial-gradient from-brand-orange/10 to-transparent pointer-events-none" />
-
-            {/* Folder structure container */}
-            <div className="w-full max-w-xs h-56 bg-black/90 rounded-3xl border border-neutral-800 shadow-2xl p-6 font-mono text-[11px] leading-relaxed text-neutral-300 relative flex flex-col justify-center text-left">
-              <div className="absolute top-4 left-6 text-[9px] font-black font-mono text-neutral-500 uppercase tracking-widest">
-                ZIP Package Structure
-              </div>
-
-              <div className="space-y-3.5 pt-2">
-                {/* Zip Root Folder */}
-                <div className="flex items-center gap-2 text-brand-orange font-bold text-xs select-none">
-                  <span className="text-lg">📁</span>
-                  <span>form-bundle.zip</span>
-                </div>
-
-                {/* Sub-files */}
-                <div className="space-y-2.5 pl-4 border-l border-neutral-800/80 ml-2">
-
-                  {/* React Component */}
-                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
-                    <span className="text-emerald-400 select-none text-base">⚛</span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-white leading-none">FormComponent.tsx</span>
-                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">React Form & Tailwind CSS</span>
-                    </div>
-                  </div>
-
-                  {/* Zod Validation */}
-                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
-                    <span className="text-amber-400 select-none text-base">🛡</span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-white leading-none">schema.ts</span>
-                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">Zod validation rules</span>
-                    </div>
-                  </div>
-
-                  {/* Next.js API route */}
-                  <div className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
-                    <span className="text-cyan-400 select-none text-base">⚡</span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-white leading-none">route.ts</span>
-                      <span className="text-[9px] text-neutral-500 font-sans mt-0.5">Next.js API route handler</span>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Bottom tag */}
-              <div className="absolute bottom-4 right-6 text-[7px] font-mono text-neutral-600 uppercase tracking-wider">
-                Ready for production
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Tabbed Code Terminal Section */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 border-t border-white/10 text-center">
-        {/* Start Now centered pill button */}
-        <div className="mb-10">
-          <Link href="/dashboard">
-            <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-black px-8 py-3.5 h-12 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer">
-              Start Now
-            </Button>
-          </Link>
-        </div>
+        {/* Subtitle */}
+        <p className="text-sm sm:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed mb-12">
+          A simple, elegant compiler so you can start capturing form submissions in minutes. It fits right into your code with type-safe schemas for your favorite frontend stacks.
+        </p>
 
         {/* Tabbed dark code terminal */}
-        <div className="w-full max-w-7xl mx-auto border border-white/15 bg-black/75 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
+        <div className="w-full max-w-5xl mx-auto border border-white/15 bg-black/75 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
           {/* Header language tabs */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
             <div className="flex items-center gap-6">
@@ -264,48 +180,141 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature section */}
-      <section id="features" className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 border-t border-white/10">
-        <h2 className="text-3xl md:text-4xl font-black text-center mb-16 tracking-tight text-white">
-          Supercharge Your Form Development
-        </h2>
+      {/* ─── SECTION: Minimal Linear / Resend Style Developer Grid ───────── */}
+      <section id="features" className="relative z-10 w-full bg-black/85 backdrop-blur-3xl border-t border-white/10 py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Section Header */}
+          <div className="max-w-2xl mb-16 space-y-3 text-left">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1]">
+              Reach users, not <br />
+              broken form endpoints
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-300 font-normal">
+              A developer platform built with strict type safety, zero boilerplate, and robust security safeguards out of the box.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: Cpu,
-              title: '3-Layer Architecture',
-              desc: 'Get full production-ready setups matching frontend React components, Zod validation schemas, and Next.js backend API routing handlers.',
-            },
-            {
-              icon: Layers,
-              title: 'Tailored Styling Themes',
-              desc: 'Switch styles instantly between Modern Glassmorphism, Stark Minimalist layouts, or Rigid Business Corporate interfaces matching your product branding.',
-            },
-            {
-              icon: Zap,
-              title: 'Instant ZIP Exports',
-              desc: 'Pack your generation codes instantly in a structured directory matching proper ES6 file imports, ready to drop in and run.',
-            }
-          ].map((feat, index) => {
-            const Icon = feat.icon;
-            return (
-              <div
-                key={index}
-                className="p-8 rounded-3xl border border-white/10 bg-black/60 backdrop-blur-2xl shadow-xl hover:-translate-y-1 hover:border-brand-orange/40 transition-all duration-300 text-left flex flex-col justify-between"
-              >
-                <div className="space-y-6">
-                  <div className="p-3.5 rounded-2xl w-fit bg-white/5 border border-white/10 text-brand-orange shadow-inner">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-black text-white">{feat.title}</h3>
-                    <p className="text-xs text-neutral-400 leading-relaxed">{feat.desc}</p>
-                  </div>
-                </div>
+          {/* 3x3 Clean Minimal Developer Grid (Unboxed, on unified blurred background) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-12 text-left">
+            
+            {/* Card 1 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <ShieldCheck className="w-5 h-5" />
               </div>
-            );
-          })}
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Proactive blocklist tracking
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Be the first to know if malicious payloads or disposable emails target your forms. Built with real-time <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">DNS MX</span> checks and <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">Anti-Spam</span> filters.
+              </p>
+            </div>
+
+            {/* Card 2 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Gauge className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Faster compilation time
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Compile full-stack forms in milliseconds. Generates standalone <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">TypeScript</span> AST schemas, JSX components, and production-grade handlers.
+              </p>
+            </div>
+
+            {/* Card 3 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Fingerprint className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Build confidence with Zod
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Strict schema validation guaranteeing client and server input parity. Protect endpoints against missing fields, type injection, and <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">RFC 5322</span> syntax violations.
+              </p>
+            </div>
+
+            {/* Card 4 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Server className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Managed API endpoints
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Hosted submission URLs that capture responses instantly with integrated live charts, spreadsheet exports, and encrypted <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">MongoDB</span> storage.
+              </p>
+            </div>
+
+            {/* Card 5 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Radio className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                DDoS & rate limiter protection
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Sliding-window IP hashing and auto-purging rate limits. Comply with standards and prevent submission flooding with zero external <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">WAF</span> setup.
+              </p>
+            </div>
+
+            {/* Card 6 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Globe className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Domain & email monitoring
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Authenticate users securely with 6-digit OTP verification powered by Nodemailer and Gmail SMTP with no mandatory custom domain setup.
+              </p>
+            </div>
+
+            {/* Card 7 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Sliders className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Dynamic design system
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Select between Modern Glass, Stark Minimal, or Corporate styles. All styled with pure <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">Tailwind CSS</span> and smooth cubic-bezier transitions.
+              </p>
+            </div>
+
+            {/* Card 8 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Lock className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Battle-tested session security
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Server-side authentication with encrypted <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">AES-256-GCM</span> HTTP-only cookie tokens, zero token exposure in browser local storage.
+              </p>
+            </div>
+
+            {/* Card 9 */}
+            <div className="space-y-3">
+              <div className="w-6 h-6 text-neutral-200">
+                <Package className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Zero-configuration exports
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+                Export bundled ZIP packages matching standard Next.js directory structure. Drop directly into <span className="underline decoration-dotted decoration-neutral-400 underline-offset-4 text-white font-medium">App Router</span> and start capturing submissions.
+              </p>
+            </div>
+
+          </div>
         </div>
       </section>
 

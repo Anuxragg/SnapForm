@@ -63,6 +63,13 @@ export default function DashboardPage() {
   const [fetchingForms, setFetchingForms] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // ─── Strict Auth Guard: Redirect unauthenticated visitors to login ───────────
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [user, loading, router]);
+
   // Submissions modal state
   const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
   const [selectedFormForSubmissions, setSelectedFormForSubmissions] = useState<SavedForm | null>(null);
@@ -236,15 +243,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="min-h-screen bg-brand-sand text-brand-charcoal flex items-center justify-center font-sans">
-        <div className="text-center space-y-4">
-          <div className="w-10 h-10 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-mono font-black text-neutral-400 uppercase tracking-widest">
-            Loading Workspace Sessions...
-          </p>
+      <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center space-y-4 font-sans">
+        <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-2xl animate-pulse">
+          <Logo href="/" textClassName="hidden" />
         </div>
+        <p className="text-xs font-semibold text-neutral-400">Verifying session...</p>
       </div>
     );
   }

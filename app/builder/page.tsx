@@ -38,6 +38,13 @@ export default function BuilderPage() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const promptedForAuthRef = useRef(false);
 
+  // ─── Strict Auth Guard: Redirect unauthenticated visitors to login ───────────
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [user, loading, router]);
+
   // Initialize with predefined templates immediately — no loading delay
   const [templates, setTemplates] = useState<ISeedFormTemplate[]>(PREDEFINED_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<ISeedFormTemplate | null>(null);
@@ -249,12 +256,17 @@ export default function BuilderPage() {
     }
   };
 
-  // Debounced auto-compilation
-  useEffect(() => {
-    if (!selectedTemplate) return;
-    const timer = setTimeout(() => handleGenerateCode(), 500);
-    return () => clearTimeout(timer);
-  }, [fields, styling, formName, selectedTemplate, handleGenerateCode]);
+  // ─── Guard: Block view while verifying auth or redirecting ──────────────────
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center space-y-4 font-sans">
+        <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center shadow-2xl animate-pulse">
+          <Logo href="/" textClassName="hidden" />
+        </div>
+        <p className="text-xs font-semibold text-neutral-400">Verifying session...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-brand-sand text-brand-charcoal font-sans flex flex-col antialiased overflow-hidden">
