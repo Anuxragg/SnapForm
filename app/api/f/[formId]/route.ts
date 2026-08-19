@@ -3,8 +3,9 @@ import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import FormSubmission from '@/models/FormSubmission';
-import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 import mongoose from 'mongoose';
+import { PREDEFINED_TEMPLATES } from '@/lib/templates';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 // Public Hosted Form API Route
 export const runtime = 'nodejs';
 
@@ -85,7 +86,24 @@ export async function POST(
   { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
+    const clientIp = getClientIp(request);
     const { formId } = await params;
+
+    // DDoS & Spam protection: Max 30 submissions per minute per IP
+    const rateLimit = checkRateLimit(`form_sub_${clientIp}`, {
+      limit: 30,
+      windowMs: 60 * 1000,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Too many submissions. Please slow down and try again in ${rateLimit.resetInSeconds} seconds.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { data } = body;
 

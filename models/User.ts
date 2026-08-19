@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   salt: string;
+  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ const UserSchema = new Schema<IUser>(
     },
     passwordHash: { type: String, required: true },
     salt: { type: String, required: true },
+    isVerified: { type: Boolean, default: true },
   },
   {
     timestamps: true,
