@@ -8,9 +8,7 @@ interface LogoProps {
   showText?: boolean;
   badgeText?: string;
   className?: string;
-  iconClassName?: string;
   textClassName?: string;
-  fill?: string;
 }
 
 export function SnapFormIcon({
@@ -59,9 +57,7 @@ export default function Logo({
   showText = true,
   badgeText,
   className = '',
-  iconClassName = 'w-6 h-7 text-brand-orange',
   textClassName = 'text-2xl font-black tracking-tight text-brand-charcoal',
-  fill = 'currentColor',
 }: LogoProps) {
   const content = (
     <div className={`flex items-center gap-2.5 group cursor-pointer select-none ${className}`}>
@@ -71,10 +67,10 @@ export default function Logo({
       </div>
 
       {showText && (
-        <span className={`flex items-center gap-1.5 leading-none ${textClassName}`}>
-          <span>snapform</span>
+        <span className={`flex items-center gap-1.5 leading-none font-heading font-semibold ${textClassName}`}>
+          <span>SnapForm</span>
           {badgeText && (
-            <span className="text-[8px] font-black text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono uppercase">
+            <span className="text-[8px] font-bold text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono uppercase">
               {badgeText}
             </span>
           )}

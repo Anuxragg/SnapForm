@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -26,9 +26,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.className} antialiased`}
+      className={`${inter.variable} ${inter.className} antialiased`}
     >
-      <body className="min-h-screen bg-[#f4f3ef] text-[#121212]">
+      <body className="min-h-screen bg-[#f4f3ef] text-[#121212] font-sans">
         <AuthProvider>
           {children}
         </AuthProvider>

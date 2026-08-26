@@ -2,10 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowRight,
   ShieldCheck,
   Globe,
   Radio,
@@ -18,14 +16,12 @@ import {
   Package,
 } from 'lucide-react';
 import WorkflowDemo from '@/components/WorkflowDemo';
-import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HomeShaderBackground from '@/components/HomeShaderBackground';
+import BreathingText from '@/components/fancy/text/breathing-text';
 
 export default function LandingPage() {
-  const router = useRouter();
-  const { user } = useAuth();
   const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
   const [terminalCopied, setTerminalCopied] = useState(false);
 
@@ -49,38 +45,40 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20 flex-1 flex flex-col items-center">
-        
+
         {/* Top Centered: High-Impact Typography & Branding */}
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-6 pb-12 sm:pb-16">
-          
+
           {/* Tag & Headline */}
           <div className="space-y-3">
-            <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em] inline-block animate-pulse px-3.5 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/25">
+            <span className="text-[11px] font-bold font-mono text-white/90 uppercase tracking-[0.25em] inline-block animate-pulse px-3.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm">
               COMPILER IS SPEED FOR DEV
             </span>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.08] tracking-tight text-white max-w-2xl mx-auto">
-              <span className="text-brand-orange">SnapForm </span>
+            <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.12] tracking-tight text-white max-w-2xl mx-auto drop-shadow-md">
+              <BreathingText className="text-white">
+                SnapForm
+              </BreathingText>{' '}
               delivers fast, type-safe React forms.
             </h1>
           </div>
 
           {/* Subtext description */}
-          <p className="text-sm sm:text-base text-neutral-300 leading-relaxed max-w-xl mx-auto">
+          <p className="font-subtext text-[15px] font-normal leading-[24px] text-white/90 max-w-xl mx-auto drop-shadow-sm">
             Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
-              <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
-                Launch Studio <ArrowRight className="w-4 h-4" />
+              <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
+                Hosting Form
               </Button>
             </Link>
-            <a href="#features" className="w-full sm:w-auto">
-              <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 transition-all w-full sm:w-auto cursor-pointer">
-                Explore Features
+            <Link href="/builder" className="w-full sm:w-auto">
+              <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 hover:border-white/40 transition-all flex items-center justify-center w-full sm:w-auto cursor-pointer">
+                Form Templates
               </Button>
-            </a>
+            </Link>
           </div>
 
         </div>
@@ -94,14 +92,14 @@ export default function LandingPage() {
 
       {/* ─── SECTION: "Integrate this afternoon" Showcase & Code Terminal ─── */}
       <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-20 pb-20 border-t border-white/10 text-center flex flex-col items-center">
-        
+
         {/* Headline */}
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
+        <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4">
           Integrate <span className="text-brand-orange">this afternoon</span>
         </h2>
 
         {/* Subtitle */}
-        <p className="text-sm sm:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed mb-12">
+        <p className="font-subtext text-[15px] font-normal leading-[24px] text-neutral-400 max-w-xl mx-auto mb-12">
           A simple, elegant compiler so you can start capturing form submissions in minutes. It fits right into your code with type-safe schemas for your favorite frontend stacks.
         </p>
 
@@ -185,18 +183,18 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Header */}
           <div className="max-w-2xl mb-16 space-y-3 text-left">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1]">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight leading-[1.15]">
               Reach users, not <br />
               broken form endpoints
             </h2>
-            <p className="text-sm sm:text-base text-neutral-300 font-normal">
+            <p className="font-subtext text-[15px] font-normal leading-[24px] text-neutral-300">
               A developer platform built with strict type safety, zero boilerplate, and robust security safeguards out of the box.
             </p>
           </div>
 
           {/* 3x3 Clean Minimal Developer Grid (Unboxed, on unified blurred background) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-12 text-left">
-            
+
             {/* Card 1 */}
             <div className="space-y-3">
               <div className="w-6 h-6 text-neutral-200">

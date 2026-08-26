@@ -14,8 +14,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  FileCode,
-  Sparkles,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -23,7 +21,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, openAuthModal, logout } = useAuth();
-  
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
@@ -95,19 +93,18 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-[58px] bg-black/75 border-b border-white/10 shadow-2xl backdrop-blur-2xl flex items-center text-white font-sans transition duration-500 ease-in-out">
         <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-15 h-[58px] flex items-center justify-between gap-4 transition duration-500 ease-in-out">
-          
+
           {/* Logo & Desktop Nav */}
           <div className="flex items-center gap-6">
-            <Logo href="/" textClassName="text-white font-black text-xl sm:text-[22px] leading-none tracking-tight" />
+            <Logo href="/" textClassName="text-white font-semibold text-xl sm:text-[22px] leading-none tracking-tight font-heading" />
 
             <nav className="hidden md:flex items-center gap-7 lg:gap-9 ml-2">
               {navLinks.map(({ label, href }) => (
                 <Link
                   key={label}
                   href={href}
-                  className={`text-[15px] font-semibold transition-colors duration-150 ${
-                    pathname === href ? 'text-brand-orange' : 'text-neutral-300 hover:text-white'
-                  }`}
+                  className={`text-[15px] font-semibold transition-colors duration-150 ${pathname === href ? 'text-brand-orange' : 'text-neutral-300 hover:text-white'
+                    }`}
                 >
                   {label}
                 </Link>
@@ -143,13 +140,10 @@ export default function Navbar() {
                   setSearchOpen(true);
                   setTimeout(() => searchRef.current?.focus(), 50);
                 }}
-                className="flex items-center gap-2.5 h-10 lg:h-11 w-[200px] lg:w-[260px] rounded-full border border-white/10 bg-white/5 px-3.5 text-left transition-all duration-150 hover:bg-white/10 hover:border-brand-orange/40 group cursor-pointer"
+                className="flex items-center gap-2.5 h-10 lg:h-11 w-[160px] lg:w-[220px] rounded-full border border-white/10 bg-white/5 px-3.5 text-left transition-all duration-150 hover:bg-white/10 hover:border-brand-orange/40 group cursor-pointer"
               >
                 <Search className="w-4 h-4 text-neutral-400 group-hover:text-brand-orange transition-colors shrink-0" />
                 <span className="text-sm text-neutral-400 group-hover:text-neutral-200 transition-colors flex-1 truncate">Search</span>
-                <kbd className="h-5 min-w-8 rounded-md border border-white/15 bg-neutral-900 px-1.5 text-center text-[10px] leading-5 text-neutral-400 shadow-sm font-mono shrink-0">
-                  Ctrl K
-                </kbd>
               </button>
             )}
 
@@ -239,7 +233,7 @@ export default function Navbar() {
 
       {/* ─── Full Mobile Navigation Drawer (Outside Header to avoid height clipping) ─── */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="sm:hidden fixed inset-x-0 top-[58px] bottom-0 w-full h-[calc(100dvh-58px)] bg-[#070709] z-[9999] flex flex-col justify-between p-6 animate-in fade-in slide-in-from-top-4 duration-200 overflow-y-auto"
           style={{ overscrollBehavior: 'contain' }}
         >
@@ -266,11 +260,10 @@ export default function Navbar() {
                   key={label}
                   href={href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all ${
-                    pathname === href
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all ${pathname === href
                       ? 'bg-brand-orange/15 text-brand-orange border border-brand-orange/30'
                       : 'text-neutral-200 hover:bg-neutral-900 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5 text-neutral-400" />
                   <span>{label}</span>
