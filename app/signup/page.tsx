@@ -148,7 +148,7 @@ export default function SignupPage() {
           </Link>
 
           <div className="space-y-1.5">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-heading font-semibold tracking-tight text-white">
               {signupStep === 'otp' ? 'Verify your email' : 'Create an account'}
             </h1>
             {signupStep === 'otp' ? (

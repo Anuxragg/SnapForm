@@ -68,7 +68,7 @@ export default function LoginPage() {
 
           {/* Headline */}
           <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-heading font-semibold tracking-tight text-white">
               Welcome back!
             </h1>
           </div>

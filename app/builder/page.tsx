@@ -414,13 +414,13 @@ export default function BuilderPage() {
           <div className="flex-1 overflow-y-auto px-6 py-12 text-center w-full">
             <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
               <div className="space-y-2">
-                <span className="text-[11px] font-black font-mono text-brand-orange uppercase tracking-[0.25em]">
+                <span className="text-[11px] font-bold font-mono text-brand-orange uppercase tracking-[0.25em]">
                   STARTER TEMPLATES
                 </span>
-                <h1 className="text-3xl md:text-5xl font-black tracking-tight text-brand-charcoal">
+                <h1 className="text-3xl md:text-5xl font-heading font-semibold tracking-tight text-brand-charcoal">
                   Choose a Starter Configuration
                 </h1>
-                <p className="text-xs md:text-sm text-neutral-500 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xs md:text-sm text-neutral-500 max-w-2xl mx-auto leading-relaxed font-normal">
                   Select an industry-specific starter configuration below. You can fully customize inputs, validation rules, and custom accent themes inside the visual studio compiler editor.
                 </p>
               </div>

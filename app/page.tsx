@@ -70,14 +70,14 @@ export default function LandingPage() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
-              <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-extrabold px-8 py-3.5 h-12 flex items-center justify-center shadow-lg shadow-brand-orange/30 border border-brand-orange hover:scale-105 active:scale-95 transition-all w-full sm:w-auto cursor-pointer">
+              <button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-8 py-3.5 h-12 flex items-center justify-center shadow-md shadow-brand-orange/20 border border-brand-orange transition-colors duration-200 w-full sm:w-auto cursor-pointer">
                 Hosting Form
-              </Button>
+              </button>
             </Link>
             <Link href="/builder" className="w-full sm:w-auto">
-              <Button variant="outline" className="rounded-full border-white/20 bg-black/50 backdrop-blur-xl text-white text-sm font-bold px-8 h-12 hover:bg-white/15 hover:border-white/40 transition-all flex items-center justify-center w-full sm:w-auto cursor-pointer">
+              <button className="rounded-full border border-white/20 bg-black/50 backdrop-blur-xl text-white hover:text-white text-sm font-bold px-8 h-12 hover:bg-white/15 hover:border-white/40 transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
                 Form Templates
-              </Button>
+              </button>
             </Link>
           </div>
 

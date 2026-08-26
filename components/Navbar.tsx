@@ -168,7 +168,7 @@ export default function Navbar() {
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-2 h-10 px-2.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 transition-all duration-150 cursor-pointer group"
                 >
-                  <div className="w-7 h-7 rounded-full bg-brand-orange text-white text-[10px] font-black flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-brand-orange text-white text-[10px] font-bold flex items-center justify-center">
                     {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <span className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors hidden md:block max-w-[90px] truncate">
@@ -180,9 +180,9 @@ export default function Navbar() {
                 {profileOpen && (
                   <div className="absolute right-0 top-[calc(100%+10px)] w-52 bg-neutral-900/95 border border-white/15 rounded-2xl shadow-2xl p-1.5 z-50 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-3 py-2.5 border-b border-white/10 mb-1">
-                      <p className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Account</p>
-                      <p className="text-xs font-semibold text-white mt-1 truncate">{user.name}</p>
-                      <p className="text-[10px] text-neutral-400 truncate mt-0.5">{user.email}</p>
+                      <p className="text-[10px] font-mono font-medium uppercase tracking-widest text-neutral-400">Account</p>
+                      <p className="text-xs font-medium text-white mt-1 truncate">{user.name}</p>
+                      <p className="text-[10px] font-normal text-neutral-400 truncate mt-0.5">{user.email}</p>
                     </div>
 
                     {[
@@ -193,7 +193,7 @@ export default function Navbar() {
                         key={label}
                         href={href}
                         onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
                       >
                         <Icon className="w-4 h-4 text-neutral-400" />
                         <span>{label}</span>
@@ -206,7 +206,7 @@ export default function Navbar() {
                           logout();
                           setProfileOpen(false);
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer text-left"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer text-left"
                       >
                         <LogOut className="w-4 h-4 text-rose-400" />
                         <span>Log out</span>

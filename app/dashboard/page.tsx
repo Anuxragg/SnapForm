@@ -264,7 +264,7 @@ export default function DashboardPage() {
 
       {/* Global SaaS Header */}
       <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-brand-border/60">
-        <Logo href="/" badgeText="CONSOLE" textClassName="text-xl font-black tracking-tight text-brand-charcoal" />
+        <Logo href="/" badgeText="CONSOLE" textClassName="text-xl font-heading font-semibold tracking-tight text-brand-charcoal" />
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-brand-charcoal/80">
           <Link href="/dashboard" className="text-brand-orange">
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 className="flex items-center gap-1.5 p-1 rounded-full border border-brand-border bg-white shadow-sm hover:border-brand-orange/60 hover:shadow transition-all cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-full bg-brand-orange text-white text-xs font-black flex items-center justify-center shadow-inner">
+                <div className="w-8 h-8 rounded-full bg-brand-orange text-white text-xs font-bold flex items-center justify-center shadow-inner">
                   {user.name
                     .split(' ')
                     .map((n) => n[0])
@@ -316,7 +316,7 @@ export default function DashboardPage() {
                   <div className="fixed inset-0 z-35" onClick={() => setProfileDropdownOpen(false)} />
                   <div className="absolute right-0 mt-2 w-52 bg-[#fdfcf9] border border-brand-border rounded-2xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-2.5 py-2 border-b border-brand-border/60 mb-2">
-                      <p className="text-[10px] font-black font-mono text-neutral-400 uppercase tracking-widest leading-none">
+                      <p className="text-[10px] font-bold font-mono text-neutral-400 uppercase tracking-widest leading-none">
                         Active Profile
                       </p>
                       <p className="text-xs font-bold text-brand-charcoal truncate mt-1">
@@ -368,7 +368,7 @@ export default function DashboardPage() {
               <Zap className="w-7 h-7" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-2xl md:text-3xl font-black text-brand-charcoal tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-heading font-semibold text-brand-charcoal tracking-tight">
                 Sign in to your SnapForm Console
               </h1>
               <p className="text-xs md:text-sm text-neutral-500 max-w-md mx-auto leading-relaxed">
@@ -379,7 +379,7 @@ export default function DashboardPage() {
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button
                 onClick={() => openAuthModal('login')}
-                className="w-full sm:w-auto rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-black px-8 py-3.5 h-11 shadow border border-brand-orange hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="w-full sm:w-auto rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-8 py-3.5 h-11 shadow border border-brand-orange transition-all cursor-pointer"
               >
                 Sign In Now
               </Button>
@@ -399,22 +399,22 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-brand-border/60 pb-6 text-left">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black font-mono bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold font-mono bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     LIVE CLUSTER
                   </span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black text-brand-charcoal tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-heading font-semibold text-brand-charcoal tracking-tight">
                   Welcome back, {user.name}
                 </h1>
-                <p className="text-xs md:text-sm text-neutral-500 font-medium">
+                <p className="text-xs md:text-sm text-neutral-500 font-normal">
                   Manage your hosted forms, live respondent links, and form submissions in real-time.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 <Link href="/builder">
-                  <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-black px-5 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                  <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-5 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-2 transition-all cursor-pointer">
                     <Wand2 className="w-3.5 h-3.5" />
                     Create New Form
                   </Button>
@@ -454,13 +454,13 @@ export default function DashboardPage() {
                     className="bg-white border border-brand-border rounded-2xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden"
                   >
                     <div className="space-y-0.5">
-                      <span className="text-[10px] font-black font-mono text-neutral-400 tracking-wider block uppercase">
+                      <span className="text-[10px] font-bold font-mono text-neutral-400 tracking-wider block uppercase">
                         {stat.title}
                       </span>
-                      <p className="text-2xl font-black text-brand-charcoal tracking-tight">
+                      <p className="text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
                         {stat.value}
                       </p>
-                      <p className="text-[11px] font-medium text-neutral-500">{stat.desc}</p>
+                      <p className="text-[11px] font-normal text-neutral-500">{stat.desc}</p>
                     </div>
                     <div className={`p-2.5 rounded-xl border ${stat.accent} shadow-inner`}>
                       <Icon className="w-5 h-5" />
@@ -473,10 +473,10 @@ export default function DashboardPage() {
             {/* Main Segmented List: My Forms */}
             <div className="space-y-5">
               <div className="space-y-0.5 text-left">
-                <h2 className="text-xl md:text-2xl font-black text-brand-charcoal tracking-tight">
+                <h2 className="text-xl md:text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
                   My Hosted & Saved Forms
                 </h2>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-neutral-500 font-normal">
                   Share public form links with users, view live submissions, or download React & Zod code bundles.
                 </p>
               </div>
@@ -495,13 +495,13 @@ export default function DashboardPage() {
                     <FileCode2 className="w-8 h-8" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-lg font-black text-brand-charcoal">No custom forms saved yet</h3>
+                    <h3 className="text-lg font-heading font-semibold text-brand-charcoal">No custom forms saved yet</h3>
                     <p className="text-xs text-neutral-500 max-w-md mx-auto leading-relaxed">
                       You haven&apos;t saved any custom form schemas to your profile. Choose a quick-starter template below to launch the editor and save it!
                     </p>
                   </div>
                   <Link href="/builder" className="inline-block pt-1">
-                    <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-black px-6 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                    <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-6 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-1.5 transition-all cursor-pointer">
                       <Plus className="w-4 h-4" /> Start Building
                     </Button>
                   </Link>
@@ -517,7 +517,7 @@ export default function DashboardPage() {
                       <div className="space-y-4">
                         {/* Top Category & Date */}
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black font-mono bg-brand-orange/10 text-brand-orange px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-[10px] font-bold font-mono bg-brand-orange/10 text-brand-orange px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                             {form.category}
                           </span>
                           <span className="text-[11px] font-medium text-neutral-400 font-mono">
@@ -531,7 +531,7 @@ export default function DashboardPage() {
 
                         {/* Title & Description */}
                         <div className="space-y-1">
-                          <h3 className="text-lg font-black text-brand-charcoal leading-tight tracking-tight">
+                          <h3 className="text-base font-heading font-semibold text-brand-charcoal leading-tight tracking-tight">
                             {form.name}
                           </h3>
                           <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
@@ -543,11 +543,11 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-2 pt-0.5">
                           <div className="bg-brand-sand/80 border border-brand-border/60 px-2.5 py-1 rounded-lg text-xs font-bold text-brand-charcoal flex items-center gap-1.5">
                             <span className="text-neutral-400 font-mono text-[10px]">FIELDS</span>
-                            <span className="font-black text-brand-orange">{form.fields.length}</span>
+                            <span className="font-bold text-brand-orange">{form.fields.length}</span>
                           </div>
                           <div className="bg-brand-sand/80 border border-brand-border/60 px-2.5 py-1 rounded-lg text-xs font-bold text-brand-charcoal flex items-center gap-1.5">
                             <span className="text-neutral-400 font-mono text-[10px]">THEME</span>
-                            <span className="font-black uppercase">{form.styling.theme}</span>
+                            <span className="font-bold uppercase">{form.styling.theme}</span>
                           </div>
                         </div>
 
@@ -625,10 +625,10 @@ export default function DashboardPage() {
             {/* Quick Starter Templates Segment */}
             <div className="space-y-4 pt-6 border-t border-brand-border/60">
               <div className="space-y-0.5 text-left">
-                <h2 className="text-xl md:text-2xl font-black text-brand-charcoal tracking-tight">
+                <h2 className="text-xl md:text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
                   Public Starter Blueprints
                 </h2>
-                <p className="text-xs text-neutral-500 font-medium">
+                <p className="text-xs text-neutral-500 font-normal">
                   Pre-compiled full-stack templates ready to preview, test, and customize.
                 </p>
               </div>
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                         {tmpl.category}
                       </span>
                       <div className="space-y-1">
-                        <h4 className="text-sm font-black text-brand-charcoal group-hover:text-brand-orange transition-colors">
+                        <h4 className="text-sm font-heading font-semibold text-brand-charcoal group-hover:text-brand-orange transition-colors">
                           {tmpl.name}
                         </h4>
                         <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
@@ -685,14 +685,14 @@ export default function DashboardPage() {
             <div className="p-6 border-b border-brand-border flex items-center justify-between bg-white">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black font-mono bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded uppercase">
+                  <span className="text-[9px] font-bold font-mono bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded uppercase">
                     {selectedFormForSubmissions.category}
                   </span>
                   <span className="text-xs text-neutral-400 font-mono">
                     {submissionsList.length} Responses recorded
                   </span>
                 </div>
-                <h3 className="text-lg font-black text-brand-charcoal mt-1">
+                <h3 className="text-lg font-heading font-semibold text-brand-charcoal mt-1">
                   {selectedFormForSubmissions.name} - Submissions Inbox
                 </h3>
               </div>

@@ -131,9 +131,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
               {filteredTemplates.length} forms
             </span>
           )}
-        </div>
-
-        {/* Category Pills */}
+        </div>          {/* Category Pills */}
         <div className="flex items-center justify-center gap-2 flex-wrap">
           {FILTER_TABS.map((tab) => {
             const isActive = activeCategory === tab.id;
@@ -141,7 +139,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
               <button
                 key={tab.id}
                 onClick={() => setActiveCategory(tab.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   isActive
                     ? 'bg-brand-charcoal text-white shadow-sm'
                     : 'bg-white border border-brand-border text-neutral-600 hover:bg-brand-sand hover:text-brand-orange'
@@ -160,8 +158,8 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
           <div className="w-10 h-10 rounded-xl bg-brand-sand border border-brand-border flex items-center justify-center text-neutral-400 mx-auto">
             <FileText className="w-5 h-5" />
           </div>
-          <h4 className="text-base font-bold text-brand-charcoal">No templates found</h4>
-          <p className="text-xs text-neutral-500">
+          <h4 className="text-base font-heading font-semibold text-brand-charcoal">No templates found</h4>
+          <p className="text-xs text-neutral-500 font-normal">
             No templates matched your search. Try resetting filters.
           </p>
           <button
@@ -169,7 +167,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
               setActiveCategory('all');
               setSearchQuery('');
             }}
-            className="text-xs font-bold text-brand-orange hover:underline cursor-pointer"
+            className="text-xs font-semibold text-brand-orange hover:underline cursor-pointer"
           >
             Clear Filters
           </button>
@@ -197,17 +195,17 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBgStyle}`}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className={`text-[10px] font-black font-mono px-2.5 py-0.5 rounded-full uppercase tracking-wider ${badgeStyle}`}>
+                    <span className={`text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full uppercase tracking-wider ${badgeStyle}`}>
                       {isCustom ? 'Saved Form' : template.category}
                     </span>
                   </div>
 
                   {/* Title and Description */}
                   <div className="space-y-1">
-                    <h3 className="text-base font-black text-brand-charcoal group-hover:text-brand-orange transition-colors">
+                    <h3 className="text-base font-heading font-semibold text-brand-charcoal group-hover:text-brand-orange transition-colors">
                       {template.name}
                     </h3>
-                    <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                    <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed min-h-[32px] font-normal">
                       {template.description}
                     </p>
                   </div>
@@ -232,7 +230,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 </div>
 
                 {/* Bottom Footer */}
-                <div className="pt-4 border-t border-brand-border/40 mt-5 flex items-center justify-between text-xs font-bold text-neutral-500 group-hover:text-brand-orange transition-colors">
+                <div className="pt-4 border-t border-brand-border/40 mt-5 flex items-center justify-between text-xs font-medium text-neutral-500 group-hover:text-brand-orange transition-colors">
                   <span>Start with this template</span>
                   <div className="w-6 h-6 rounded-full bg-brand-sand group-hover:bg-brand-orange group-hover:text-white flex items-center justify-center transition-all duration-200 group-hover:translate-x-1">
                     <ArrowRight className="w-3.5 h-3.5" />
