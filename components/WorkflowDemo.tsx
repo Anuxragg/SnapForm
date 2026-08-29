@@ -28,6 +28,11 @@ const FILES = [
   { icon: '⚡', name: 'route.ts', desc: 'Next.js API handler', color: 'text-cyan-400' },
 ];
 
+const STEP_LABELS = ['① Describe', '② Compile', '③ Export'];
+const STEP_COLORS = ['bg-brand-orange', 'bg-violet-500', 'bg-emerald-500'];
+const STEP_TEXT_COLORS = ['text-brand-orange', 'text-violet-500', 'text-emerald-500'];
+const SUPPORTED_STACKS = ['NEXT.JS', '•', 'ZOD', '•', 'TAILWIND', '•', 'SHADCN'];
+
 export default function WorkflowDemo() {
   const [step, setStep] = useState(0);           // 0 = Describe, 1 = Compile, 2 = Export
   const [progress, setProgress] = useState(0);   // 0–100 across total duration
@@ -112,10 +117,6 @@ export default function WorkflowDemo() {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [isPlaying, tick]);
 
-  const STEP_LABELS = ['① Describe', '② Compile', '③ Export'];
-  const stepColors = ['bg-brand-orange', 'bg-violet-500', 'bg-emerald-500'];
-  const stepTextColors = ['text-brand-orange', 'text-violet-500', 'text-emerald-500'];
-
   return (
     <div className="relative w-full border border-brand-border bg-white rounded-3xl overflow-hidden shadow-2xl shadow-brand-charcoal/5">
 
@@ -133,10 +134,10 @@ export default function WorkflowDemo() {
           {/* Step pills */}
           {STEP_LABELS.map((label, i) => (
             <span
-              key={i}
+              key={label}
               className={`text-[10px] font-black font-mono tracking-wider px-2 py-0.5 rounded transition-all duration-300 ${
                 step === i
-                  ? `${stepColors[i]} text-white`
+                  ? `${STEP_COLORS[i]} text-white`
                   : 'bg-neutral-100 text-neutral-400'
               }`}
             >
@@ -330,20 +331,13 @@ export default function WorkflowDemo() {
           SUPPORTED STACKS
         </span>
         <div className="flex items-center gap-3 text-[10px] font-mono font-black text-brand-charcoal/50">
-          {['NEXT.JS', '•', 'ZOD', '•', 'TAILWIND', '•', 'SHADCN'].map((s, i) => (
-            <span key={i} className={s !== '•' ? 'hover:text-brand-orange transition-colors cursor-default' : ''}>
+          {SUPPORTED_STACKS.map((s, i) => (
+            <span key={`${s}-${i}`} className={s !== '•' ? 'hover:text-brand-orange transition-colors cursor-default' : ''}>
               {s}
             </span>
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(2px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

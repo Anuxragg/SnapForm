@@ -84,10 +84,11 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div className="space-y-2 text-left">
-              <label className="text-sm font-semibold text-neutral-200 block">
+              <label htmlFor="login-email" className="text-sm font-semibold text-neutral-200 block">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 placeholder="alan.turing@example.com"
                 value={email}
@@ -98,11 +99,12 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="space-y-2 text-left">
-              <label className="text-sm font-semibold text-neutral-200 block">
+              <label htmlFor="login-password" className="text-sm font-semibold text-neutral-200 block">
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={password}
@@ -112,6 +114,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

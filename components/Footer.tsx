@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -85,9 +86,11 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-brand-orange transition-colors cursor-pointer"
             >
-              <img
+              <Image
                 src="/fair.png"
                 alt="Avatar"
+                width={16}
+                height={16}
                 className="w-4 h-4 rounded-full inline-block object-cover border border-white/20"
               />
             </a>

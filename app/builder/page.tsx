@@ -68,23 +68,24 @@ export default function BuilderPage() {
         const res = await fetch('/api/templates');
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          const userCustoms: ISeedFormTemplate[] = json.data
-            .filter((t: any) => t.userId)
-            .map((t: any) => ({
-              _id: t._id,
-              id: t._id,
-              name: t.name || 'Untitled Form',
-              category: t.category || 'contact',
-              description: t.description || 'Custom saved form',
-              fields: Array.isArray(t.fields) ? t.fields : [],
-              styling: {
-                theme: t.styling?.theme || 'modern',
-                primaryColor: t.styling?.primaryColor || '#ff4f19',
-              },
-              userId: t.userId,
-            }));
-
-          // Always include user custom forms + all predefined templates catalog
+          const userCustoms: ISeedFormTemplate[] = [];
+          for (const t of json.data) {
+            if (t.userId) {
+              userCustoms.push({
+                _id: t._id,
+                id: t._id,
+                name: t.name || 'Untitled Form',
+                category: t.category || 'contact',
+                description: t.description || 'Custom saved form',
+                fields: Array.isArray(t.fields) ? t.fields : [],
+                styling: {
+                  theme: t.styling?.theme || 'modern',
+                  primaryColor: t.styling?.primaryColor || '#ff4f19',
+                },
+                userId: t.userId,
+              });
+            }
+          }
           setTemplates([...userCustoms, ...PREDEFINED_TEMPLATES]);
         }
       } catch (err) {

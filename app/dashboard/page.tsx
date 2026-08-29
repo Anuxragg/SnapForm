@@ -450,7 +450,7 @@ export default function DashboardPage() {
                 const Icon = stat.icon;
                 return (
                   <div
-                    key={i}
+                    key={stat.title}
                     className="bg-white border border-brand-border rounded-2xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden"
                   >
                     <div className="space-y-0.5">

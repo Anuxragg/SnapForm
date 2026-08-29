@@ -226,8 +226,9 @@ export default function AuthModal() {
           {authModalMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-2 text-left">
-                <label className="text-sm font-semibold text-neutral-200 block">Email</label>
+                <label htmlFor="modal-login-email" className="text-sm font-semibold text-neutral-200 block">Email</label>
                 <input
+                  id="modal-login-email"
                   type="email"
                   placeholder="alan.turing@example.com"
                   value={email}
@@ -238,9 +239,10 @@ export default function AuthModal() {
               </div>
 
               <div className="space-y-2 text-left">
-                <label className="text-sm font-semibold text-neutral-200 block">Password</label>
+                <label htmlFor="modal-login-password" className="text-sm font-semibold text-neutral-200 block">Password</label>
                 <div className="relative">
                   <input
+                    id="modal-login-password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={password}
@@ -250,6 +252,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -261,15 +264,18 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-5 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 mt-1"
+                className="w-full py-4 rounded-2xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm shadow-xl shadow-brand-orange/20 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Signing in...</span>
+                    Signing in...
                   </>
                 ) : (
-                  <span>Sign in</span>
+                  <>
+                    Sign In
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </form>
@@ -280,9 +286,10 @@ export default function AuthModal() {
             <form onSubmit={handleStartSignup} className="space-y-4">
               {/* Email */}
               <div className="space-y-2 text-left">
-                <label className="text-sm font-semibold text-neutral-200 block">Email</label>
+                <label htmlFor="modal-signup-email" className="text-sm font-semibold text-neutral-200 block">Email</label>
                 <div className="relative flex items-center">
                   <input
+                    id="modal-signup-email"
                     type="email"
                     placeholder="alan.turing@example.com"
                     value={email}
@@ -305,9 +312,10 @@ export default function AuthModal() {
 
               {/* Password */}
               <div className="space-y-2 text-left">
-                <label className="text-sm font-semibold text-neutral-200 block">Password</label>
+                <label htmlFor="modal-signup-password" className="text-sm font-semibold text-neutral-200 block">Password</label>
                 <div className="relative">
                   <input
+                    id="modal-signup-password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password"
                     value={password}
@@ -317,6 +325,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
