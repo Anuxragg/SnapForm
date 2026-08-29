@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
-import { X, Eye, EyeOff, Loader2, RefreshCw, CheckCircle2, ArrowLeft, Check, Circle } from 'lucide-react';
+import { X, Eye, EyeOff, Loader2, RefreshCw, CheckCircle2, ArrowLeft, ArrowRight, Check, Circle } from 'lucide-react';
 import { SnapFormIcon } from '@/components/Logo';
 import AuthVisualCard from './AuthVisualCard';
 import {
