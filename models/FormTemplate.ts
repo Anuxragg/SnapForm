@@ -37,6 +37,8 @@ export interface IFormTemplate extends Document {
   fields: IFormField[];
   styling: IFormStyling;
   userId?: mongoose.Types.ObjectId;
+  shortId?: string;
+  views?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,11 +83,22 @@ const FormTemplateSchema = new Schema<IFormTemplate>(
     fields: [FormFieldSchema],
     styling: { type: FormStylingSchema, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
+    shortId: { type: String, unique: true, sparse: true, index: true },
+    views: { type: Number, default: 0 },
   },
   {
     timestamps: true,
   }
 );
+
+import { generateShortId } from '@/lib/utils';
+
+// Auto-assign unique shortId on creation if not already specified
+FormTemplateSchema.pre('save', function () {
+  if (!this.shortId) {
+    this.shortId = generateShortId('sf_', 6);
+  }
+});
 
 // Ensure the model is not re-compiled during development hot reloads
 const FormTemplate: Model<IFormTemplate> =

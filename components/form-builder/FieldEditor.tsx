@@ -124,7 +124,7 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
         <Button
           size="sm"
           onClick={handleAddField}
-          className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium shadow-md flex items-center gap-1.5 cursor-pointer"
+          className="rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold shadow-xs flex items-center gap-1.5 cursor-pointer text-xs"
         >
           <Plus className="w-4 h-4" /> Add Field
         </Button>
@@ -143,10 +143,10 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
             return (
               <Card
                 key={field.id}
-                className={`overflow-hidden transition-all duration-300 border bg-white/70 backdrop-blur-sm ${
+                className={`overflow-hidden transition-all duration-300 border bg-white ${
                   isOpen
-                    ? 'border-violet-300 ring-2 ring-violet-50/50 shadow-md'
-                    : 'border-neutral-200/60 hover:border-neutral-300/80 shadow-sm'
+                    ? 'border-brand-orange/40 ring-2 ring-brand-orange/10 shadow-sm'
+                    : 'border-neutral-200 hover:border-neutral-300 shadow-2xs'
                 }`}
               >
                 {/* Field Accordion Trigger Header */}
@@ -210,7 +210,7 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                       variant="ghost"
                       onClick={() => toggleAccordion(field.id)}
                       className={`w-7 h-7 rounded-lg transition-colors cursor-pointer ${
-                        isOpen ? 'bg-violet-50 text-violet-600' : 'text-neutral-400 hover:text-neutral-600'
+                        isOpen ? 'bg-brand-orange/10 text-brand-orange' : 'text-neutral-400 hover:text-neutral-600'
                       }`}
                     >
                       {isOpen ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}

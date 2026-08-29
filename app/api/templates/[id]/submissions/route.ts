@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import FormTemplate from '@/models/FormTemplate';
 import FormSubmission from '@/models/FormSubmission';
 import { getSession } from '@/lib/auth';
+import { resolveForm } from '@/lib/formResolver';
 import mongoose from 'mongoose';
 
 export const runtime = 'nodejs';
@@ -21,37 +21,33 @@ export async function GET(
     }
 
     const { id } = await params;
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    if (!id) {
       return NextResponse.json(
         { success: false, message: 'Invalid form ID' },
         { status: 400 }
       );
     }
 
-    await connectToDatabase();
+    const resolved = await resolveForm(id, { requireOwnerId: session.id });
 
-    // Verify ownership
-    const template = await FormTemplate.findOne({
-      _id: id,
-      userId: session.id,
-    });
-
-    if (!template) {
+    if (!resolved || !resolved.found || !resolved.dbId) {
       return NextResponse.json(
         { success: false, message: 'Form not found or unauthorized' },
         { status: 404 }
       );
     }
 
+    await connectToDatabase();
+
     // Fetch all submissions for this form ordered latest first
-    const submissions = await FormSubmission.find({ formId: id })
+    const submissions = await FormSubmission.find({ formId: new mongoose.Types.ObjectId(resolved.dbId) })
       .sort({ submittedAt: -1 })
       .lean();
 
     return NextResponse.json({
       success: true,
-      formName: template.name,
-      fields: template.fields,
+      formName: resolved.name,
+      fields: resolved.fields,
       count: submissions.length,
       submissions: submissions.map((s) => ({
         id: s._id.toString(),

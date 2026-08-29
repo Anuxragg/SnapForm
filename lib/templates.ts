@@ -22,8 +22,9 @@ export interface ISeedFormStyling {
 export interface ISeedFormTemplate {
   id?: string;
   _id?: string;
+  shortId?: string;
   name: string;
-  category: 'contact' | 'payment' | 'survey' | 'booking' | 'registration' | 'feedback' | 'application';
+  category: 'contact' | 'payment' | 'survey' | 'booking' | 'registration' | 'feedback' | 'application' | string;
   description: string;
   fields: ISeedFormField[];
   styling: ISeedFormStyling;

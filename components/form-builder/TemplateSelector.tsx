@@ -142,7 +142,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   isActive
                     ? 'bg-brand-charcoal text-white shadow-sm'
-                    : 'bg-white border border-brand-border text-neutral-600 hover:bg-brand-sand hover:text-brand-orange'
+                    : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-brand-orange'
                 }`}
               >
                 {tab.label}
@@ -154,8 +154,8 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
 
       {/* Clean Grid of Cards */}
       {filteredTemplates.length === 0 ? (
-        <div className="w-full py-16 px-6 bg-white border border-brand-border rounded-2xl text-center shadow-sm space-y-3 max-w-md mx-auto">
-          <div className="w-10 h-10 rounded-xl bg-brand-sand border border-brand-border flex items-center justify-center text-neutral-400 mx-auto">
+        <div className="w-full py-16 px-6 bg-white border border-neutral-200 rounded-2xl text-center shadow-sm space-y-3 max-w-md mx-auto">
+          <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-400 mx-auto">
             <FileText className="w-5 h-5" />
           </div>
           <h4 className="text-base font-heading font-semibold text-brand-charcoal">No templates found</h4>
@@ -178,7 +178,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
             const isCustom = !!(template as any).userId;
             const Icon = isCustom ? Sparkles : (categoryIcons[template.category] || Mail);
             const badgeStyle = isCustom ? 'bg-amber-500/10 text-amber-600' : (categoryBadge[template.category] || 'bg-neutral-100 text-neutral-600');
-            const iconBgStyle = isCustom ? 'bg-amber-50 text-amber-600' : (categoryIconBg[template.category] || 'bg-brand-sand text-brand-charcoal');
+            const iconBgStyle = isCustom ? 'bg-amber-50 text-amber-600' : (categoryIconBg[template.category] || 'bg-neutral-100 text-brand-charcoal');
 
             return (
               <div
@@ -187,7 +187,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 tabIndex={0}
                 onClick={() => onSelect(template)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelect(template)}
-                className="relative z-10 hover:z-20 bg-white border border-brand-border rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group text-left w-full"
+                className="relative z-10 hover:z-20 bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer group text-left w-full"
               >
                 <div className="space-y-4">
                   {/* Top Row: Icon and Tag */}
@@ -211,7 +211,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                   </div>
 
                   {/* Included Fields: Only revealed smoothly ON HOVER */}
-                  <div className="opacity-0 group-hover:opacity-100 max-h-0 group-hover:max-h-48 group-hover:pt-3 group-hover:border-t group-hover:border-brand-border/40 transition-all duration-300 overflow-hidden space-y-2">
+                  <div className="opacity-0 group-hover:opacity-100 max-h-0 group-hover:max-h-48 group-hover:pt-3 group-hover:border-t group-hover:border-neutral-100 transition-all duration-300 overflow-hidden space-y-2">
                     <div className="text-[10px] font-mono font-bold text-neutral-400 uppercase tracking-wider">
                       Included Fields ({template.fields.length})
                     </div>
@@ -219,7 +219,7 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                       {template.fields.map((field) => (
                         <span
                           key={field.id}
-                          className="inline-flex items-center text-[11px] font-medium bg-brand-sand/90 border border-brand-orange/30 text-brand-charcoal px-2.5 py-1 rounded-lg shadow-sm animate-in fade-in slide-in-from-bottom-1 duration-200"
+                          className="inline-flex items-center text-[11px] font-medium bg-neutral-100 border border-neutral-200 text-brand-charcoal px-2.5 py-1 rounded-lg shadow-2xs animate-in fade-in slide-in-from-bottom-1 duration-200"
                         >
                           <span className="w-1.5 h-1.5 rounded-full bg-brand-orange mr-1.5 shrink-0" />
                           {field.label}
@@ -230,9 +230,9 @@ export default function TemplateSelector({ templates, onSelect, isLoading = fals
                 </div>
 
                 {/* Bottom Footer */}
-                <div className="pt-4 border-t border-brand-border/40 mt-5 flex items-center justify-between text-xs font-medium text-neutral-500 group-hover:text-brand-orange transition-colors">
+                <div className="pt-4 border-t border-neutral-100 mt-5 flex items-center justify-between text-xs font-medium text-neutral-500 group-hover:text-brand-orange transition-colors">
                   <span>Start with this template</span>
-                  <div className="w-6 h-6 rounded-full bg-brand-sand group-hover:bg-brand-orange group-hover:text-white flex items-center justify-center transition-all duration-200 group-hover:translate-x-1">
+                  <div className="w-6 h-6 rounded-full bg-neutral-100 group-hover:bg-brand-orange group-hover:text-white flex items-center justify-center transition-all duration-200 group-hover:translate-x-1">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>

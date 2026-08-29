@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { getSession } from '@/lib/auth';
+import { generateShortId, getDeterministicShortId } from '@/lib/utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,15 @@ export async function GET() {
     let userCustomTemplates: any[] = [];
     if (session && session.id) {
       userCustomTemplates = await FormTemplate.find({ userId: session.id }).sort({ createdAt: -1 }).lean();
+
+      // Ensure every user custom template has a permanent, deterministic shortId
+      for (const t of userCustomTemplates) {
+        if (!t.shortId) {
+          const permId = getDeterministicShortId(t._id.toString());
+          t.shortId = permId;
+          await FormTemplate.updateOne({ _id: t._id }, { $set: { shortId: permId } });
+        }
+      }
     }
 
     // Combine user's custom saved templates at the top + standard predefined blueprints catalog
@@ -52,13 +62,14 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
     const session = await getSession();
     
-    // Build insert payload
+    // Build insert payload with clean short ID
     const templateData: any = {
       name: body.name,
       category: body.category,
       description: body.description || 'Custom generated form template',
       fields: body.fields,
       styling: body.styling,
+      shortId: generateShortId('sf_'),
     };
 
     // Attach active user ownership

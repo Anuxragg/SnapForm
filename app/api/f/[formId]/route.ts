@@ -4,8 +4,9 @@ import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import FormSubmission from '@/models/FormSubmission';
 import mongoose from 'mongoose';
-import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { resolveForm } from '@/lib/formResolver';
+
 // Public Hosted Form API Route
 export const runtime = 'nodejs';
 
@@ -24,51 +25,32 @@ export async function GET(
       );
     }
 
-    // 1. Check if it's a predefined starter template
-    const predefined = PREDEFINED_TEMPLATES.find((t) => t.id === formId);
-    if (predefined) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: predefined.id,
-          name: predefined.name,
-          description: predefined.description,
-          category: predefined.category,
-          fields: predefined.fields,
-          styling: predefined.styling || { theme: 'modern', primaryColor: '#ff4f19' },
-          isPredefined: true,
-        },
-      });
-    }
+    const resolved = await resolveForm(formId, { incrementViews: true });
 
-    // 2. Otherwise lookup in database
-    if (!mongoose.Types.ObjectId.isValid(formId)) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid form ID format' },
-        { status: 404 }
-      );
-    }
-
-    await connectToDatabase();
-    const template = await FormTemplate.findById(formId).lean();
-
-    if (!template) {
+    if (!resolved || !resolved.found) {
       return NextResponse.json(
         { success: false, message: 'Form not found or has been removed' },
         { status: 404 }
       );
     }
 
+    // If navigated directly from browser address bar (HTML request), redirect to hosted page
+    const acceptHeader = request.headers.get('accept') || '';
+    const fetchDest = request.headers.get('sec-fetch-dest') || '';
+    if (acceptHeader.includes('text/html') && (fetchDest === 'document' || !fetchDest)) {
+      return NextResponse.redirect(new URL(`/f/${resolved.id}`, request.url));
+    }
+
     return NextResponse.json({
       success: true,
       data: {
-        id: template._id.toString(),
-        name: template.name,
-        description: template.description,
-        category: template.category,
-        fields: template.fields,
-        styling: template.styling || { theme: 'modern', primaryColor: '#ff4f19' },
-        isPredefined: false,
+        id: resolved.id,
+        name: resolved.name,
+        description: resolved.description,
+        category: resolved.category,
+        fields: resolved.fields,
+        styling: resolved.styling,
+        isPredefined: resolved.isPredefined,
       },
     });
   } catch (error: any) {
@@ -94,6 +76,7 @@ export async function POST(
       limit: 30,
       windowMs: 60 * 1000,
     });
+
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -114,25 +97,20 @@ export async function POST(
       );
     }
 
-    let formFields: any[] = [];
-    let isDbForm = false;
-    let targetTemplateId: mongoose.Types.ObjectId | null = null;
+    const resolved = await resolveForm(formId);
 
-    // Check predefined vs DB form
-    const predefined = PREDEFINED_TEMPLATES.find((t) => t.id === formId);
-    if (predefined) {
-      formFields = predefined.fields;
-    } else if (mongoose.Types.ObjectId.isValid(formId)) {
-      await connectToDatabase();
-      const template = await FormTemplate.findById(formId);
-      if (template) {
-        formFields = template.fields;
-        isDbForm = true;
-        targetTemplateId = template._id as mongoose.Types.ObjectId;
-      }
+    if (!resolved || !resolved.found) {
+      return NextResponse.json(
+        { success: false, message: 'Target form not found' },
+        { status: 404 }
+      );
     }
 
-    if (!formFields.length && !predefined) {
+    const formFields = resolved.fields;
+    const isDbForm = !resolved.isPredefined && Boolean(resolved.dbId);
+    const targetTemplateId = resolved.dbId ? (new mongoose.Types.ObjectId(resolved.dbId)) : null;
+
+    if (!formFields.length && !resolved.isPredefined) {
       return NextResponse.json(
         { success: false, message: 'Target form not found' },
         { status: 404 }

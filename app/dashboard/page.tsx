@@ -1,43 +1,56 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
-import Logo from '@/components/Logo';
-import { Toaster } from 'sonner';
-import { toast } from 'sonner';
+import Logo, { SnapFormIcon } from '@/components/Logo';
+import CodeBlock from '@/components/CodeBlock';
+import { Toaster, toast } from 'sonner';
 import {
+  LayoutDashboard,
   Plus,
-  Trash2,
-  ExternalLink,
-  FileCode2,
-  Download,
-  Wand2,
-  Cpu,
-  Layers,
-  Zap,
-  TrendingUp,
-  Database,
-  CheckCircle,
-  LogOut,
-  ChevronDown,
-  User as UserIcon,
-  ChevronRight,
-  Sparkles,
-  Copy,
+  Globe,
+  Settings,
   Inbox,
+  Link2,
+  Mail,
+  Users,
+  User,
+  HelpCircle,
+  MoreVertical,
+  Calendar,
+  Flag,
+  ShieldCheck,
+  FileText,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  Copy,
+  Download,
+  Trash2,
   X,
   FileSpreadsheet,
-  Clock,
   Loader2,
+  Check,
+  LogOut,
+  PanelLeftClose,
+  PanelLeft,
+  Sparkles,
   Share2,
+  Clock,
+  ArrowRight,
+  Code2,
+  TrendingUp,
+  Eye,
+  Activity,
+  Zap,
 } from 'lucide-react';
-import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 
 interface SavedForm {
   _id: string;
+  shortId?: string;
   name: string;
   category: 'contact' | 'payment' | 'survey' | 'booking';
   description: string;
@@ -57,25 +70,52 @@ interface SubmissionRecord {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading, logout, openAuthModal } = useAuth();
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { user, loading, logout } = useAuth();
+
+  // Navigation and view state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [formsMenuExpanded, setFormsMenuExpanded] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Form Activity Analytics State
+  const [chartTimeframe, setChartTimeframe] = useState<'30days' | '7days' | '12months'>('30days');
+  const [chartMetric, setChartMetric] = useState<'submissions' | 'impressions' | 'conversion'>('submissions');
+  const [selectedChartForm, setSelectedChartForm] = useState<string>('all');
+  const [hoveredPoint, setHoveredPoint] = useState<{ index: number; x: number; y: number; data: any } | null>(null);
+
+  // Forms and Submissions data state
   const [savedForms, setSavedForms] = useState<SavedForm[]>([]);
   const [fetchingForms, setFetchingForms] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // ─── Strict Auth Guard: Redirect unauthenticated visitors to login ───────────
+  // Active form for sidebar selection
+  const [activeFormIndex, setActiveFormIndex] = useState(0);
+
+  // Modals state
+  const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
+  const [selectedFormForSubmissions, setSelectedFormForSubmissions] = useState<SavedForm | null>(null);
+  const [submissionsList, setSubmissionsList] = useState<SubmissionRecord[]>([]);
+  const [fetchingSubmissions, setFetchingSubmissions] = useState(false);
+  const [selectedSubmissionDetail, setSelectedSubmissionDetail] = useState<SubmissionRecord | null>(null);
+
+  // Setup / Integration modal
+  const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [activeSetupForm, setActiveSetupForm] = useState<SavedForm | null>(null);
+  const [setupTab, setSetupTab] = useState<'endpoint' | 'react' | 'embed'>('endpoint');
+  const [copiedKey, setCopiedKey] = useState(false);
+
+  // All forms view modal
+  const [allFormsModalOpen, setAllFormsModalOpen] = useState(false);
+
+  // Workspace info modal
+  const [workspaceModal, setWorkspaceModal] = useState<'emails' | 'team' | 'account' | null>(null);
+
+  // Auth Guard
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [user, loading, router]);
-
-  // Submissions modal state
-  const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
-  const [selectedFormForSubmissions, setSelectedFormForSubmissions] = useState<SavedForm | null>(null);
-  const [submissionsList, setSubmissionsList] = useState<SubmissionRecord[]>([]);
-  const [fetchingSubmissions, setFetchingSubmissions] = useState(false);
-  const [totalSubmissionsCount, setTotalSubmissionsCount] = useState<number>(0);
 
   // Fetch user's saved forms
   useEffect(() => {
@@ -105,11 +145,129 @@ export default function DashboardPage() {
     fetchSavedForms();
   }, [user]);
 
-  // Open Submissions Viewer
-  const handleOpenSubmissions = async (form: SavedForm, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Form Activity Backend Data State
+  const [analyticsData, setAnalyticsData] = useState<{
+    totalViews: number;
+    totalSubmissions: number;
+    avgConversion: string;
+    avgResponseTime: string;
+    timeSeries: Array<{ label: string; submissions: number; impressions: number; conversion: number }>;
+  } | null>(null);
+  const [fetchingAnalytics, setFetchingAnalytics] = useState(true);
 
+  // Active form helper
+  const currentActiveForm = useMemo(() => {
+    if (savedForms.length > 0) {
+      return savedForms[activeFormIndex] || savedForms[0];
+    }
+    return null;
+  }, [savedForms, activeFormIndex]);
+
+  // Submissions count calculation from live backend analytics
+  const totalSubmissions = useMemo(() => {
+    if (analyticsData && typeof analyticsData.totalSubmissions === 'number') {
+      return analyticsData.totalSubmissions;
+    }
+    return 0;
+  }, [analyticsData]);
+
+  // Fetch real analytics from backend
+  useEffect(() => {
+    if (!user) {
+      setFetchingAnalytics(false);
+      return;
+    }
+
+    async function fetchAnalytics() {
+      try {
+        setFetchingAnalytics(true);
+        const res = await fetch(`/api/analytics?timeframe=${chartTimeframe}&formId=${selectedChartForm}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          setAnalyticsData(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch analytics:', err);
+      } finally {
+        setFetchingAnalytics(false);
+      }
+    }
+
+    fetchAnalytics();
+  }, [user, chartTimeframe, selectedChartForm]);
+
+  // ── Form Activity Data Source (Live Backend Data with Organic Spline) ─────────
+  const activityData = useMemo(() => {
+    if (analyticsData && Array.isArray(analyticsData.timeSeries) && analyticsData.timeSeries.length > 0) {
+      return analyticsData.timeSeries;
+    }
+
+    if (chartTimeframe === '7days') {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return days.map((label) => ({ label, submissions: 0, impressions: 0, conversion: 0 }));
+    }
+
+    if (chartTimeframe === '30days') {
+      return Array.from({ length: 15 }, (_, i) => ({
+        label: `Day ${i * 2 + 1}`,
+        submissions: 0,
+        impressions: 0,
+        conversion: 0,
+      }));
+    }
+
+    const months = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+    return months.map((label) => ({ label, submissions: 0, impressions: 0, conversion: 0 }));
+  }, [analyticsData, chartTimeframe]);
+
+  // SVG Smooth Curved Path Generator (Bézier Spline)
+  const { pathData, areaPathData, points } = useMemo(() => {
+    if (!activityData || activityData.length === 0) {
+      return { pathData: '', areaPathData: '', points: [] };
+    }
+
+    const values = activityData.map((d) => d[chartMetric]);
+    const maxVal = Math.max(...values, 1) * 1.15;
+    const minVal = 0;
+    const width = 1000;
+    const height = 180;
+    const paddingY = 20;
+
+    const computedPoints = activityData.map((item, index) => {
+      const x = (index / (activityData.length - 1)) * width;
+      const normalizedY = (item[chartMetric] - minVal) / (maxVal - minVal);
+      const y = height - normalizedY * (height - paddingY * 2) - paddingY;
+      return { x, y, data: item };
+    });
+
+    if (computedPoints.length < 2) {
+      return { pathData: '', areaPathData: '', points: computedPoints };
+    }
+
+    // Build smooth cubic Bézier curve
+    let d = `M ${computedPoints[0].x},${computedPoints[0].y}`;
+    for (let i = 0; i < computedPoints.length - 1; i++) {
+      const p0 = computedPoints[i === 0 ? 0 : i - 1];
+      const p1 = computedPoints[i];
+      const p2 = computedPoints[i + 1];
+      const p3 = computedPoints[i + 2 >= computedPoints.length ? computedPoints.length - 1 : i + 2];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+
+    const areaD = `${d} L ${computedPoints[computedPoints.length - 1].x},${height + 20} L ${computedPoints[0].x},${height + 20} Z`;
+
+    return { pathData: d, areaPathData: areaD, points: computedPoints };
+  }, [activityData, chartMetric]);
+
+  // Open Submissions Viewer
+  const handleOpenSubmissions = async (form: SavedForm) => {
     setSelectedFormForSubmissions(form);
     setSubmissionsModalOpen(true);
     setFetchingSubmissions(true);
@@ -132,13 +290,25 @@ export default function DashboardPage() {
     }
   };
 
+  // Open Form Setup
+  const handleOpenSetup = (form: SavedForm) => {
+    setActiveSetupForm(form);
+    setSetupModalOpen(true);
+  };
+
   // Copy Hosted Link
-  const handleCopyLink = (formId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopyLink = (formId: string) => {
     const url = `${window.location.origin}/f/${formId}`;
     navigator.clipboard.writeText(url);
     toast.success('Public form link copied to clipboard!');
+  };
+
+  // Copy text helper
+  const copyToClipboard = (text: string, label: string = 'Copied to clipboard!') => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(true);
+    toast.success(label);
+    setTimeout(() => setCopiedKey(false), 2000);
   };
 
   // Export Submissions to CSV
@@ -181,11 +351,8 @@ export default function DashboardPage() {
   };
 
   // Handle Form Delete
-  const handleDeleteForm = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!confirm('Are you sure you want to delete this custom form? This action cannot be undone.')) {
+  const handleDeleteForm = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this form? This action cannot be undone.')) {
       return;
     }
 
@@ -209,40 +376,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Quick Starter trigger redirect
-  const handleStartWithTemplate = (category: string) => {
-    router.push(`/builder?t=${encodeURIComponent(category)}`);
-  };
-
-  // Re-compile form download ZIP
-  const handleDownloadZip = async (form: SavedForm, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const toastId = toast.loading('Re-packaging form zip bundle...');
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fields: form.fields,
-          styling: form.styling,
-          name: form.name,
-        }),
-      });
-
-      const json = await res.json();
-      if (json.success && json.downloadUrl) {
-        toast.success('Bundle generated! Starting download...', { id: toastId });
-        window.location.href = json.downloadUrl;
-      } else {
-        toast.error('Failed to pack zip download', { id: toastId });
-      }
-    } catch (err) {
-      toast.error('Network error during generation', { id: toastId });
-    }
-  };
-
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center space-y-4 font-sans">
@@ -255,538 +388,1132 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-brand-sand text-brand-charcoal font-sans flex flex-col antialiased">
-      {/* Subtle paper-like noise grain overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(#d5d0c5_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-
-      {/* sonner notifications */}
+    <div className="relative min-h-screen bg-white text-brand-charcoal font-sans flex flex-row antialiased selection:bg-brand-orange selection:text-white">
       <Toaster position="bottom-right" richColors />
 
-      {/* Global SaaS Header */}
-      <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between border-b border-brand-border/60">
-        <Logo href="/" badgeText="CONSOLE" textClassName="text-xl font-heading font-semibold tracking-tight text-brand-charcoal" />
-
-        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-brand-charcoal/80">
-          <Link href="/dashboard" className="text-brand-orange">
-            Console
-          </Link>
-          <Link href="/builder" className="hover:text-brand-orange transition-colors">
-            Studio
-          </Link>
-          <Link href="/docs" className="hover:text-brand-orange transition-colors">
-            Docs
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-4 relative">
-          {!user ? (
-            <>
+      {/* ─────────────────────────────────────────────────────────────
+          1. LEFT SIDEBAR
+      ───────────────────────────────────────────────────────────── */}
+      <aside
+        className={`sticky top-0 h-screen z-20 bg-white border-r border-neutral-200 flex flex-col justify-between shrink-0 transition-all duration-300 ${
+          sidebarCollapsed ? 'w-[72px]' : 'w-64'
+        }`}
+      >
+        {/* Top Section */}
+        <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+          {/* Sidebar Brand Header */}
+          <div className={`h-14 border-b border-neutral-100 flex items-center shrink-0 ${
+            sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+          }`}>
+            {!sidebarCollapsed ? (
+              <>
+                <Logo
+                  href="/"
+                  showText={true}
+                  textClassName="text-base font-bold text-brand-charcoal tracking-tight font-heading truncate"
+                />
+                <button
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="p-1.5 rounded-xl text-neutral-500 hover:text-brand-charcoal hover:bg-neutral-100 transition-colors cursor-pointer shrink-0"
+                  title="Collapse sidebar"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => openAuthModal('login')}
-                className="text-xs font-bold text-brand-charcoal/80 hover:text-brand-orange cursor-pointer transition-colors px-3 py-1.5 rounded-full hover:bg-brand-sand-dark"
+                onClick={() => setSidebarCollapsed(false)}
+                className="w-9 h-9 rounded-xl bg-brand-charcoal hover:bg-black text-white flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 group"
+                title="Expand sidebar"
               >
-                Sign In
+                <SnapFormIcon className="w-3.5 h-4.5 text-white" fill="#ffffff" />
               </button>
-              <button
-                onClick={() => openAuthModal('signup')}
-                className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-5 py-2 transition-all hover:scale-105 active:scale-95 shadow-sm border border-brand-orange cursor-pointer"
+            )}
+          </div>
+
+          {/* Navigation Items */}
+          <div className="p-3 space-y-4">
+            {/* Dashboard Link */}
+            <div>
+              <Link
+                href="/dashboard"
+                className={`flex items-center rounded-xl text-sm font-bold bg-neutral-100 text-brand-charcoal border border-neutral-200/80 shadow-xs transition-all ${
+                  sidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2'
+                }`}
+                title="Dashboard"
               >
-                Create Account
-              </button>
-            </>
-          ) : (
-            <div className="relative">
-              <button
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center gap-1.5 p-1 rounded-full border border-brand-border bg-white shadow-sm hover:border-brand-orange/60 hover:shadow transition-all cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-brand-orange text-white text-xs font-bold flex items-center justify-center shadow-inner">
-                  {user.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase()}
+                <LayoutDashboard className="w-4 h-4 text-brand-orange shrink-0" />
+                {!sidebarCollapsed && <span>Dashboard</span>}
+              </Link>
+            </div>
+
+            {/* FORMS Section */}
+            <div className="space-y-0.5">
+              {!sidebarCollapsed && (
+                <div className="flex items-center justify-between px-3 py-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <span>FORMS</span>
+                    <span className="text-[10px] text-neutral-500 font-mono font-normal">
+                      {savedForms.length || 1}
+                    </span>
+                  </div>
+                  <Link
+                    href="/builder"
+                    className="w-4 h-4 rounded flex items-center justify-center text-neutral-400 hover:text-brand-charcoal hover:bg-neutral-100 transition-colors cursor-pointer"
+                    title="Create new form in Studio"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Link>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-neutral-500 mr-1 animate-in fade-in" />
-              </button>
+              )}
 
-              {profileDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-35" onClick={() => setProfileDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-52 bg-[#fdfcf9] border border-brand-border rounded-2xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="px-2.5 py-2 border-b border-brand-border/60 mb-2">
-                      <p className="text-[10px] font-bold font-mono text-neutral-400 uppercase tracking-widest leading-none">
-                        Active Profile
-                      </p>
-                      <p className="text-xs font-bold text-brand-charcoal truncate mt-1">
-                        {user.name}
-                      </p>
-                      <p className="text-[10px] font-medium text-neutral-500 truncate leading-none mt-0.5">
-                        {user.email}
-                      </p>
+              {/* Primary Active Form Item with Dropdown */}
+              <div className="space-y-0.5">
+                <button
+                  onClick={() => {
+                    if (sidebarCollapsed) {
+                      setSidebarCollapsed(false);
+                      setFormsMenuExpanded(true);
+                    } else {
+                      setFormsMenuExpanded(!formsMenuExpanded);
+                    }
+                  }}
+                  className={`w-full flex items-center rounded-xl text-sm font-semibold text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer group ${
+                    sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
+                  }`}
+                  title={currentActiveForm ? currentActiveForm.name : 'Forms'}
+                >
+                  <div className={`flex items-center min-w-0 ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                    <div className="w-4 h-4 rounded text-neutral-500 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-neutral-600" />
                     </div>
+                    {!sidebarCollapsed && (
+                      <span className="truncate text-left font-medium text-[13px]">
+                        {currentActiveForm ? currentActiveForm.name : 'SnapForm'}
+                      </span>
+                    )}
+                  </div>
+                  {!sidebarCollapsed && (
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 ${
+                        formsMenuExpanded ? 'rotate-0' : '-rotate-90'
+                      }`}
+                    />
+                  )}
+                </button>
 
-                    <Link href="/builder" onClick={() => setProfileDropdownOpen(false)}>
-                      <button className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-charcoal hover:bg-brand-sand hover:text-brand-orange transition-all cursor-pointer flex items-center gap-2">
-                        <Wand2 className="w-3.5 h-3.5" />
-                        Launch Studio
-                      </button>
-                    </Link>
-
-                    <Link href="/docs" onClick={() => setProfileDropdownOpen(false)}>
-                      <button className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-charcoal hover:bg-brand-sand hover:text-brand-orange transition-all cursor-pointer flex items-center gap-2 mt-1">
-                        <FileCode2 className="w-3.5 h-3.5" />
-                        API Documentation
-                      </button>
-                    </Link>
-
+                {/* Sub-links when expanded */}
+                {formsMenuExpanded && !sidebarCollapsed && (
+                  <div className="pl-6 pr-2 space-y-0.5 animate-in fade-in duration-150">
                     <button
-                      onClick={() => {
-                        setProfileDropdownOpen(false);
-                        logout();
-                      }}
-                      className="w-full text-left px-2.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer flex items-center gap-2 mt-1.5"
+                      onClick={() => currentActiveForm && handleOpenSetup(currentActiveForm)}
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Sign Out
+                      <Globe className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Form Setup</span>
+                    </button>
+                    <button
+                      onClick={() => currentActiveForm ? router.push(`/builder?t=${currentActiveForm.category}`) : router.push('/builder')}
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Settings</span>
+                    </button>
+                    <button
+                      onClick={() => currentActiveForm && handleOpenSubmissions(currentActiveForm)}
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
+                    >
+                      <Inbox className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Submissions</span>
+                    </button>
+                    <button
+                      onClick={() => currentActiveForm && handleOpenSetup(currentActiveForm)}
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
+                    >
+                      <Link2 className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Integrations</span>
                     </button>
                   </div>
-                </>
+                )}
+
+                {/* View all forms link */}
+                {!sidebarCollapsed && (
+                  <button
+                    onClick={() => setAllFormsModalOpen(true)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-500 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>View all forms</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* WORKSPACE Section */}
+            <div className="space-y-0.5">
+              {!sidebarCollapsed && (
+                <p className="px-3 py-1 text-[11px] font-bold text-neutral-400 uppercase tracking-wider font-mono">
+                  WORKSPACE
+                </p>
+              )}
+
+              <button
+                onClick={() => setWorkspaceModal('emails')}
+                className={`w-full flex items-center rounded-xl text-sm font-medium text-neutral-700 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left ${
+                  sidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'
+                }`}
+                title="Linked Emails"
+              >
+                <Mail className="w-4 h-4 text-neutral-500 shrink-0" />
+                {!sidebarCollapsed && <span>Linked Emails</span>}
+              </button>
+
+              <button
+                onClick={() => setWorkspaceModal('team')}
+                className={`w-full flex items-center rounded-xl text-sm font-medium text-neutral-700 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left ${
+                  sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
+                }`}
+                title="Team"
+              >
+                <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+                  <Users className="w-4 h-4 text-neutral-500 shrink-0" />
+                  {!sidebarCollapsed && <span>Team</span>}
+                </div>
+                {!sidebarCollapsed && (
+                  <span className="text-[10px] font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-full font-mono uppercase">
+                    New
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setWorkspaceModal('account')}
+                className={`w-full flex items-center rounded-xl text-sm font-medium text-neutral-700 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left ${
+                  sidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'
+                }`}
+                title="My Account"
+              >
+                <User className="w-4 h-4 text-neutral-500 shrink-0" />
+                {!sidebarCollapsed && <span>My Account</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Sidebar Widget & User Profile */}
+        <div className="p-3 border-t border-neutral-100 space-y-2.5 shrink-0 bg-white">
+          {/* Help & Support */}
+          <Link
+            href="/docs"
+            className={`flex items-center rounded-xl text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors ${
+              sidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-1.5'
+            }`}
+            title="Help & Support"
+          >
+            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
+              <HelpCircle className="w-4 h-4 text-neutral-500 shrink-0" />
+              {!sidebarCollapsed && <span>Help & Support</span>}
+            </div>
+            {!sidebarCollapsed && <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />}
+          </Link>
+
+          {/* User Profile Bar with Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className={`w-full flex items-center rounded-xl hover:bg-neutral-100 transition-colors cursor-pointer group text-left ${
+                sidebarCollapsed ? 'justify-center p-1.5' : 'justify-between p-2'
+              }`}
+              title={user.name || 'User Profile'}
+            >
+              <div className={`flex items-center min-w-0 ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+                <div className="w-8 h-8 rounded-full bg-brand-orange text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
+                  {user.name ? user.name[0].toUpperCase() : 'A'}
+                </div>
+                {!sidebarCollapsed && (
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-brand-charcoal truncate">{user.name || 'User'}</p>
+                    <p className="text-[11px] text-neutral-500 truncate font-normal">{user.email}</p>
+                  </div>
+                )}
+              </div>
+              {!sidebarCollapsed && <MoreVertical className="w-4 h-4 text-neutral-400 group-hover:text-brand-charcoal" />}
+            </button>
+
+            {/* Profile Dropdown */}
+            {userMenuOpen && (
+              <div className="absolute left-0 bottom-full mb-2 w-56 bg-white border border-neutral-200 rounded-2xl shadow-xl p-1.5 z-50 animate-in fade-in duration-150">
+                <div className="px-3 py-2 border-b border-neutral-100 mb-1">
+                  <p className="text-xs font-bold text-brand-charcoal truncate">{user.name}</p>
+                  <p className="text-[10px] text-neutral-500 truncate">{user.email}</p>
+                </div>
+                <Link
+                  href="/builder"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Form Studio</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer text-left"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ─────────────────────────────────────────────────────────────
+          2. MAIN CONTENT AREA
+      ───────────────────────────────────────────────────────────── */}
+      <main className="relative z-10 flex-1 overflow-y-auto p-6 md:p-10 space-y-8 max-w-7xl bg-white">
+        {/* Page Title & Subtitle */}
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-brand-charcoal tracking-tight font-heading">
+            Dashboard
+          </h1>
+          <p className="text-sm font-normal text-neutral-500">
+            Here&apos;s an overview of your account!
+          </p>
+        </div>
+
+        {/* ─── Top 3 Stat Cards ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Card 1: Total Form Views */}
+          <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+            <div className="flex items-center gap-2.5 text-neutral-700 text-sm font-semibold">
+              <Eye className="w-4 h-4 text-brand-orange" />
+              <span>Total Form Views</span>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold text-brand-charcoal tracking-tight font-heading">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
+              </p>
+            </div>
+            <div className="text-xs text-neutral-400">
+              Impressions across all published endpoints
+            </div>
+          </div>
+
+          {/* Card 2: Total Submissions */}
+          <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+            <div className="flex items-center gap-2.5 text-neutral-700 text-sm font-semibold">
+              <Flag className="w-4 h-4 text-brand-orange" />
+              <span>Total Submissions</span>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold text-brand-charcoal tracking-tight font-heading">
+                {totalSubmissions}
+              </p>
+            </div>
+            <div className="text-xs text-neutral-400">
+              Across all live forms and endpoints
+            </div>
+          </div>
+
+          {/* Card 3: Total Spam Blocked */}
+          <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+            <div className="flex items-center gap-2.5 text-neutral-700 text-sm font-semibold">
+              <ShieldCheck className="w-4 h-4 text-brand-orange" />
+              <span>Total Spam Blocked</span>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold text-brand-charcoal tracking-tight font-heading">
+                0
+              </p>
+            </div>
+            <div className="text-xs text-neutral-400">
+              Bot protection active on all endpoints
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Middle Info Cards (Forms Overview & Quick Links) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Card 4: Forms Overview */}
+          <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-neutral-700 text-sm font-semibold">
+                <FileText className="w-4 h-4 text-neutral-500" />
+                <span>Forms Overview</span>
+              </div>
+              <Link
+                href="/builder"
+                className="text-xs font-semibold text-brand-orange hover:text-brand-orange-hover transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>New form</span>
+              </Link>
+            </div>
+
+            {/* Form Item Card */}
+            <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/80 flex items-center justify-between">
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <h4 className="text-sm font-bold text-brand-charcoal truncate">
+                  {currentActiveForm ? currentActiveForm.name : 'SnapForm'}
+                </h4>
+                <p className="text-xs text-neutral-400">
+                  Created {currentActiveForm ? new Date(currentActiveForm.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Aug 29, 2026'}
+                </p>
+              </div>
+              <button
+                onClick={() => currentActiveForm && handleOpenSetup(currentActiveForm)}
+                className="w-8 h-8 rounded-xl border border-neutral-200 bg-white text-neutral-600 hover:text-brand-charcoal hover:border-neutral-300 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                title="Form settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <button
+                onClick={() => setAllFormsModalOpen(true)}
+                className="text-xs font-semibold text-brand-charcoal hover:text-brand-orange transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <span>View all forms ({savedForms.length || 1})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              {currentActiveForm && (
+                <button
+                  onClick={() => handleOpenSubmissions(currentActiveForm)}
+                  className="text-xs font-semibold text-neutral-600 hover:text-brand-charcoal transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Inbox className="w-3.5 h-3.5" />
+                  <span>Submissions</span>
+                </button>
               )}
             </div>
-          )}
-        </div>
-      </header>
+          </div>
 
-      {/* Main Console Body */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-6 py-6 md:py-8 space-y-8">
-        {!user ? (
-          /* Guest Screen */
-          <div className="max-w-xl mx-auto text-center py-16 space-y-6 bg-white border border-brand-border rounded-[2.5rem] p-10 shadow-sm">
-            <div className="w-14 h-14 mx-auto rounded-3xl bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center text-brand-orange shadow-inner">
-              <Zap className="w-7 h-7" />
+          {/* Card 5: Quick Links & Documentation */}
+          <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+            <div className="flex items-center gap-2.5 text-neutral-700 text-sm font-semibold">
+              <BookOpen className="w-4 h-4 text-neutral-500" />
+              <span>Quick Links & Documentation</span>
             </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl md:text-3xl font-heading font-semibold text-brand-charcoal tracking-tight">
-                Sign in to your SnapForm Console
-              </h1>
-              <p className="text-xs md:text-sm text-neutral-500 max-w-md mx-auto leading-relaxed">
-                Connect your account to access your saved custom schemas, view live form submissions, and export client datasets.
+
+            <div className="space-y-2 text-xs font-medium">
+              <Link
+                href="/builder"
+                className="flex items-center justify-between text-neutral-700 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Form templates & Studio</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs"
+                className="flex items-center justify-between text-neutral-700 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Customization docs</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#guides"
+                className="flex items-center justify-between text-neutral-700 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>How to Guides</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#troubleshooting"
+                className="flex items-center justify-between text-neutral-700 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Troubleshooting</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#api"
+                className="flex items-center justify-between text-neutral-700 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>API reference & endpoints</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Bottom Area: Form Activity & Analytics Chart ─── */}
+        <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6">
+          {/* Header & Filter Controls */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-brand-orange" />
+                <h3 className="text-base font-bold text-brand-charcoal font-heading">
+                  Form Activity & Analytics
+                </h3>
+              </div>
+              <p className="text-xs text-neutral-500 font-normal">
+                Real-time tracking of submissions, impressions, and conversion rates
               </p>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                onClick={() => openAuthModal('login')}
-                className="w-full sm:w-auto rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-8 py-3.5 h-11 shadow border border-brand-orange transition-all cursor-pointer"
-              >
-                Sign In Now
-              </Button>
-              <Button
-                onClick={() => openAuthModal('signup')}
-                variant="outline"
-                className="w-full sm:w-auto rounded-full border-brand-border bg-white text-brand-charcoal text-xs font-bold px-6 py-3.5 h-11 hover:bg-brand-sand cursor-pointer"
-              >
-                Create Account
-              </Button>
+            {/* Metric Pills & Selectors */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Metric Toggle Tabs */}
+              <div className="flex items-center p-1 bg-neutral-100/80 rounded-xl border border-neutral-200/60">
+                <button
+                  onClick={() => setChartMetric('submissions')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    chartMetric === 'submissions'
+                      ? 'bg-white text-brand-orange shadow-xs'
+                      : 'text-neutral-500 hover:text-brand-charcoal'
+                  }`}
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  <span>Submissions</span>
+                </button>
+                <button
+                  onClick={() => setChartMetric('impressions')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    chartMetric === 'impressions'
+                      ? 'bg-white text-brand-charcoal shadow-xs'
+                      : 'text-neutral-500 hover:text-brand-charcoal'
+                  }`}
+                >
+                  <Eye className="w-3 h-3" />
+                  <span>Views</span>
+                </button>
+                <button
+                  onClick={() => setChartMetric('conversion')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    chartMetric === 'conversion'
+                      ? 'bg-white text-emerald-600 shadow-xs'
+                      : 'text-neutral-500 hover:text-brand-charcoal'
+                  }`}
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>Conversion %</span>
+                </button>
+              </div>
+
+              {/* Form Filter */}
+              {savedForms.length > 1 && (
+                <div className="relative">
+                  <select
+                    value={selectedChartForm}
+                    onChange={(e) => setSelectedChartForm(e.target.value)}
+                    className="appearance-none bg-white border border-neutral-200 rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 outline-none hover:border-neutral-300 focus:border-brand-orange cursor-pointer shadow-xs"
+                  >
+                    <option value="all">All Forms</option>
+                    {savedForms.map((f) => (
+                      <option key={f._id} value={f._id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              )}
+
+              {/* Timeframe Dropdown */}
+              <div className="relative">
+                <select
+                  value={chartTimeframe}
+                  onChange={(e) => setChartTimeframe(e.target.value as any)}
+                  className="appearance-none bg-white border border-neutral-200 rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 outline-none hover:border-neutral-300 focus:border-brand-orange cursor-pointer shadow-xs"
+                >
+                  <option value="30days">Last 30 days</option>
+                  <option value="7days">Last 7 days</option>
+                  <option value="12months">Last 12 months</option>
+                </select>
+                <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
-        ) : (
-          /* Authenticated Dashboard View */
-          <div className="space-y-8">
-            {/* Top Banner Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-brand-border/60 pb-6 text-left">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold font-mono bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    LIVE CLUSTER
-                  </span>
-                </div>
-                <h1 className="text-2xl md:text-3xl font-heading font-semibold text-brand-charcoal tracking-tight">
-                  Welcome back, {user.name}
-                </h1>
-                <p className="text-xs md:text-sm text-neutral-500 font-normal">
-                  Manage your hosted forms, live respondent links, and form submissions in real-time.
-                </p>
-              </div>
 
-              <div className="flex items-center gap-3">
-                <Link href="/builder">
-                  <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-5 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-2 transition-all cursor-pointer">
-                    <Wand2 className="w-3.5 h-3.5" />
-                    Create New Form
-                  </Button>
-                </Link>
-              </div>
+          {/* Quick Metrics Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-neutral-100">
+            <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                Total Views
+              </span>
+              <p className="text-lg font-extrabold text-brand-charcoal font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                Submissions
+              </span>
+              <p className="text-lg font-extrabold text-brand-orange font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalSubmissions : 0}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                Avg. Conversion
+              </span>
+              <p className="text-lg font-extrabold text-emerald-600 font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? `${analyticsData.avgConversion}%` : '0.0%'}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                Avg. Response
+              </span>
+              <p className="text-lg font-extrabold text-brand-charcoal font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData?.avgResponseTime || '42s'}
+              </p>
+            </div>
+          </div>
+
+          {/* SVG Bézier Curve Chart */}
+          <div className="w-full h-64 pt-2 relative flex flex-col justify-between select-none">
+            {/* Chart Grid Lines */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-35">
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
             </div>
 
-            {/* Metric KPI cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 text-left">
-              {[
-                {
-                  title: 'HOSTED FORMS',
-                  value: savedForms.length,
-                  desc: 'Active forms on your account',
-                  icon: Database,
-                  accent: 'text-brand-orange bg-brand-orange/10 border-brand-orange/20',
-                },
-                {
-                  title: 'STARTER BLUEPRINTS',
-                  value: PREDEFINED_TEMPLATES.length,
-                  desc: 'Curated production blueprints',
-                  icon: Layers,
-                  accent: 'text-blue-600 bg-blue-50 border-blue-200',
-                },
-                {
-                  title: 'EXPORT FORMATS',
-                  value: 'Next.js / CSV',
-                  desc: 'Live hosted & code export',
-                  icon: Zap,
-                  accent: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-                },
-              ].map((stat, i) => {
-                const Icon = stat.icon;
-                return (
-                  <div
-                    key={stat.title}
-                    className="bg-white border border-brand-border rounded-2xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden"
-                  >
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold font-mono text-neutral-400 tracking-wider block uppercase">
-                        {stat.title}
-                      </span>
-                      <p className="text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
-                        {stat.value}
-                      </p>
-                      <p className="text-[11px] font-normal text-neutral-500">{stat.desc}</p>
-                    </div>
-                    <div className={`p-2.5 rounded-xl border ${stat.accent} shadow-inner`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* SVG Visual Wave Curve */}
+            <div className="relative flex-1 w-full">
+              <svg
+                className="w-full h-full overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 1000 180"
+              >
+                <defs>
+                  <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        chartMetric === 'submissions'
+                          ? '#ff4f19'
+                          : chartMetric === 'impressions'
+                          ? '#4f46e5'
+                          : '#059669'
+                      }
+                      stopOpacity="0.38"
+                    />
+                    <stop
+                      offset="70%"
+                      stopColor={
+                        chartMetric === 'submissions'
+                          ? '#ff4f19'
+                          : chartMetric === 'impressions'
+                          ? '#4f46e5'
+                          : '#059669'
+                      }
+                      stopOpacity="0.06"
+                    />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
 
-            {/* Main Segmented List: My Forms */}
-            <div className="space-y-5">
-              <div className="space-y-0.5 text-left">
-                <h2 className="text-xl md:text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
-                  My Hosted & Saved Forms
-                </h2>
-                <p className="text-xs text-neutral-500 font-normal">
-                  Share public form links with users, view live submissions, or download React & Zod code bundles.
-                </p>
-              </div>
+                {/* Filled Area with Smooth Curve */}
+                {areaPathData && <path d={areaPathData} fill="url(#activityGradient)" />}
 
-              {fetchingForms ? (
-                <div className="w-full py-16 bg-white border border-brand-border rounded-3xl text-center space-y-4 shadow-sm">
-                  <div className="w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-widest">
-                    Retrieving custom schemas...
+                {/* Line Stroke with Smooth Curve */}
+                {pathData && (
+                  <path
+                    d={pathData}
+                    fill="none"
+                    stroke={
+                      chartMetric === 'submissions'
+                        ? '#ff4f19'
+                        : chartMetric === 'impressions'
+                        ? '#4f46e5'
+                        : '#059669'
+                    }
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
+
+                {/* Interactive Points on hover */}
+                {points.map((p, idx) => (
+                  <g key={idx}>
+                    {/* Invisible hover area target */}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="16"
+                      fill="transparent"
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredPoint({ index: idx, x: p.x, y: p.y, data: p.data })}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                    />
+
+                    {/* Visible point */}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={hoveredPoint?.index === idx ? '6' : '3.5'}
+                      fill={
+                        chartMetric === 'submissions'
+                          ? '#ff4f19'
+                          : chartMetric === 'impressions'
+                          ? '#4f46e5'
+                          : '#059669'
+                      }
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      className="transition-all duration-150 pointer-events-none"
+                    />
+                  </g>
+                ))}
+              </svg>
+
+              {/* Floating Tooltip */}
+              {hoveredPoint && (
+                <div
+                  className="absolute z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3 bg-brand-charcoal text-white rounded-xl px-3 py-2 text-xs shadow-xl border border-neutral-700 animate-in fade-in zoom-in-95 duration-150"
+                  style={{
+                    left: `${(hoveredPoint.x / 1000) * 100}%`,
+                    top: `${Math.max((hoveredPoint.y / 180) * 100 - 15, 0)}%`,
+                  }}
+                >
+                  <p className="font-bold text-neutral-300 text-[10px] uppercase font-mono tracking-wider">
+                    {hoveredPoint.data.label}
                   </p>
-                </div>
-              ) : savedForms.length === 0 ? (
-                /* Empty State Workspace */
-                <div className="w-full py-16 px-6 bg-white border border-brand-border rounded-3xl text-center shadow-sm max-w-2xl mx-auto space-y-5">
-                  <div className="p-4 rounded-2xl bg-brand-sand border border-brand-border/60 w-fit mx-auto text-brand-orange shadow-inner">
-                    <FileCode2 className="w-8 h-8" />
+                  <div className="flex items-center gap-3 mt-1 font-semibold">
+                    <span className="text-brand-orange">
+                      {hoveredPoint.data.submissions} Submissions
+                    </span>
+                    <span className="text-neutral-400">·</span>
+                    <span className="text-neutral-200">
+                      {hoveredPoint.data.impressions} Views
+                    </span>
+                    <span className="text-neutral-400">·</span>
+                    <span className="text-emerald-400">
+                      {hoveredPoint.data.conversion}%
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-heading font-semibold text-brand-charcoal">No custom forms saved yet</h3>
-                    <p className="text-xs text-neutral-500 max-w-md mx-auto leading-relaxed">
-                      You haven&apos;t saved any custom form schemas to your profile. Choose a quick-starter template below to launch the editor and save it!
-                    </p>
-                  </div>
-                  <Link href="/builder" className="inline-block pt-1">
-                    <Button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-6 py-2.5 h-9.5 shadow border border-brand-orange flex items-center gap-1.5 transition-all cursor-pointer">
-                      <Plus className="w-4 h-4" /> Start Building
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                /* Cards Grid */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-                  {savedForms.map((form) => (
-                    <div
-                      key={form._id}
-                      className="bg-white border border-brand-border rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-brand-orange/40 transition-all duration-200 flex flex-col justify-between group relative"
-                    >
-                      <div className="space-y-4">
-                        {/* Top Category & Date */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold font-mono bg-brand-orange/10 text-brand-orange px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                            {form.category}
-                          </span>
-                          <span className="text-[11px] font-medium text-neutral-400 font-mono">
-                            {new Date(form.createdAt).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-
-                        {/* Title & Description */}
-                        <div className="space-y-1">
-                          <h3 className="text-base font-heading font-semibold text-brand-charcoal leading-tight tracking-tight">
-                            {form.name}
-                          </h3>
-                          <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
-                            {form.description}
-                          </p>
-                        </div>
-
-                        {/* Metadata Pills */}
-                        <div className="flex items-center gap-2 pt-0.5">
-                          <div className="bg-brand-sand/80 border border-brand-border/60 px-2.5 py-1 rounded-lg text-xs font-bold text-brand-charcoal flex items-center gap-1.5">
-                            <span className="text-neutral-400 font-mono text-[10px]">FIELDS</span>
-                            <span className="font-bold text-brand-orange">{form.fields.length}</span>
-                          </div>
-                          <div className="bg-brand-sand/80 border border-brand-border/60 px-2.5 py-1 rounded-lg text-xs font-bold text-brand-charcoal flex items-center gap-1.5">
-                            <span className="text-neutral-400 font-mono text-[10px]">THEME</span>
-                            <span className="font-bold uppercase">{form.styling.theme}</span>
-                          </div>
-                        </div>
-
-                        {/* Hosted Live Link Container */}
-                        <div className="bg-brand-sand/50 border border-brand-border/80 rounded-2xl p-3.5 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase tracking-wide">
-                              Live Form Link
-                            </span>
-                            <button
-                              onClick={(e) => handleCopyLink(form._id, e)}
-                              className="text-[11px] font-bold text-brand-orange hover:text-brand-orange-hover flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                              <Copy className="w-3 h-3" />
-                              Copy Link
-                            </button>
-                          </div>
-
-                          <Link
-                            href={`/f/${form._id}`}
-                            target="_blank"
-                            className="w-full px-3 py-2 rounded-xl bg-white border border-brand-border text-xs font-mono font-medium text-brand-charcoal hover:border-brand-orange/60 hover:text-brand-orange flex items-center justify-between group/link transition-all shadow-sm"
-                          >
-                            <span className="truncate">/f/{form._id}</span>
-                            <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover/link:text-brand-orange shrink-0 ml-2" />
-                          </Link>
-
-                          <button
-                            onClick={(e) => handleOpenSubmissions(form, e)}
-                            className="w-full py-2 px-3 rounded-xl bg-brand-charcoal hover:bg-black text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:scale-[1.01] active:scale-[0.99]"
-                          >
-                            <Inbox className="w-3.5 h-3.5 text-brand-orange" />
-                            View Submissions
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Bottom Action Footer */}
-                      <div className="flex items-center justify-between border-t border-brand-border/60 pt-4 mt-4">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/builder?t=${encodeURIComponent(form.category)}&id=${form._id}`}>
-                            <button className="px-3.5 py-1.5 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold flex items-center gap-1 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
-                              Edit <ChevronRight className="w-3 h-3" />
-                            </button>
-                          </Link>
-
-                          <button
-                            onClick={(e) => handleDownloadZip(form, e)}
-                            className="px-3 py-1.5 rounded-xl border border-brand-border bg-white hover:bg-brand-sand text-brand-charcoal text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
-                          >
-                            <Download className="w-3 h-3 text-neutral-500" />
-                            ZIP
-                          </button>
-                        </div>
-
-                        <button
-                          onClick={(e) => handleDeleteForm(form._id, e)}
-                          disabled={deletingId === form._id}
-                          className="p-2 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
-                          title="Delete Form"
-                        >
-                          {deletingId === form._id ? (
-                            <div className="w-3.5 h-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
 
-            {/* Quick Starter Templates Segment */}
-            <div className="space-y-4 pt-6 border-t border-brand-border/60">
-              <div className="space-y-0.5 text-left">
-                <h2 className="text-xl md:text-2xl font-heading font-semibold text-brand-charcoal tracking-tight">
-                  Public Starter Blueprints
-                </h2>
-                <p className="text-xs text-neutral-500 font-normal">
-                  Pre-compiled full-stack templates ready to preview, test, and customize.
-                </p>
-              </div>
+            {/* X-Axis Labels */}
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400 pt-3 border-t border-neutral-100 font-mono">
+              {activityData.map((item, idx) => (
+                <span
+                  key={item.label}
+                  className={idx === activityData.length - 1 ? 'text-brand-orange font-bold' : ''}
+                >
+                  {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-                {PREDEFINED_TEMPLATES.map((tmpl, idx) => (
-                  <div
-                    key={tmpl.id || tmpl.category || idx}
-                    className="bg-white border border-brand-border rounded-2xl p-5 shadow-sm hover:border-brand-orange hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
+      {/* ─────────────────────────────────────────────────────────────
+          3. ALL FORMS CATALOG MODAL
+      ───────────────────────────────────────────────────────────── */}
+      {allFormsModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-brand-charcoal font-heading">Your Forms</h3>
+                <p className="text-xs text-neutral-500">Manage and preview all your created form endpoints</p>
+              </div>
+              <button
+                onClick={() => setAllFormsModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-3 flex-1">
+              {savedForms.length === 0 ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto text-neutral-400">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-brand-charcoal">No custom forms saved yet</p>
+                    <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                      Build your first form in Studio and save it to generate endpoints and collect submissions.
+                    </p>
+                  </div>
+                  <Link
+                    href="/builder"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-orange text-white text-xs font-bold hover:bg-brand-orange-hover transition-colors shadow-sm"
                   >
-                    <div className="space-y-3">
-                      <span className="text-[10px] font-bold font-mono bg-brand-sand text-brand-charcoal px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block">
-                        {tmpl.category}
-                      </span>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-heading font-semibold text-brand-charcoal group-hover:text-brand-orange transition-colors">
-                          {tmpl.name}
-                        </h4>
-                        <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
-                          {tmpl.description}
-                        </p>
+                    <Plus className="w-4 h-4" />
+                    <span>Create Form in Studio</span>
+                  </Link>
+                </div>
+              ) : (
+                savedForms.map((form) => (
+                  <div
+                    key={form._id}
+                    className="p-4 rounded-2xl border border-neutral-200 hover:border-neutral-300 bg-neutral-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-brand-charcoal">{form.name}</span>
+                        <span className="text-[10px] font-semibold uppercase font-mono px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange">
+                          {form.category}
+                        </span>
                       </div>
+                      <p className="text-xs text-neutral-500">
+                        {form.fields?.length || 0} fields · Created {new Date(form.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
 
-                    <div className="pt-4 border-t border-brand-border/50 mt-4 flex items-center justify-between">
-                      <Link
-                        href={`/f/${tmpl.id}`}
-                        target="_blank"
-                        className="text-xs font-bold text-neutral-500 hover:text-brand-orange flex items-center gap-1 transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        Preview
-                      </Link>
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
-                        onClick={() => handleStartWithTemplate(tmpl.category)}
-                        className="px-3 py-1 rounded-xl bg-brand-sand hover:bg-brand-orange hover:text-white text-xs font-bold text-brand-charcoal uppercase flex items-center gap-1 transition-all cursor-pointer"
+                        onClick={() => {
+                          setAllFormsModalOpen(false);
+                          handleOpenSetup(form);
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                       >
-                        Use <ChevronRight className="w-3 h-3" />
+                        <Globe className="w-3.5 h-3.5 text-neutral-500" />
+                        <span>Setup</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAllFormsModalOpen(false);
+                          handleOpenSubmissions(form);
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Inbox className="w-3.5 h-3.5 text-neutral-500" />
+                        <span>Submissions</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteForm(form._id)}
+                        disabled={deletingId === form._id}
+                        className="p-2 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Delete form"
+                      >
+                        {deletingId === form._id ? <Loader2 className="w-4 h-4 animate-spin text-rose-600" /> : <Trash2 className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
 
-      {/* SUBMISSIONS MODAL */}
-      {submissionsModalOpen && selectedFormForSubmissions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#fdfcf9] border border-brand-border rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-brand-border flex items-center justify-between bg-white">
+      {/* ─────────────────────────────────────────────────────────────
+          4. FORM SETUP & INTEGRATION MODAL
+      ───────────────────────────────────────────────────────────── */}
+      {setupModalOpen && activeSetupForm && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold font-mono bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded uppercase">
-                    {selectedFormForSubmissions.category}
-                  </span>
-                  <span className="text-xs text-neutral-400 font-mono">
-                    {submissionsList.length} Responses recorded
-                  </span>
-                </div>
-                <h3 className="text-lg font-heading font-semibold text-brand-charcoal mt-1">
-                  {selectedFormForSubmissions.name} - Submissions Inbox
-                </h3>
+                <h3 className="text-lg font-bold text-brand-charcoal font-heading">{activeSetupForm.name} — Setup</h3>
+                <p className="text-xs text-neutral-500">Send form submissions directly into your SnapForm dashboard</p>
               </div>
-
-              <div className="flex items-center gap-3">
-                {submissionsList.length > 0 && (
-                  <Button
-                    onClick={handleExportCsv}
-                    className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 h-9 flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" />
-                    Export CSV
-                  </Button>
-                )}
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                  title="Open live public hosted form"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-brand-orange" />
+                  <span>Open Live Form</span>
+                </a>
                 <button
-                  onClick={() => setSubmissionsModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-brand-sand hover:bg-brand-sand-dark flex items-center justify-center text-neutral-500 hover:text-brand-charcoal transition-colors cursor-pointer"
+                  onClick={() => setSetupModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Content / Table */}
+            {/* Tab selection */}
+            <div className="px-6 pt-4 border-b border-neutral-100 flex gap-4 text-xs font-bold">
+              <button
+                onClick={() => setSetupTab('endpoint')}
+                className={`pb-3 border-b-2 transition-colors cursor-pointer ${
+                  setupTab === 'endpoint'
+                    ? 'border-brand-orange text-brand-orange'
+                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                }`}
+              >
+                POST Endpoint
+              </button>
+              <button
+                onClick={() => setSetupTab('react')}
+                className={`pb-3 border-b-2 transition-colors cursor-pointer ${
+                  setupTab === 'react'
+                    ? 'border-brand-orange text-brand-orange'
+                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                }`}
+              >
+                React / Next.js
+              </button>
+              <button
+                onClick={() => setSetupTab('embed')}
+                className={`pb-3 border-b-2 transition-colors cursor-pointer ${
+                  setupTab === 'embed'
+                    ? 'border-brand-orange text-brand-orange'
+                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                }`}
+              >
+                Hosted Link
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-5 flex-1">
+              {setupTab === 'endpoint' && (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider font-mono">
+                        POST Ingestion Endpoint
+                      </label>
+                      <span className="text-[11px] text-neutral-500 font-sans">
+                        For HTML forms & AJAX
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-800 select-all outline-none"
+                      />
+                      <button
+                        onClick={() =>
+                          copyToClipboard(
+                            `${window.location.origin}/api/f/${activeSetupForm.shortId || activeSetupForm._id}`,
+                            'Endpoint copied!'
+                          )
+                        }
+                        className="px-4 py-2.5 rounded-xl bg-brand-charcoal text-white hover:bg-black text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-neutral-500 pt-1">
+                      <span>Looking for the standalone web page?</span>
+                      <a
+                        href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-brand-orange hover:underline font-semibold flex items-center gap-1"
+                      >
+                        <span>Open hosted web form</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-neutral-700">HTML Example</label>
+                    <CodeBlock
+                      language="html"
+                      filename="index.html"
+                      code={`<form action="${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}" method="POST">
+  <input type="text" name="name" required placeholder="Your Name" />
+  <input type="email" name="email" required placeholder="Your Email" />
+  <textarea name="message" required placeholder="Your Message"></textarea>
+  <button type="submit">Send Message</button>
+</form>`}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {setupTab === 'react' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-neutral-600">
+                    Use standard fetch or Axios to submit JSON directly from your React / Next.js client component:
+                  </p>
+                  <CodeBlock
+                    language="typescript"
+                    filename="ContactForm.tsx"
+                    code={`const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const res = await fetch('${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      message: 'Hello from SnapForm!'
+    })
+  });
+  const data = await res.json();
+  if (data.success) alert('Form submitted successfully!');
+};`}
+                  />
+                </div>
+              )}
+
+              {setupTab === 'embed' && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-brand-charcoal">Public Hosted Page</span>
+                      <a
+                        href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-brand-orange hover:text-brand-orange-hover flex items-center gap-1"
+                      >
+                        <span>Open Form</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                    <p className="text-xs text-neutral-600 font-mono break-all">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/f/${activeSetupForm.shortId || activeSetupForm._id}` : ''}
+                    </p>
+                    <button
+                      onClick={() => handleCopyLink(activeSetupForm.shortId || activeSetupForm._id)}
+                      className="w-full py-2.5 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Hosted Form Link</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          5. SUBMISSIONS MODAL
+      ───────────────────────────────────────────────────────────── */}
+      {submissionsModalOpen && selectedFormForSubmissions && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-brand-charcoal font-heading">
+                  {selectedFormForSubmissions.name} — Submissions
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  {submissionsList.length} total response{submissionsList.length === 1 ? '' : 's'} recorded
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportCsv}
+                  disabled={submissionsList.length === 0}
+                  className="px-3.5 py-1.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-semibold text-brand-charcoal flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setSubmissionsModalOpen(false);
+                    setSelectedSubmissionDetail(null);
+                  }}
+                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
             <div className="p-6 overflow-y-auto flex-1">
               {fetchingSubmissions ? (
-                <div className="py-16 text-center space-y-3">
-                  <Loader2 className="w-8 h-8 text-brand-orange animate-spin mx-auto" />
-                  <p className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-widest">
-                    Fetching Submissions...
-                  </p>
+                <div className="py-16 text-center space-y-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-brand-orange mx-auto" />
+                  <p className="text-xs text-neutral-500">Loading submissions...</p>
                 </div>
               ) : submissionsList.length === 0 ? (
-                <div className="py-16 text-center space-y-4 max-w-md mx-auto">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-sand border border-brand-border flex items-center justify-center text-neutral-400 mx-auto">
+                <div className="text-center py-16 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto text-neutral-400">
                     <Inbox className="w-6 h-6" />
                   </div>
-                  <div>
-                    <h4 className="text-base font-bold text-brand-charcoal">No submissions yet</h4>
-                    <p className="text-xs text-neutral-500 mt-1">
-                      Share your public form link with users to start collecting answers.
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => handleCopyLink(selectedFormForSubmissions._id, e)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-orange text-white text-xs font-bold hover:bg-brand-orange-hover shadow-sm transition-all cursor-pointer"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy Public Form Link
-                  </button>
+                  <p className="text-sm font-bold text-brand-charcoal">No submissions yet</p>
+                  <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                    Share your form link or connect the POST endpoint to start collecting real-time submissions.
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="overflow-x-auto border border-brand-border rounded-2xl bg-white">
+                <div className="border border-neutral-200/80 rounded-2xl overflow-hidden shadow-2xs bg-white">
+                  <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-brand-sand/60 border-b border-brand-border text-neutral-500 font-mono font-bold uppercase text-[10px]">
-                          <th className="p-3.5">Time</th>
-                          {selectedFormForSubmissions.fields.map((f: any) => (
-                            <th key={f.id} className="p-3.5 whitespace-nowrap">
+                        <tr className="bg-neutral-50/90 border-b border-neutral-200/80 text-neutral-600 font-medium">
+                          <th className="py-3 px-4 whitespace-nowrap font-medium text-xs">Submitted At</th>
+                          {selectedFormForSubmissions.fields?.map((f: any) => (
+                            <th key={f.id} className="py-3 px-4 whitespace-nowrap font-medium text-xs">
                               {f.label || f.id}
                             </th>
                           ))}
+                          <th className="py-3 px-4 text-right whitespace-nowrap font-medium text-xs">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-brand-border/60 font-medium text-brand-charcoal">
+                      <tbody className="divide-y divide-neutral-100 bg-white">
                         {submissionsList.map((sub) => (
-                          <tr key={sub.id} className="hover:bg-brand-sand/30 transition-colors">
-                            <td className="p-3.5 whitespace-nowrap text-neutral-400 font-mono text-[11px]">
-                              {new Date(sub.submittedAt).toLocaleString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                          <tr
+                            key={sub.id}
+                            onClick={() => setSelectedSubmissionDetail(sub)}
+                            className="hover:bg-neutral-50/80 transition-colors cursor-pointer group"
+                          >
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <div className="text-xs font-medium text-neutral-800">
+                                {new Date(sub.submittedAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </div>
+                              <div className="text-[10px] text-neutral-400 font-mono">
+                                {new Date(sub.submittedAt).toLocaleTimeString('en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </div>
                             </td>
-                            {selectedFormForSubmissions.fields.map((f: any) => {
-                              const val = sub.data[f.id];
-                              let displayVal = '-';
-                              if (val !== undefined && val !== null && val !== '') {
-                                if (typeof val === 'boolean') {
-                                  displayVal = val ? 'Yes' : 'No';
-                                } else if (Array.isArray(val)) {
-                                  displayVal = val.join(', ');
-                                } else {
-                                  displayVal = String(val);
-                                }
-                              }
-                              return (
-                                <td key={f.id} className="p-3.5 max-w-xs truncate" title={displayVal}>
-                                  {displayVal}
-                                </td>
-                              );
-                            })}
+                            {selectedFormForSubmissions.fields?.map((f: any) => (
+                              <td key={f.id} className="py-3 px-4 text-neutral-700 max-w-[200px] truncate text-xs">
+                                {sub.data?.[f.id] !== undefined && sub.data?.[f.id] !== '' ? (
+                                  typeof sub.data[f.id] === 'boolean' ? (
+                                    <span
+                                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                        sub.data[f.id]
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                          : 'bg-neutral-100 text-neutral-600'
+                                      }`}
+                                    >
+                                      {sub.data[f.id] ? 'Yes' : 'No'}
+                                    </span>
+                                  ) : (
+                                    String(sub.data[f.id])
+                                  )
+                                ) : (
+                                  <span className="text-neutral-300">—</span>
+                                )}
+                              </td>
+                            ))}
+                            <td className="py-3 px-4 text-right whitespace-nowrap">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSubmissionDetail(sub);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[11px] font-semibold transition-colors"
+                              >
+                                View
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -795,6 +1522,115 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+
+            {/* Submission Detail Drawer / Inspector */}
+            {selectedSubmissionDetail && (
+              <div className="border-t border-neutral-200 bg-neutral-50 p-6 space-y-4 max-h-72 overflow-y-auto animate-in slide-in-from-bottom-2 duration-150">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider font-mono">
+                      Submission Details
+                    </h4>
+                    <p className="text-[11px] text-neutral-500">
+                      Recorded on {new Date(selectedSubmissionDetail.submittedAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedSubmissionDetail(null)}
+                    className="text-xs text-neutral-500 hover:text-neutral-800 font-semibold cursor-pointer"
+                  >
+                    Close Details
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedFormForSubmissions.fields?.map((f: any) => (
+                    <div key={f.id} className="p-3 rounded-xl bg-white border border-neutral-200/80 space-y-1">
+                      <span className="text-[11px] font-medium text-neutral-500 block">
+                        {f.label || f.id}
+                      </span>
+                      <p className="text-xs font-semibold text-neutral-900 break-words">
+                        {selectedSubmissionDetail.data?.[f.id] !== undefined &&
+                        selectedSubmissionDetail.data?.[f.id] !== ''
+                          ? String(selectedSubmissionDetail.data[f.id])
+                          : '—'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          6. WORKSPACE DETAILS MODAL (Emails / Team / Account)
+      ───────────────────────────────────────────────────────────── */}
+      {workspaceModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-brand-charcoal capitalize font-heading">
+                {workspaceModal === 'emails' && 'Linked Notification Emails'}
+                {workspaceModal === 'team' && 'Team Collaboration'}
+                {workspaceModal === 'account' && 'Account Settings'}
+              </h3>
+              <button
+                onClick={() => setWorkspaceModal(null)}
+                className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {workspaceModal === 'emails' && (
+              <div className="space-y-3 text-xs text-neutral-600">
+                <p>Form submissions will notify the primary account address:</p>
+                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 font-mono font-semibold text-brand-charcoal flex items-center justify-between">
+                  <span>{user.email}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                    Verified
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {workspaceModal === 'team' && (
+              <div className="space-y-3 text-xs text-neutral-600">
+                <p>Invite teammates to collaborate on form schemas, templates, and submissions.</p>
+                <div className="p-4 bg-brand-orange/5 rounded-2xl border border-brand-orange/20 text-brand-charcoal space-y-2">
+                  <p className="font-bold text-brand-orange">Team collaboration is rolling out!</p>
+                  <p className="text-[11px] text-neutral-600">
+                    You will be able to add teammates with granular role-based permissions.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {workspaceModal === 'account' && (
+              <div className="space-y-3 text-xs text-neutral-700">
+                <div className="space-y-1">
+                  <span className="text-neutral-400 font-semibold text-[11px]">Full Name</span>
+                  <p className="font-bold text-brand-charcoal">{user.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-neutral-400 font-semibold text-[11px]">Email Address</span>
+                  <p className="font-bold text-brand-charcoal">{user.email}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-neutral-400 font-semibold text-[11px]">Account ID</span>
+                  <p className="font-mono text-neutral-600 text-[10px]">{user.id}</p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setWorkspaceModal(null)}
+              className="w-full py-2.5 rounded-xl bg-brand-charcoal text-white font-bold text-xs hover:bg-black transition-colors cursor-pointer shadow-sm"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

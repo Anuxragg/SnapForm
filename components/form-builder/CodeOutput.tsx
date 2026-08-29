@@ -37,12 +37,12 @@ export default function CodeOutput({ code, formName, isLoading = false }: CodeOu
 
   if (!code) {
     return (
-      <Card className="border border-neutral-200/60 bg-white/60 backdrop-blur-sm p-12 text-center rounded-2xl flex flex-col items-center justify-center min-h-87.5">
-        <div className="p-4 rounded-full bg-amber-50 text-amber-600 mb-4 border border-amber-100">
+      <Card className="border border-neutral-200 bg-white p-12 text-center rounded-2xl flex flex-col items-center justify-center min-h-[350px] shadow-2xs">
+        <div className="p-4 rounded-full bg-brand-orange/10 text-brand-orange mb-4 border border-brand-orange/20">
           <ShieldAlert className="w-8 h-8" />
         </div>
         <CardTitle className="text-base font-bold text-neutral-800">No generated code</CardTitle>
-        <CardDescription className="text-sm text-neutral-500 mt-1 max-w-sm">
+        <CardDescription className="text-xs text-neutral-500 mt-1 max-w-sm">
           Click the &quot;Compile Code&quot; button, or select a template and let the right-side panel populate automatically.
         </CardDescription>
       </Card>
@@ -94,7 +94,7 @@ export default function CodeOutput({ code, formName, isLoading = false }: CodeOu
   return (
     <div className="flex flex-col gap-4 text-left h-full overflow-hidden">
       {/* Code Header Actions */}
-      <div className="flex justify-between items-center bg-white/60 backdrop-blur p-4 rounded-2xl border border-neutral-200/50 shadow-sm shrink-0">
+      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-neutral-200 shadow-2xs shrink-0">
         <div>
           <h3 className="text-sm font-bold text-neutral-800">Generated Code</h3>
           <p className="text-xs text-neutral-400">Next.js 14+ / TypeScript / Tailwind CSS</p>
@@ -102,7 +102,7 @@ export default function CodeOutput({ code, formName, isLoading = false }: CodeOu
         <Button
           size="sm"
           onClick={handleDownloadZip}
-          className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md flex items-center gap-1.5 cursor-pointer transition-all duration-200 active:scale-95"
+          className="rounded-xl bg-brand-charcoal hover:bg-black text-white font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all duration-200 text-xs active:scale-95"
         >
           <Download className="w-4 h-4" /> Download ZIP
         </Button>

@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import {
   ShieldCheck,
@@ -22,8 +24,17 @@ import HomeShaderBackground from '@/components/HomeShaderBackground';
 import BreathingText from '@/components/fancy/text/breathing-text';
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
   const [terminalCopied, setTerminalCopied] = useState(false);
+
+  // If user has an active session, redirect directly to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
 
   const copyTerminalCode = () => {
     const code = terminalTab === 'react'
@@ -34,6 +45,11 @@ export default function LandingPage() {
     setTerminalCopied(true);
     setTimeout(() => setTerminalCopied(false), 2000);
   };
+
+  // Prevent flash of home page if user is logged in
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-x-hidden font-sans flex flex-col antialiased">

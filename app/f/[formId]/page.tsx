@@ -8,10 +8,10 @@ import {
   AlertCircle,
   Loader2,
   Send,
-  Sparkles,
   RotateCcw,
   ArrowRight,
   ShieldCheck,
+  ChevronDown,
 } from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { SnapFormIcon } from '@/components/Logo';
@@ -184,52 +184,17 @@ export default function HostedFormPage() {
     setFormData(initialData);
   };
 
-  const primaryColor = form?.styling?.primaryColor || '#ff4f19';
-  const theme = form?.styling?.theme || 'modern';
-
-  // Theme-specific styles
-  const getThemeWrapperClass = () => {
-    switch (theme) {
-      case 'minimal':
-        return 'bg-zinc-950 text-zinc-100 border border-zinc-800 shadow-sm';
-      case 'corporate':
-        return 'bg-slate-900 text-slate-100 border border-slate-800 shadow-xl';
-      case 'modern':
-      default:
-        return 'bg-zinc-900/90 text-white backdrop-blur-xl border border-white/10 shadow-2xl shadow-orange-500/5';
-    }
-  };
-
-  const getInputClass = (hasError: boolean) => {
-    const base =
-      'w-full px-4 py-3 rounded-xl transition-all duration-200 text-sm outline-none placeholder:text-zinc-500';
-    if (hasError) {
-      return `${base} bg-red-500/10 border border-red-500/50 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20`;
-    }
-    switch (theme) {
-      case 'minimal':
-        return `${base} bg-zinc-900 border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500`;
-      case 'corporate':
-        return `${base} bg-slate-950 border border-slate-800 text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20`;
-      case 'modern':
-      default:
-        return `${base} bg-zinc-950/80 border border-white/10 text-white focus:border-orange-500/80 focus:ring-2 focus:ring-orange-500/20`;
-    }
-  };
-
   // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="relative flex items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-              <Loader2 className="w-7 h-7 text-orange-500 animate-spin" />
-            </div>
+      <div className="min-h-screen bg-[#fbfbfd] flex flex-col items-center justify-center p-4 font-sans antialiased text-neutral-900">
+        <div className="flex flex-col items-center gap-4 text-center max-w-sm">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-neutral-200 shadow-sm flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-brand-orange animate-spin" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">Loading Form</h3>
-            <p className="text-sm text-zinc-400 mt-1">Preparing your interactive form view...</p>
+            <h3 className="text-base font-bold text-neutral-900">Loading Form</h3>
+            <p className="text-xs text-neutral-500 mt-1">Preparing your secure submission portal...</p>
           </div>
         </div>
       </div>
@@ -239,21 +204,21 @@ export default function HostedFormPage() {
   // Error / Not Found Screen
   if (error || !form) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-8 text-center shadow-2xl">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
-            <AlertCircle className="w-7 h-7 text-red-400" />
+      <div className="min-h-screen bg-[#fbfbfd] flex flex-col items-center justify-center p-4 font-sans antialiased text-neutral-900">
+        <div className="max-w-md w-full bg-white border border-neutral-200/80 rounded-2xl p-8 text-center shadow-lg shadow-neutral-100">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mb-4">
+            <AlertCircle className="w-6 h-6 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-white">Form Not Found</h2>
-          <p className="text-sm text-zinc-400 mt-2 mb-6">
-            {error || 'The form you are looking for does not exist or has been removed.'}
+          <h2 className="text-xl font-bold text-neutral-900">Form Not Available</h2>
+          <p className="text-xs text-neutral-500 mt-2 mb-6 leading-relaxed">
+            {error || 'The requested form could not be found or is no longer accepting responses.'}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all text-sm w-full"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-charcoal text-white font-semibold hover:bg-black transition-all text-xs w-full shadow-sm"
           >
             Go to SnapForm Home
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
@@ -261,82 +226,66 @@ export default function HostedFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 relative selection:bg-orange-500/30 selection:text-orange-200 py-12 px-4 sm:px-6 flex flex-col justify-between">
-      {/* Background ambient lighting */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full blur-[140px] opacity-20 pointer-events-none"
-          style={{ backgroundColor: primaryColor }}
-        />
-        <div className="absolute top-1/2 right-10 w-[400px] h-[400px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
-      </div>
-
-      <div className="max-w-2xl w-full mx-auto relative z-10">
-        {/* Form Container */}
-        <div className={`rounded-3xl p-6 sm:p-10 transition-all duration-300 ${getThemeWrapperClass()}`}>
-          {/* Header */}
-          <div className="border-b border-white/10 pb-6 mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full"
-                style={{
-                  backgroundColor: `${primaryColor}20`,
-                  color: primaryColor,
-                  border: `1px solid ${primaryColor}40`,
-                }}
-              >
-                {form.category || 'Form'}
+    <div className="min-h-screen bg-[#fbfbfd] text-neutral-900 font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white">
+      {/* Main Content Area */}
+      <main className="max-w-2xl w-full mx-auto">
+        {/* Main White Card Container */}
+        <div className="bg-white border border-neutral-200/90 rounded-2xl sm:rounded-3xl shadow-xl shadow-neutral-200/30 p-6 sm:p-10 transition-all">
+          {/* Header Section */}
+          <div className="border-b border-neutral-100 pb-5 mb-7">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="px-2.5 py-0.5 text-[10px] font-medium tracking-wide rounded-md bg-neutral-100 text-neutral-600 font-sans uppercase">
+                {form.category || 'Inquiry'}
               </span>
-              <span className="text-xs text-zinc-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
                 Verified Form
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-heading">
               {form.name}
             </h1>
+
             {form.description && (
-              <p className="text-sm sm:text-base text-zinc-400 mt-2 leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-neutral-500 mt-2 leading-relaxed font-sans">
                 {form.description}
               </p>
             )}
+
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+              <span>Please complete the questions below</span>
+              <span><span className="text-red-500">*</span> Required fields</span>
+            </div>
           </div>
 
           {/* SUCCESS VIEW */}
           {submitted ? (
             <div className="py-8 text-center animate-in fade-in zoom-in-95 duration-300">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6"
-                style={{
-                  backgroundColor: `${primaryColor}20`,
-                  border: `2px solid ${primaryColor}60`,
-                }}
-              >
-                <CheckCircle2 className="w-8 h-8" style={{ color: primaryColor }} />
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center mb-5 text-emerald-600 shadow-sm">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Thank You!</h2>
-              <p className="text-zinc-300 text-sm sm:text-base max-w-md mx-auto mb-8 leading-relaxed">
-                Your response has been securely submitted and recorded.
+              <h2 className="text-2xl font-extrabold text-neutral-900 mb-2 font-heading">
+                Application Submitted
+              </h2>
+              <p className="text-neutral-600 text-xs sm:text-sm max-w-md mx-auto mb-8 leading-relaxed">
+                Thank you! Your information has been securely transmitted and recorded. The team will review your submission shortly.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   onClick={resetForm}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium transition-all text-sm w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold transition-all text-xs w-full sm:w-auto cursor-pointer shadow-2xs"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-3.5 h-3.5 text-neutral-400" />
                   Submit Another Response
                 </button>
                 <Link
-                  href="/builder"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all text-sm w-full sm:w-auto"
-                  style={{
-                    backgroundColor: primaryColor,
-                    color: '#ffffff',
-                  }}
+                  href="/"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-charcoal hover:bg-black text-white font-semibold transition-all text-xs w-full sm:w-auto shadow-sm"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Create Your Own Form
+                  <span>Done</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
@@ -344,8 +293,8 @@ export default function HostedFormPage() {
             /* FORM INPUT VIEW */
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               {submitError && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
                   <span>{submitError}</span>
                 </div>
               )}
@@ -355,11 +304,11 @@ export default function HostedFormPage() {
                 const value = formData[field.id] ?? '';
 
                 return (
-                  <div key={field.id} className="space-y-2">
-                    <label className="flex items-center justify-between text-sm font-medium text-zinc-200">
+                  <div key={field.id} className="space-y-1.5">
+                    <label className="flex items-center justify-between text-[13px] font-medium text-neutral-700 font-sans">
                       <span>
                         {field.label}
-                        {field.required && <span className="text-red-400 ml-1">*</span>}
+                        {field.required && <span className="text-red-500 ml-1 font-sans">*</span>}
                       </span>
                     </label>
 
@@ -368,9 +317,13 @@ export default function HostedFormPage() {
                       <input
                         type={field.type}
                         value={value}
-                        placeholder={field.placeholder || ''}
+                        placeholder={field.placeholder || 'Your answer'}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={getInputClass(hasError)}
+                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 ${
+                          hasError
+                            ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
+                            : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800 placeholder:text-neutral-400'
+                        }`}
                         disabled={submitting}
                       />
                     )}
@@ -380,70 +333,84 @@ export default function HostedFormPage() {
                       <textarea
                         rows={4}
                         value={value}
-                        placeholder={field.placeholder || ''}
+                        placeholder={field.placeholder || 'Provide details here...'}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={getInputClass(hasError)}
+                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 resize-y leading-relaxed ${
+                          hasError
+                            ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
+                            : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800 placeholder:text-neutral-400'
+                        }`}
                         disabled={submitting}
                       />
                     )}
 
                     {/* Field Type: Select Dropdown */}
                     {field.type === 'select' && (
-                      <select
-                        value={value}
-                        onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={getInputClass(hasError)}
-                        disabled={submitting}
-                      >
-                        <option value="" disabled className="bg-zinc-900 text-zinc-500">
-                          {field.placeholder || 'Select an option...'}
-                        </option>
-                        {field.options?.map((opt, i) => (
-                          <option key={i} value={opt} className="bg-zinc-900 text-white">
-                            {opt}
+                      <div className="relative">
+                        <select
+                          value={value}
+                          onChange={(e) => handleInputChange(field.id, e.target.value)}
+                          className={`w-full px-3.5 py-2.5 pr-10 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 appearance-none cursor-pointer ${
+                            hasError
+                              ? 'bg-red-50/50 border border-red-300 text-neutral-900'
+                              : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800'
+                          }`}
+                          disabled={submitting}
+                        >
+                          <option value="" disabled className="text-neutral-400">
+                            {field.placeholder || 'Select an option...'}
                           </option>
-                        ))}
-                      </select>
+                          {field.options?.map((opt, i) => (
+                            <option key={i} value={opt} className="text-neutral-800">
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     )}
 
                     {/* Field Type: Radio Group */}
                     {field.type === 'radio' && (
-                      <div className="space-y-2 pt-1">
-                        {field.options?.map((opt, idx) => (
-                          <label
-                            key={idx}
-                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                              value === opt
-                                ? 'bg-white/5 border-white/30 text-white'
-                                : 'bg-zinc-950/40 border-white/5 text-zinc-300 hover:bg-white/[0.02]'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={field.id}
-                              value={opt}
-                              checked={value === opt}
-                              onChange={(e) => handleInputChange(field.id, e.target.value)}
-                              className="accent-orange-500 w-4 h-4 cursor-pointer"
-                              disabled={submitting}
-                            />
-                            <span className="text-sm font-medium">{opt}</span>
-                          </label>
-                        ))}
+                      <div className="space-y-2 pt-0.5">
+                        {field.options?.map((opt, idx) => {
+                          const isChecked = value === opt;
+                          return (
+                            <label
+                              key={idx}
+                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                                isChecked
+                                  ? 'bg-orange-50/30 border-brand-orange text-neutral-900 font-medium'
+                                  : 'bg-white hover:bg-neutral-50/80 border-neutral-200 text-neutral-700'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={field.id}
+                                value={opt}
+                                checked={isChecked}
+                                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                                className="w-4 h-4 accent-brand-orange cursor-pointer"
+                                disabled={submitting}
+                              />
+                              <span className="text-xs sm:text-[13px]">{opt}</span>
+                            </label>
+                          );
+                        })}
                       </div>
                     )}
 
                     {/* Field Type: Checkbox */}
                     {field.type === 'checkbox' && (
-                      <label className="flex items-start gap-3 p-3.5 rounded-xl bg-zinc-950/40 border border-white/5 hover:border-white/10 transition-all cursor-pointer">
+                      <label className="flex items-start gap-3 p-3 rounded-xl bg-white border border-neutral-200 hover:border-neutral-300 transition-all cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={Boolean(value)}
                           onChange={(e) => handleInputChange(field.id, e.target.checked)}
-                          className="accent-orange-500 w-4 h-4 rounded mt-0.5 cursor-pointer"
+                          className="w-4 h-4 accent-brand-orange rounded mt-0.5 cursor-pointer"
                           disabled={submitting}
                         />
-                        <span className="text-sm text-zinc-300 leading-snug">
+                        <span className="text-xs sm:text-[13px] text-neutral-700 leading-snug">
                           {field.placeholder || field.label}
                         </span>
                       </label>
@@ -451,21 +418,23 @@ export default function HostedFormPage() {
 
                     {/* Field Type: File */}
                     {field.type === 'file' && (
-                      <input
-                        type="file"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          handleInputChange(field.id, file ? file.name : '');
-                        }}
-                        className={getInputClass(hasError)}
-                        disabled={submitting}
-                      />
+                      <div className="border border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-white transition-colors cursor-pointer">
+                        <input
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            handleInputChange(field.id, file ? file.name : '');
+                          }}
+                          className="text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-black cursor-pointer"
+                          disabled={submitting}
+                        />
+                      </div>
                     )}
 
                     {/* Field Validation Error */}
                     {hasError && (
-                      <p className="text-xs text-red-400 flex items-center gap-1.5 mt-1 animate-in fade-in duration-150">
-                        <AlertCircle className="w-3.5 h-3.5" />
+                      <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-medium animate-in fade-in duration-150">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         {fieldErrors[field.id]}
                       </p>
                     )}
@@ -473,26 +442,27 @@ export default function HostedFormPage() {
                 );
               })}
 
-              {/* Submit Button */}
-              <div className="pt-4">
+              {/* Submit Action Bar */}
+              <div className="pt-4 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Protected with anti-spam honeypot</span>
+                </div>
+
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 px-6 rounded-xl font-semibold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-base hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: primaryColor,
-                    boxShadow: `0 10px 25px -5px ${primaryColor}40`,
-                  }}
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm bg-brand-charcoal hover:bg-black active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Submitting Response...
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-orange" />
+                      Submitting Application...
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
-                      Submit Form
+                      <span>Submit Response</span>
+                      <Send className="w-3.5 h-3.5" />
                     </>
                   )}
                 </button>
@@ -500,21 +470,23 @@ export default function HostedFormPage() {
             </form>
           )}
         </div>
+      </main>
 
-        {/* Footer Brand */}
-        <div className="mt-8 text-center flex flex-col items-center gap-2">
+      {/* Professional Brand Footer */}
+      <footer className="py-8 text-center">
+        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-400 hover:text-zinc-200 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-neutral-200 text-[11px] text-neutral-500 hover:text-neutral-900 transition-colors shadow-2xs font-medium"
           >
-            <SnapFormIcon className="w-3.5 h-4 text-orange-500" fill="#ff4f19" />
-            Powered by <strong className="text-white">SnapForm</strong>
+            <SnapFormIcon className="w-3 h-3 text-brand-orange" fill="#ff4f19" />
+            Powered by <strong className="text-neutral-900 font-bold">SnapForm</strong>
           </Link>
-          <p className="text-xs text-zinc-600">
-            Never submit passwords or sensitive credentials through public forms.
+          <p className="text-[11px] text-neutral-400">
+            Never submit confidential credentials through public forms. 256-bit TLS encrypted.
           </p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
