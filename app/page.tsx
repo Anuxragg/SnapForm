@@ -70,12 +70,12 @@ export default function LandingPage() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
-              <button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-8 py-3.5 h-12 flex items-center justify-center shadow-md shadow-brand-orange/20 border border-brand-orange transition-colors duration-200 w-full sm:w-auto cursor-pointer">
+              <button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-8 py-3.5 h-12 flex items-center justify-center shadow-[0_10px_25px_-3px_rgba(0,0,0,0.7),0_4px_12px_rgba(0,0,0,0.5)] transition-colors duration-200 w-full sm:w-auto cursor-pointer">
                 Hosting Form
               </button>
             </Link>
             <Link href="/builder" className="w-full sm:w-auto">
-              <button className="rounded-full border border-white/20 bg-black/50 backdrop-blur-xl text-white hover:text-white text-sm font-bold px-8 h-12 hover:bg-white/15 hover:border-white/40 transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
+              <button className="rounded-full bg-neutral-900/90 backdrop-blur-xl text-white hover:bg-neutral-800/90 text-sm font-bold px-8 h-12 shadow-[0_10px_25px_-3px_rgba(0,0,0,0.85),0_4px_12px_rgba(0,0,0,0.6)] transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
                 Form Templates
               </button>
             </Link>

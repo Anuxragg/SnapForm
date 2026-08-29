@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useId, useState, useEffect } from 'react';
 
 interface BreathingTextProps {
   children?: React.ReactNode;
@@ -8,6 +8,7 @@ interface BreathingTextProps {
   staggerDuration?: number;
   duration?: number;
   className?: string;
+  animateOnMount?: boolean;
 }
 
 export default function BreathingText({
@@ -16,6 +17,7 @@ export default function BreathingText({
   staggerDuration = 0.06,
   duration = 0.75,
   className = '',
+  animateOnMount = true,
 }: BreathingTextProps) {
   const textContent = (typeof children === 'string' ? children : label) || '';
   const letters = Array.from(textContent);
@@ -24,8 +26,18 @@ export default function BreathingText({
 
   const [hoverKey, setHoverKey] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (animateOnMount) {
+      // Automatically trigger the breathing wave animation on initial page load
+      const timer = setTimeout(() => {
+        setHoverKey(Date.now());
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [animateOnMount]);
+
   const handleMouseEnter = () => {
-    // Re-trigger the one-time thin-to-normal wave
+    // Re-trigger the one-time thin-to-normal wave on hover
     setHoverKey(Date.now());
   };
 
