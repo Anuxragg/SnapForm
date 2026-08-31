@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate, { IFormTemplate } from '@/models/FormTemplate';
+import FormView from '@/models/FormView';
 import { PREDEFINED_TEMPLATES, ISeedFormTemplate } from '@/lib/templates';
 import { generateShortId, getDeterministicShortId } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ export async function resolveForm(
   idOrSlug: string,
   options: {
     incrementViews?: boolean;
+    visitorHash?: string;
     requireOwnerId?: string;
   } = {}
 ): Promise<ResolvedFormResult | null> {
@@ -84,17 +86,7 @@ export async function resolveForm(
     finalQuery.userId = options.requireOwnerId;
   }
 
-  let template: IFormTemplate | null = null;
-
-  if (options.incrementViews) {
-    template = await FormTemplate.findOneAndUpdate(
-      finalQuery,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).lean();
-  } else {
-    template = await FormTemplate.findOne(finalQuery).lean();
-  }
+  let template: IFormTemplate | null = await FormTemplate.findOne(finalQuery).lean();
 
   // ─── 3. Fallback: Prefix Match on legacy ObjectIds ────────────────────────────
   if (!template && cleanId.length >= 4) {
@@ -106,15 +98,41 @@ export async function resolveForm(
 
     if (matched) {
       template = matched as any;
-      if (options.incrementViews && template) {
-        await FormTemplate.updateOne({ _id: matched._id }, { $inc: { views: 1 } });
-      }
     }
   }
 
   if (!template) {
     return null;
   }
+
+  // ─── 4. Unique View Recording (MongoDB Compound Key: formId + visitorHash) ───
+  if (options.incrementViews && template._id) {
+    if (options.visitorHash) {
+      try {
+        // Attempt to insert unique view record. MongoDB unique compound index rejects duplicates.
+        await FormView.create({
+          formId: template._id,
+          visitorHash: options.visitorHash,
+          viewedAt: new Date(),
+        });
+
+        // If insert succeeds -> First time visitor ever for this form!
+        await FormTemplate.updateOne({ _id: template._id }, { $inc: { views: 1 } });
+        if (typeof template.views === 'number') {
+          template.views += 1;
+        }
+      } catch (err: any) {
+        // MongoServerError code 11000 = duplicate key on (formId + visitorHash) -> already counted (+0)
+        if (err.code !== 11000) {
+          console.error('Error tracking unique form view:', err);
+        }
+      }
+    } else {
+      // Fallback if no visitor hash supplied
+      await FormTemplate.updateOne({ _id: template._id }, { $inc: { views: 1 } });
+    }
+  }
+
 
   // Ensure shortId is permanently backfilled if missing
   let canonicalShortId = template.shortId;

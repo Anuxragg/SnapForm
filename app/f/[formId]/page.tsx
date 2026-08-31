@@ -233,16 +233,6 @@ export default function HostedFormPage() {
         <div className="bg-white border border-neutral-200/90 rounded-2xl sm:rounded-3xl shadow-xl shadow-neutral-200/30 p-6 sm:p-10 transition-all">
           {/* Header Section */}
           <div className="border-b border-neutral-100 pb-5 mb-7">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="px-2.5 py-0.5 text-[10px] font-medium tracking-wide rounded-md bg-neutral-100 text-neutral-600 font-sans uppercase">
-                {form.category || 'Inquiry'}
-              </span>
-              <span className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Verified Form
-              </span>
-            </div>
-
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-heading">
               {form.name}
             </h1>

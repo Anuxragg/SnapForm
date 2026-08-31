@@ -296,6 +296,23 @@ export default function DashboardPage() {
     setSetupModalOpen(true);
   };
 
+  // Select Form for Focused Analytics
+  const handleSelectFormAnalytics = (form: SavedForm) => {
+    const index = savedForms.findIndex((f) => f._id === form._id);
+    if (index !== -1) {
+      setActiveFormIndex(index);
+    }
+    setSelectedChartForm(form._id);
+    setAllFormsModalOpen(false);
+    toast.success(`Showing analytics for "${form.name}"`);
+    setTimeout(() => {
+      const el = document.getElementById('form-activity-chart');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
+  };
+
   // Copy Hosted Link
   const handleCopyLink = (formId: string) => {
     const url = `${window.location.origin}/f/${formId}`;
@@ -505,6 +522,13 @@ export default function DashboardPage() {
                 {/* Sub-links when expanded */}
                 {formsMenuExpanded && !sidebarCollapsed && (
                   <div className="pl-6 pr-2 space-y-0.5 animate-in fade-in duration-150">
+                    <button
+                      onClick={() => currentActiveForm && handleSelectFormAnalytics(currentActiveForm)}
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
+                    >
+                      <Activity className="w-3.5 h-3.5 text-brand-orange" />
+                      <span>View Analytics</span>
+                    </button>
                     <button
                       onClick={() => currentActiveForm && handleOpenSetup(currentActiveForm)}
                       className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-brand-charcoal hover:bg-neutral-50 transition-colors cursor-pointer text-left"
@@ -757,23 +781,64 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Form Item Card */}
-            <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/80 flex items-center justify-between">
-              <div className="space-y-0.5 min-w-0 flex-1">
-                <h4 className="text-sm font-bold text-brand-charcoal truncate">
-                  {currentActiveForm ? currentActiveForm.name : 'SnapForm'}
-                </h4>
-                <p className="text-xs text-neutral-400">
-                  Created {currentActiveForm ? new Date(currentActiveForm.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Aug 29, 2026'}
-                </p>
-              </div>
-              <button
-                onClick={() => currentActiveForm && handleOpenSetup(currentActiveForm)}
-                className="w-8 h-8 rounded-xl border border-neutral-200 bg-white text-neutral-600 hover:text-brand-charcoal hover:border-neutral-300 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
-                title="Form settings"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
+            {/* Forms List inside Overview */}
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {savedForms.length === 0 ? (
+                <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/80 text-center text-xs text-neutral-500">
+                  No forms created yet. Click "+ New form" to get started.
+                </div>
+              ) : (
+                savedForms.slice(0, 3).map((form, idx) => {
+                  const isSelected = selectedChartForm === form._id || (selectedChartForm === 'all' && idx === activeFormIndex);
+                  return (
+                    <div
+                      key={form._id}
+                      onClick={() => handleSelectFormAnalytics(form)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 group ${
+                        selectedChartForm === form._id
+                          ? 'border-brand-orange bg-brand-orange/5 shadow-xs'
+                          : 'border-neutral-200 bg-neutral-50/80 hover:border-neutral-300 hover:bg-neutral-100/70'
+                      }`}
+                    >
+                      <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-brand-charcoal truncate group-hover:text-brand-orange transition-colors">
+                            {form.name}
+                          </h4>
+                          <span className="text-[9px] font-semibold uppercase font-mono px-1.5 py-0.2 rounded bg-neutral-200 text-neutral-600">
+                            {form.category}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-neutral-400">
+                          {form.fields?.length || 0} fields · Created {new Date(form.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleSelectFormAnalytics(form)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${
+                            selectedChartForm === form._id
+                              ? 'bg-brand-orange text-white'
+                              : 'bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100'
+                          }`}
+                          title="Show analytics on dashboard"
+                        >
+                          <Activity className="w-3 h-3" />
+                          <span>{selectedChartForm === form._id ? 'Active' : 'Stats'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleOpenSetup(form)}
+                          className="w-7 h-7 rounded-lg border border-neutral-200 bg-white text-neutral-600 hover:text-brand-charcoal flex items-center justify-center transition-colors cursor-pointer"
+                          title="Form settings"
+                        >
+                          <Settings className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-1">
@@ -781,7 +846,7 @@ export default function DashboardPage() {
                 onClick={() => setAllFormsModalOpen(true)}
                 className="text-xs font-semibold text-brand-charcoal hover:text-brand-orange transition-colors cursor-pointer flex items-center gap-1"
               >
-                <span>View all forms ({savedForms.length || 1})</span>
+                <span>View all forms ({savedForms.length || 0})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               {currentActiveForm && (
@@ -844,18 +909,37 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── Bottom Area: Form Activity & Analytics Chart ─── */}
-        <div className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6">
+        <div id="form-activity-chart" className="bg-white border border-neutral-200/90 rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6 scroll-mt-6">
           {/* Header & Filter Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Activity className="w-4 h-4 text-brand-orange" />
                 <h3 className="text-base font-bold text-brand-charcoal font-heading">
                   Form Activity & Analytics
                 </h3>
+                {selectedChartForm !== 'all' && (
+                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold animate-in fade-in duration-150">
+                    <span>
+                      {savedForms.find((f) => f._id === selectedChartForm)?.name || 'Selected Form'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedChartForm('all');
+                        toast.info('Showing analytics across all forms');
+                      }}
+                      className="hover:text-neutral-900 ml-1 cursor-pointer font-bold"
+                      title="Show All Forms"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
               </div>
               <p className="text-xs text-neutral-500 font-normal">
-                Real-time tracking of submissions, impressions, and conversion rates
+                {selectedChartForm === 'all'
+                  ? 'Real-time tracking of submissions, impressions, and conversion rates across all forms'
+                  : `Real-time analytics for ${savedForms.find((f) => f._id === selectedChartForm)?.name || 'selected form'}`}
               </p>
             </div>
 
@@ -1153,55 +1237,77 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               ) : (
-                savedForms.map((form) => (
-                  <div
-                    key={form._id}
-                    className="p-4 rounded-2xl border border-neutral-200 hover:border-neutral-300 bg-neutral-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-brand-charcoal">{form.name}</span>
-                        <span className="text-[10px] font-semibold uppercase font-mono px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange">
-                          {form.category}
-                        </span>
+                savedForms.map((form) => {
+                  const isSelected = selectedChartForm === form._id;
+                  return (
+                    <div
+                      key={form._id}
+                      onClick={() => handleSelectFormAnalytics(form)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group ${
+                        isSelected
+                          ? 'border-brand-orange bg-brand-orange/5 shadow-xs'
+                          : 'border-neutral-200 hover:border-neutral-300 bg-neutral-50 hover:bg-neutral-100/80'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-brand-charcoal group-hover:text-brand-orange transition-colors">
+                            {form.name}
+                          </span>
+                          <span className="text-[10px] font-semibold uppercase font-mono px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange">
+                            {form.category}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-500">
+                          {form.fields?.length || 0} fields · Created {new Date(form.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-xs text-neutral-500">
-                        {form.fields?.length || 0} fields · Created {new Date(form.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => {
-                          setAllFormsModalOpen(false);
-                          handleOpenSetup(form);
-                        }}
-                        className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <Globe className="w-3.5 h-3.5 text-neutral-500" />
-                        <span>Setup</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setAllFormsModalOpen(false);
-                          handleOpenSubmissions(form);
-                        }}
-                        className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <Inbox className="w-3.5 h-3.5 text-neutral-500" />
-                        <span>Submissions</span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteForm(form._id)}
-                        disabled={deletingId === form._id}
-                        className="p-2 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
-                        title="Delete form"
-                      >
-                        {deletingId === form._id ? <Loader2 className="w-4 h-4 animate-spin text-rose-600" /> : <Trash2 className="w-4 h-4" />}
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleSelectFormAnalytics(form)}
+                          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                            isSelected
+                              ? 'border-brand-orange bg-brand-orange text-white'
+                              : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100'
+                          }`}
+                          title="View analytics on dashboard"
+                        >
+                          <Activity className="w-3.5 h-3.5" />
+                          <span>Analytics</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAllFormsModalOpen(false);
+                            handleOpenSetup(form);
+                          }}
+                          className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Globe className="w-3.5 h-3.5 text-neutral-500" />
+                          <span>Setup</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAllFormsModalOpen(false);
+                            handleOpenSubmissions(form);
+                          }}
+                          className="px-3 py-1.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Inbox className="w-3.5 h-3.5 text-neutral-500" />
+                          <span>Submissions</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteForm(form._id)}
+                          disabled={deletingId === form._id}
+                          className="p-2 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Delete form"
+                        >
+                          {deletingId === form._id ? <Loader2 className="w-4 h-4 animate-spin text-rose-600" /> : <Trash2 className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

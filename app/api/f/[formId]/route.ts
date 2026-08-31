@@ -25,7 +25,26 @@ export async function GET(
       );
     }
 
-    const resolved = await resolveForm(formId, { incrementViews: true });
+    const clientIp = getClientIp(request);
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    // Ignore known bots / crawlers (e.g. Googlebot, Bingbot, HeadlessChrome, python-requests, etc.)
+    const isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|headless|curl|wget|python/i.test(userAgent);
+
+    let visitorHash: string | undefined = undefined;
+    if (!isBot) {
+      // Deterministic anonymous visitor fingerprint (IP + User-Agent)
+      visitorHash = crypto
+        .createHash('sha256')
+        .update(`${clientIp}::${userAgent}`)
+        .digest('hex')
+        .substring(0, 32);
+    }
+
+    const resolved = await resolveForm(formId, {
+      incrementViews: Boolean(visitorHash),
+      visitorHash,
+    });
 
     if (!resolved || !resolved.found) {
       return NextResponse.json(
