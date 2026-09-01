@@ -14,28 +14,45 @@ export interface OAuthUserData {
  * Get base URL from environment or request headers
  */
 export function getAppBaseUrl(requestUrl?: string): string {
+  let baseUrl = '';
   if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`;
-  }
-  if (requestUrl) {
+    baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  } else if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    baseUrl = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  } else if (process.env.VERCEL_URL) {
+    baseUrl = `https://${process.env.VERCEL_URL}`;
+  } else if (requestUrl) {
     try {
       const url = new URL(requestUrl);
-      return `${url.protocol}//${url.host}`;
+      baseUrl = `${url.protocol}//${url.host}`;
     } catch {
       // ignore
     }
   }
-  return 'http://localhost:3000';
+
+  if (!baseUrl) {
+    baseUrl = 'http://localhost:3000';
+  }
+
+  // Remove all quotes, whitespace, newlines, carriage returns, and trailing slashes
+  baseUrl = baseUrl
+    .replace(/["']/g, '')
+    .replace(/[\r\n\t\s]+/g, '')
+    .replace(/\/+$/, '');
+
+  // Ensure protocol is attached
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    baseUrl = `https://${baseUrl}`;
+  }
+
+  return baseUrl;
 }
 
 /**
  * Create a signed CSRF state token
  */
 export function createOAuthState(provider: 'google' | 'github', returnUrl: string = '/dashboard'): string {
-  const secret = process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback';
+  const secret = (process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback').replace(/[\r\n\t\s]+/g, '');
   const timestamp = Date.now();
   const nonce = crypto.randomBytes(16).toString('hex');
   const payload = JSON.stringify({ provider, returnUrl, timestamp, nonce });
@@ -50,7 +67,7 @@ export function verifyOAuthState(stateStr: string, provider: 'google' | 'github'
   try {
     const raw = Buffer.from(stateStr, 'base64url').toString('utf8');
     const { payload, hmac } = JSON.parse(raw);
-    const secret = process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback';
+    const secret = (process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback').replace(/[\r\n\t\s]+/g, '');
     const expectedHmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
     if (hmac !== expectedHmac) {
@@ -77,14 +94,16 @@ export function verifyOAuthState(stateStr: string, provider: 'google' | 'github'
  * Google OAuth configuration and token exchange
  */
 export function getGoogleOAuthUrl(redirectUri: string, state: string): string {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = process.env.GOOGLE_CLIENT_ID?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const cleanRedirectUri = redirectUri.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  
   if (!clientId) {
     throw new Error('GOOGLE_CLIENT_ID is not configured in environment variables');
   }
 
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: cleanRedirectUri,
     response_type: 'code',
     scope: 'openid email profile',
     access_type: 'offline',
@@ -96,8 +115,9 @@ export function getGoogleOAuthUrl(redirectUri: string, state: string): string {
 }
 
 export async function exchangeGoogleCodeForUser(code: string, redirectUri: string): Promise<OAuthUserData> {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const clientId = process.env.GOOGLE_CLIENT_ID?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const cleanRedirectUri = redirectUri.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
 
   if (!clientId || !clientSecret) {
     throw new Error('Google OAuth credentials are not fully configured');
@@ -111,7 +131,7 @@ export async function exchangeGoogleCodeForUser(code: string, redirectUri: strin
       code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: redirectUri,
+      redirect_uri: cleanRedirectUri,
       grant_type: 'authorization_code',
     }),
   });
@@ -144,14 +164,16 @@ export async function exchangeGoogleCodeForUser(code: string, redirectUri: strin
  * GitHub OAuth configuration and token exchange
  */
 export function getGithubOAuthUrl(redirectUri: string, state: string): string {
-  const clientId = process.env.GITHUB_CLIENT_ID;
+  const clientId = process.env.GITHUB_CLIENT_ID?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const cleanRedirectUri = redirectUri.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  
   if (!clientId) {
     throw new Error('GITHUB_CLIENT_ID is not configured in environment variables');
   }
 
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: cleanRedirectUri,
     scope: 'read:user user:email',
     state,
   });
@@ -160,8 +182,9 @@ export function getGithubOAuthUrl(redirectUri: string, state: string): string {
 }
 
 export async function exchangeGithubCodeForUser(code: string, redirectUri: string): Promise<OAuthUserData> {
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const clientId = process.env.GITHUB_CLIENT_ID?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const clientSecret = process.env.GITHUB_CLIENT_SECRET?.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
+  const cleanRedirectUri = redirectUri.replace(/["']/g, '').replace(/[\r\n\t\s]+/g, '');
 
   if (!clientId || !clientSecret) {
     throw new Error('GitHub OAuth credentials are not fully configured');
