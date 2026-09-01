@@ -29,6 +29,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Verify password
+    if (!user.passwordHash || !user.salt) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            user.provider && user.provider !== 'credentials'
+              ? `This account was registered with ${user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}. Please sign in using the ${user.provider.charAt(0).toUpperCase() + user.provider.slice(1)} button.`
+              : 'Invalid email or password',
+        },
+        { status: 401 }
+      );
+    }
+
     const calculatedHash = hashPassword(password, user.salt);
     if (calculatedHash !== user.passwordHash) {
       return NextResponse.json(
