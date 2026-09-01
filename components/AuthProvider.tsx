@@ -117,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         setUser(null);
         toast.success('Logged out successfully');
-        // Refresh to reload data and clean browser contexts
-        window.location.reload();
+        // Redirect cleanly to login page
+        window.location.href = '/login';
       }
     } catch (err) {
       toast.error('Failed to log out cleanly');

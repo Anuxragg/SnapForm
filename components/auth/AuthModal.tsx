@@ -200,7 +200,7 @@ export default function AuthModal() {
 
           {/* Header Title & Subtitle */}
           <div className="space-y-1.5">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-heading font-semibold tracking-tight text-white">
               {authModalMode === 'login'
                 ? 'Welcome back!'
                 : signupStep === 'otp'
@@ -264,18 +264,15 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm shadow-xl shadow-brand-orange/20 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                className="w-full py-3.5 px-5 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] border border-neutral-700/60 mt-1"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Signing in...
+                    <span>Signing in...</span>
                   </>
                 ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                  <span>Sign in</span>
                 )}
               </button>
             </form>
