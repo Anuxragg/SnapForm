@@ -455,8 +455,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEmail('demo@snapform.io');
-                    setPassword('Password123!');
+                    window.location.href = '/api/auth/oauth/google';
                   }}
                   className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                   title="Continue with Google"
@@ -472,8 +471,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEmail('developer@github.com');
-                    setPassword('Password123!');
+                    window.location.href = '/api/auth/oauth/github';
                   }}
                   className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                   title="Continue with GitHub"
@@ -486,8 +484,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEmail('user@icloud.com');
-                    setPassword('Password123!');
+                    setErrors({ general: 'Apple sign-in will be available soon!' });
                   }}
                   className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                   title="Continue with Apple"

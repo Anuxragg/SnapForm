@@ -8,6 +8,8 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
+  provider?: string;
 }
 
 interface AuthContextType {

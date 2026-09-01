@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { SnapFormIcon } from '@/components/Logo';
 import AuthVisualCard from '@/components/auth/AuthVisualCard';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, user } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -18,11 +20,18 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       router.push('/dashboard');
     }
   }, [user, router]);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +61,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleOAuthLogin = (provider: 'google' | 'github') => {
+    window.location.href = `/api/auth/oauth/${provider}`;
+  };
+
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col justify-center font-sans">
       {/* Seamless Edge-to-Edge Grid (No outer card border) */}
@@ -75,7 +88,7 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold leading-relaxed">
               {error}
             </div>
           )}
@@ -151,10 +164,7 @@ export default function LoginPage() {
           <div className="grid grid-cols-3 gap-3">
             <button
               type="button"
-              onClick={() => {
-                setEmail('demo@snapform.io');
-                setPassword('Password123!');
-              }}
+              onClick={() => handleOAuthLogin('google')}
               className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               title="Continue with Google"
             >
@@ -168,10 +178,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => {
-                setEmail('developer@github.com');
-                setPassword('Password123!');
-              }}
+              onClick={() => handleOAuthLogin('github')}
               className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               title="Continue with GitHub"
             >
@@ -183,8 +190,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => {
-                setEmail('user@icloud.com');
-                setPassword('Password123!');
+                toast.info('Apple sign-in will be available soon!');
               }}
               className="group py-3.5 rounded-2xl bg-neutral-900/90 hover:bg-white border border-neutral-800 hover:border-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               title="Continue with Apple"
@@ -215,3 +221,12 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#070709]" />}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+

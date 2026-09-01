@@ -33,6 +33,8 @@ export interface ISessionPayload {
   id: string;
   email: string;
   name: string;
+  avatar?: string;
+  provider?: string;
   expiresAt: number;
 }
 
