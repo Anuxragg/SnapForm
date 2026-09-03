@@ -116,6 +116,15 @@ export async function POST(
       );
     }
 
+    // 1. Honeypot & Bot Trap Protection on Server
+    if (data._gotcha || data._honeypot || data.bot_trap) {
+      return NextResponse.json(
+        { success: false, message: 'Spam submission detected' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Resolve Form Schema
     const resolved = await resolveForm(formId);
 
     if (!resolved || !resolved.found) {
@@ -136,11 +145,17 @@ export async function POST(
       );
     }
 
-    // Validation against form field definitions
+    // 3. Strict Server-Side Validation against Form Field Definitions
     const validationErrors: Record<string, string> = {};
+    const sanitizedData: Record<string, any> = {};
 
     for (const field of formFields) {
-      const val = data[field.id];
+      let val = data[field.id];
+
+      // Sanitize text inputs by removing null bytes & extra trailing whitespaces
+      if (typeof val === 'string') {
+        val = val.replace(/\0/g, '').trim();
+      }
 
       // Required check
       if (field.required) {
@@ -156,38 +171,76 @@ export async function POST(
         }
       }
 
-      // Skip validation if optional and empty
+      // Skip type validation if optional and omitted
       if (val === undefined || val === null || val === '') {
         continue;
       }
 
-      // Email format check
-      if (field.type === 'email' && typeof val === 'string') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(val.trim())) {
+      // Email format check on server
+      if (field.type === 'email') {
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        if (typeof val !== 'string' || !emailRegex.test(val)) {
           validationErrors[field.id] = 'Please provide a valid email address';
+          continue;
         }
       }
 
-      // Text length checks
-      if (typeof val === 'string' && field.validation) {
-        if (field.validation.minLength && val.length < field.validation.minLength) {
-          validationErrors[field.id] = `Must be at least ${field.validation.minLength} characters`;
+      // URL format check on server
+      if (field.type === 'url' && typeof val === 'string') {
+        try {
+          const parsedUrl = new URL(val.startsWith('http') ? val : `https://${val}`);
+          if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            validationErrors[field.id] = 'Please provide a valid HTTP/HTTPS URL';
+            continue;
+          }
+        } catch {
+          validationErrors[field.id] = 'Please provide a valid URL';
+          continue;
         }
-        if (field.validation.maxLength && val.length > field.validation.maxLength) {
-          validationErrors[field.id] = `Must not exceed ${field.validation.maxLength} characters`;
+      }
+
+      // Number validation on server
+      if (field.type === 'number') {
+        const num = Number(val);
+        if (isNaN(num)) {
+          validationErrors[field.id] = 'Must be a valid number';
+          continue;
         }
-        if (field.validation.pattern) {
-          try {
-            const regex = new RegExp(field.validation.pattern);
-            if (!regex.test(val)) {
-              validationErrors[field.id] = 'Invalid format';
+        val = num;
+      }
+
+      // Select / Radio allowed options check on server
+      if ((field.type === 'select' || field.type === 'radio') && field.options && Array.isArray(field.options) && field.options.length > 0) {
+        const allowedValues = field.options.map((opt: any) => typeof opt === 'string' ? opt : opt.value ?? opt.label);
+        if (!allowedValues.includes(val)) {
+          validationErrors[field.id] = `"${val}" is not a valid choice`;
+          continue;
+        }
+      }
+
+      // Text length and custom regex validation on server
+      if (typeof val === 'string') {
+        if (field.validation) {
+          if (field.validation.minLength && val.length < field.validation.minLength) {
+            validationErrors[field.id] = `Must be at least ${field.validation.minLength} characters`;
+          }
+          if (field.validation.maxLength && val.length > field.validation.maxLength) {
+            validationErrors[field.id] = `Must not exceed ${field.validation.maxLength} characters`;
+          }
+          if (field.validation.pattern) {
+            try {
+              const regex = new RegExp(field.validation.pattern);
+              if (!regex.test(val)) {
+                validationErrors[field.id] = 'Invalid format';
+              }
+            } catch {
+              // ignore invalid regex definition
             }
-          } catch {
-            // ignore invalid pattern regex
           }
         }
       }
+
+      sanitizedData[field.id] = val;
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -212,7 +265,7 @@ export async function POST(
 
       await FormSubmission.create({
         formId: targetTemplateId,
-        data,
+        data: sanitizedData,
         submittedAt: new Date(),
         ipHash,
         userAgent,

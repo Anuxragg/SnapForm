@@ -20,11 +20,15 @@ import {
 interface UserDropdownMenuProps {
   collapsed?: boolean;
   align?: 'bottom-to-top' | 'top-to-bottom';
+  onOpenAccountModal?: (tab?: 'account' | 'agents' | 'preferences' | 'usage' | 'billing') => void;
+  avatarUrl?: string | null;
 }
 
 export default function UserDropdownMenu({
   collapsed = false,
   align = 'bottom-to-top',
+  onOpenAccountModal,
+  avatarUrl: propAvatarUrl,
 }: UserDropdownMenuProps) {
   const { user, logout } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -34,9 +38,32 @@ export default function UserDropdownMenu({
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [internalAvatarUrl, setInternalAvatarUrl] = useState<string | null>(null);
+
+  const updateAvatarFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('snapform_user_avatar');
+      setInternalAvatarUrl(saved);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
+    updateAvatarFromStorage();
+
+    const handleAvatarUpdated = () => {
+      updateAvatarFromStorage();
+    };
+
+    window.addEventListener('snapform_avatar_updated', handleAvatarUpdated);
+    window.addEventListener('storage', handleAvatarUpdated);
+    return () => {
+      window.removeEventListener('snapform_avatar_updated', handleAvatarUpdated);
+      window.removeEventListener('storage', handleAvatarUpdated);
+    };
   }, []);
+
+  const activeAvatar = propAvatarUrl !== undefined ? propAvatarUrl : internalAvatarUrl;
 
   // Close on outside click
   useEffect(() => {
@@ -103,8 +130,12 @@ export default function UserDropdownMenu({
       >
         <div className={`flex items-center min-w-0 ${collapsed ? 'justify-center' : 'gap-2'}`}>
           {/* Initials badge */}
-          <div className="px-1.5 py-0.5 rounded-[5px] bg-neutral-200/80 dark:bg-[#2a2a2a] text-[oklch(0.145_0_0)] dark:text-neutral-100 text-[11px] font-bold font-mono tracking-tight shrink-0 flex items-center justify-center">
-            {initials}
+          <div className="w-5 h-5 rounded-[5px] bg-neutral-200/80 dark:bg-[#2a2a2a] text-[oklch(0.145_0_0)] dark:text-neutral-100 text-[11px] font-bold font-mono tracking-tight shrink-0 flex items-center justify-center overflow-hidden">
+            {activeAvatar ? (
+              <img src={activeAvatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
 
           {!collapsed && (
@@ -134,28 +165,38 @@ export default function UserDropdownMenu({
             <p className="text-[12px] font-normal leading-[16px] text-[#71717a] dark:text-neutral-400">
               Signed in as
             </p>
-            <p className="text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-1">
+            <p className="text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-0.5">
               {user.email}
             </p>
           </div>
 
-          <div className="h-px bg-[#f4f4f5] dark:bg-neutral-800 my-1" />
+          <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
 
-          {/* Section 1: Account, Upgrade, Billing */}
+          {/* Section 1: Account & Billing */}
           <div className="space-y-0.5">
-            <Link
-              href="/dashboard"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-neutral-800 transition-colors"
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                if (onOpenAccountModal) {
+                  onOpenAccountModal('account');
+                }
+              }}
+              className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <IdCard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
               <span>Account</span>
-            </Link>
+            </button>
 
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-neutral-800 transition-colors cursor-pointer text-left"
+              onClick={() => {
+                setIsOpen(false);
+                if (onOpenAccountModal) {
+                  onOpenAccountModal('billing');
+                }
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
                 <CreditCard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
@@ -165,8 +206,13 @@ export default function UserDropdownMenu({
 
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-neutral-800 transition-colors cursor-pointer text-left"
+              onClick={() => {
+                setIsOpen(false);
+                if (onOpenAccountModal) {
+                  onOpenAccountModal('billing');
+                }
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
                 <CreditCard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />

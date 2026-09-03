@@ -51,24 +51,111 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     
-    // Basic validation
-    if (!body.name || !body.category || !body.fields || !body.styling) {
+    // Strict Server-Side Validation: Ensure payload is an object
+    if (!body || typeof body !== 'object') {
       return NextResponse.json(
-        { success: false, message: 'Missing required template fields' },
+        { success: false, message: 'Invalid payload provided' },
         { status: 400 }
       );
     }
 
+    const { name, category, description, fields, styling } = body;
+
+    // Validate Template Name
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'Form name is required and must be a valid string' },
+        { status: 400 }
+      );
+    }
+    if (name.trim().length > 120) {
+      return NextResponse.json(
+        { success: false, message: 'Form name must not exceed 120 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validate Category
+    if (!category || typeof category !== 'string' || category.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'Category is required and must be a valid string' },
+        { status: 400 }
+      );
+    }
+
+    // Validate Fields Array
+    if (!fields || !Array.isArray(fields) || fields.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'At least one form field is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate Each Field Object on the Backend
+    const validFieldTypes = new Set([
+      'text', 'email', 'textarea', 'select', 'radio', 'checkbox',
+      'number', 'tel', 'url', 'date', 'rating', 'switch', 'slider', 'file'
+    ]);
+
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i];
+      if (!field || typeof field !== 'object') {
+        return NextResponse.json(
+          { success: false, message: `Field at position ${i + 1} is invalid` },
+          { status: 400 }
+        );
+      }
+
+      if (!field.id || typeof field.id !== 'string' || field.id.trim().length === 0) {
+        return NextResponse.json(
+          { success: false, message: `Field at position ${i + 1} must have a valid identifier (id)` },
+          { status: 400 }
+        );
+      }
+
+      if (!field.type || !validFieldTypes.has(field.type)) {
+        return NextResponse.json(
+          { success: false, message: `Field "${field.label || field.id}" has an unsupported type "${field.type}"` },
+          { status: 400 }
+        );
+      }
+
+      if (!field.label || typeof field.label !== 'string') {
+        return NextResponse.json(
+          { success: false, message: `Field at position ${i + 1} must have a valid text label` },
+          { status: 400 }
+        );
+      }
+
+      // Check options if select/radio
+      if ((field.type === 'select' || field.type === 'radio') && field.options) {
+        if (!Array.isArray(field.options)) {
+          return NextResponse.json(
+            { success: false, message: `Options for field "${field.label}" must be an array` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Validate Styling
+    const cleanStyling = styling && typeof styling === 'object' ? styling : {
+      theme: 'modern',
+      primaryColor: '#ff4f00',
+      borderRadius: 'md',
+      layout: 'single-column'
+    };
+
     await connectToDatabase();
     const session = await getSession();
     
-    // Build insert payload with clean short ID
+    // Build sanitized insert payload with clean short ID
     const templateData: any = {
-      name: body.name,
-      category: body.category,
-      description: body.description || 'Custom generated form template',
-      fields: body.fields,
-      styling: body.styling,
+      name: name.trim(),
+      category: category.trim().toLowerCase(),
+      description: typeof description === 'string' && description.trim() ? description.trim() : 'Custom generated form template',
+      fields,
+      styling: cleanStyling,
       shortId: generateShortId('sf_'),
     };
 
