@@ -31,13 +31,7 @@ export async function POST(req: NextRequest) {
     // 3. Verify password
     if (!user.passwordHash || !user.salt) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            user.provider && user.provider !== 'credentials'
-              ? `This account was registered with ${user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}. Please sign in using the ${user.provider.charAt(0).toUpperCase() + user.provider.slice(1)} button.`
-              : 'Invalid email or password',
-        },
+        { success: false, message: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -56,6 +50,8 @@ export async function POST(req: NextRequest) {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
+      avatar: user.avatar,
+      provider: user.provider || 'credentials',
       expiresAt,
     });
 
@@ -66,6 +62,8 @@ export async function POST(req: NextRequest) {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
+        avatar: user.avatar || '',
+        provider: user.provider || 'credentials',
       },
     });
   } catch (error: any) {

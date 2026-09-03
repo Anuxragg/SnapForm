@@ -115,17 +115,22 @@ export default function DashboardPage() {
   const [accountModalTab, setAccountModalTab] = useState<'account' | 'agents' | 'preferences' | 'usage' | 'billing'>('account');
   const [accountNameInput, setAccountNameInput] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [modalPhotoError, setModalPhotoError] = useState(false);
   const photoInputRef = React.useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    setModalPhotoError(false);
     if (user?.name) {
       setAccountNameInput(user.name);
     }
-    if (user?.avatar) {
+    if (user?.avatar && user.avatar.trim().length > 0) {
       setProfilePhoto(user.avatar);
-    } else if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('snapform_user_avatar');
-      if (saved) setProfilePhoto(saved);
+    } else if (user?.id && typeof window !== 'undefined') {
+      const userKey = `snapform_avatar_${user.id}`;
+      const saved = localStorage.getItem(userKey);
+      setProfilePhoto(saved && saved.trim().length > 0 ? saved : null);
+    } else {
+      setProfilePhoto(null);
     }
   }, [user]);
 
@@ -147,8 +152,8 @@ export default function DashboardPage() {
     reader.onload = async () => {
       const dataUrl = reader.result as string;
       setProfilePhoto(dataUrl);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('snapform_user_avatar', dataUrl);
+      if (typeof window !== 'undefined' && user?.id) {
+        localStorage.setItem(`snapform_avatar_${user.id}`, dataUrl);
         window.dispatchEvent(new Event('snapform_avatar_updated'));
       }
 
@@ -500,56 +505,67 @@ export default function DashboardPage() {
           fontFamily:
             'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
-        className={`sticky top-0 h-screen z-20 bg-[#f4f4f5] dark:bg-[#1C1C1C] border-r border-[#e5e5e8] dark:border-[#2a2a2a] flex flex-col justify-between shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-[72px]' : 'w-64'
+        className={`sticky top-0 h-screen z-20 bg-[#f4f4f5] dark:bg-[#1C1C1C] border-r border-[#e5e5e8] dark:border-[#2a2a2a] flex flex-col justify-between shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] ${sidebarCollapsed ? 'w-[68px]' : 'w-64'
           }`}
       >
         {/* Top Section */}
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           {/* Sidebar Brand Header */}
-          <div className={`h-14 border-b border-[#e5e5e8] dark:border-[#2a2a2a] flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'
-            }`}>
-            {!sidebarCollapsed ? (
-              <>
-                <Logo
-                  href="/"
-                  showText={true}
-                  textClassName="text-base font-bold text-brand-charcoal dark:text-white tracking-tight font-heading truncate"
-                />
-                <button
-                  onClick={() => setSidebarCollapsed(true)}
-                  className="p-1.5 rounded-xl text-neutral-500 hover:text-brand-charcoal dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer shrink-0"
-                  title="Collapse sidebar"
-                >
-                  <PanelLeftClose className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
+          <div className="h-14 border-b border-[#e5e5e8] dark:border-[#2a2a2a] flex items-center justify-between px-3.5 shrink-0 overflow-hidden">
+            <div className="flex items-center min-w-0">
               <button
-                onClick={() => setSidebarCollapsed(false)}
-                className="w-9 h-9 rounded-xl bg-brand-charcoal hover:bg-black text-white flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 group"
-                title="Expand sidebar"
+                type="button"
+                onClick={() => {
+                  if (sidebarCollapsed) setSidebarCollapsed(false);
+                }}
+                className={`w-8 h-8 rounded-[8px] bg-brand-charcoal hover:bg-black dark:bg-[#252525] dark:hover:bg-[#2e2e2e] text-white flex items-center justify-center transition-all duration-200 shrink-0 shadow-sm ${sidebarCollapsed ? 'cursor-pointer hover:scale-105' : ''
+                  }`}
+                title={sidebarCollapsed ? 'Expand sidebar' : 'SnapForm'}
               >
                 <SnapFormIcon className="w-3.5 h-4.5 text-white" fill="#ffffff" />
               </button>
-            )}
+              <span
+                className={`font-heading font-bold text-base text-brand-charcoal dark:text-white tracking-tight ml-2.5 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${sidebarCollapsed
+                    ? 'max-w-0 opacity-0 -translate-x-2 pointer-events-none'
+                    : 'max-w-[140px] opacity-100 translate-x-0'
+                  }`}
+              >
+                SnapForm
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className={`p-1.5 rounded-xl text-neutral-500 hover:text-brand-charcoal dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-[#2a2a2a] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer shrink-0 ${sidebarCollapsed
+                  ? 'max-w-0 opacity-0 pointer-events-none -translate-x-2'
+                  : 'max-w-8 opacity-100 translate-x-0'
+                }`}
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Quick Search Input */}
-          {!sidebarCollapsed && (
-            <div className="px-3 pt-3 pb-0.5">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Find..."
-                  className="w-full bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[8px] pl-7 pr-7 py-1 text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-100 placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] dark:focus:border-[#4a4a4a] transition-all shadow-2xs"
-                />
-                <Search className="w-3.5 h-3.5 text-[#a1a1aa] dark:text-[#71717a] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <span className="text-[10px] font-mono text-[#71717a] dark:text-neutral-400 bg-[#e4e4e7] dark:bg-[#2a2a2a] border border-[#d4d4d8] dark:border-[#38383e] px-1 py-0.2 rounded-[4px] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                  F
-                </span>
-              </div>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${sidebarCollapsed
+                ? 'max-h-0 opacity-0 -translate-y-2 pointer-events-none py-0'
+                : 'max-h-16 opacity-100 translate-y-0 px-3 pt-3 pb-0.5'
+              }`}
+          >
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Find..."
+                className="w-full bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[8px] pl-7 pr-7 py-1 text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-100 placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] dark:focus:border-[#4a4a4a] transition-all shadow-2xs"
+              />
+              <Search className="w-3.5 h-3.5 text-[#a1a1aa] dark:text-[#71717a] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <span className="text-[10px] font-mono text-[#71717a] dark:text-neutral-400 bg-[#e4e4e7] dark:bg-[#2a2a2a] border border-[#d4d4d8] dark:border-[#38383e] px-1 py-0.2 rounded-[4px] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                F
+              </span>
             </div>
-          )}
+          </div>
 
           {/* Navigation Items */}
           <div className="p-3 space-y-4">
@@ -557,12 +573,19 @@ export default function DashboardPage() {
             <div>
               <Link
                 href="/dashboard"
-                className={`flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white bg-[#e4e4e7] dark:bg-[#2a2a2a] transition-all ${sidebarCollapsed ? 'justify-center p-2.5' : 'gap-2.5 px-2.5 py-1.5'
-                  }`}
+                className={`w-full h-9 flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white bg-[#e4e4e7] dark:bg-[#2a2a2a] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  sidebarCollapsed ? 'justify-center px-0' : 'gap-2.5 px-2.5'
+                }`}
                 title="Dashboard"
               >
-                <LayoutDashboard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-300 shrink-0" />
-                {!sidebarCollapsed && <span>Dashboard</span>}
+                <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                  <LayoutDashboard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-300 shrink-0" />
+                </div>
+                {!sidebarCollapsed && (
+                  <span className="overflow-hidden whitespace-nowrap truncate">
+                    Dashboard
+                  </span>
+                )}
               </Link>
             </div>
 
@@ -609,24 +632,26 @@ export default function DashboardPage() {
                       setFormsMenuExpanded(!formsMenuExpanded);
                     }
                   }}
-                  className={`w-full flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70 transition-colors cursor-pointer group ${sidebarCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
-                    }`}
+                  className={`w-full h-9 flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer group ${
+                    sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2.5'
+                  }`}
                   title={currentActiveForm ? currentActiveForm.name : 'Forms'}
                 >
                   <div className={`flex items-center min-w-0 ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-                    <div className="w-4 h-4 rounded text-neutral-500 flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+                    <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4 text-neutral-600 dark:text-neutral-400 shrink-0" />
                     </div>
                     {!sidebarCollapsed && (
-                      <span className="truncate text-left text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200">
+                      <span className="overflow-hidden whitespace-nowrap text-left truncate max-w-[140px]">
                         {currentActiveForm ? currentActiveForm.name : 'SnapForm'}
                       </span>
                     )}
                   </div>
                   {!sidebarCollapsed && (
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 ${formsMenuExpanded ? 'rotate-0' : '-rotate-90'
-                        }`}
+                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 shrink-0 ${
+                        formsMenuExpanded ? 'rotate-0' : '-rotate-90'
+                      }`}
                     />
                   )}
                 </button>
@@ -688,58 +713,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* WORKSPACE Section */}
-            <div className="space-y-0.5">
-              {!sidebarCollapsed && (
-                <div className="px-2.5 py-1">
-                  <span
-                    style={{
-                      fontFamily: 'Inter, "Inter Fallback", sans-serif',
-                    }}
-                    className="text-[12px] font-medium leading-[16px] uppercase tracking-wider text-[oklab(0.145_-0.00000143796_0.00000340492_/_0.7)] dark:text-[#a1a1aa]"
-                  >
-                    WORKSPACE
-                  </span>
-                </div>
-              )}
 
-              <button
-                onClick={() => setWorkspaceModal('emails')}
-                className={`w-full flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626] transition-colors cursor-pointer text-left ${sidebarCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2.5 py-1.5'
-                  }`}
-                title="Linked Emails"
-              >
-                <Mail className="w-4 h-4 text-neutral-500 shrink-0" />
-                {!sidebarCollapsed && <span>Linked Emails</span>}
-              </button>
-
-              <button
-                onClick={() => setWorkspaceModal('team')}
-                className={`w-full flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626] transition-colors cursor-pointer text-left ${sidebarCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
-                  }`}
-                title="Team"
-              >
-                <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-                  <Users className="w-4 h-4 text-neutral-500 shrink-0" />
-                  {!sidebarCollapsed && <span>Team</span>}
-                </div>
-                {!sidebarCollapsed && (
-                  <span className="text-[10px] font-bold text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded-[4px] font-mono uppercase">
-                    New
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setWorkspaceModal('account')}
-                className={`w-full flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626] transition-colors cursor-pointer text-left ${sidebarCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2.5 py-1.5'
-                  }`}
-                title="My Account"
-              >
-                <User className="w-4 h-4 text-neutral-500 shrink-0" />
-                {!sidebarCollapsed && <span>My Account</span>}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -748,15 +722,24 @@ export default function DashboardPage() {
           {/* Help & Support */}
           <Link
             href="/docs"
-            className={`flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626] transition-colors ${sidebarCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
-              }`}
+            className={`w-full h-9 flex items-center rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2.5'
+            }`}
             title="Help & Support"
           >
-            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-              <HelpCircle className="w-4 h-4 text-neutral-500 shrink-0" />
-              {!sidebarCollapsed && <span>Help & Support</span>}
+            <div className={`flex items-center min-w-0 ${sidebarCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                <HelpCircle className="w-4 h-4 text-neutral-500 shrink-0" />
+              </div>
+              {!sidebarCollapsed && (
+                <span className="overflow-hidden whitespace-nowrap truncate max-w-[150px]">
+                  Help & Support
+                </span>
+              )}
             </div>
-            {!sidebarCollapsed && <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />}
+            {!sidebarCollapsed && (
+              <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+            )}
           </Link>
 
           {/* User Profile Bar with Dropdown Matching Exact Design */}
@@ -782,483 +765,483 @@ export default function DashboardPage() {
         }}
         className="relative flex-1 h-screen overflow-y-auto p-6 md:p-8 space-y-6 bg-white dark:bg-[#1E1E1E] transition-colors duration-200"
       >
-          {/* Dynamic Greeting Header */}
-          <div className="pt-1">
-            <h1 className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight">
-              {greeting}
-            </h1>
-          </div>
+        {/* Dynamic Greeting Header */}
+        <div className="pt-1">
+          <h1 className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight">
+            {greeting}
+          </h1>
+        </div>
 
-          {/* ─── Top 3 Stat Cards ─── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            {/* Card 1: Total Form Views */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-                <Eye className="w-3.5 h-3.5 text-brand-orange" />
-                <span>Total Form Views</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
-                  {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
-                </p>
-              </div>
+        {/* ─── Top 3 Stat Cards ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          {/* Card 1: Total Form Views */}
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
+            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
+              <Eye className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Total Form Views</span>
             </div>
-
-            {/* Card 2: Total Submissions */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-                <Flag className="w-3.5 h-3.5 text-brand-orange" />
-                <span>Total Submissions</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
-                  {totalSubmissions}
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Total Spam Blocked */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-brand-orange" />
-                <span>Total Spam Blocked</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
-                  0
-                </p>
-              </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
+              </p>
             </div>
           </div>
 
-          {/* ─── Middle Info Cards (Forms Overview & Quick Links) ─── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Card 4: Forms Overview */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5 text-neutral-700 dark:text-neutral-200 text-sm font-semibold">
-                  <FileText className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-                  <span>Forms Overview</span>
-                </div>
-                <Link
-                  href="/builder"
-                  className="text-xs font-semibold text-brand-orange hover:text-brand-orange-hover transition-colors flex items-center gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>New form</span>
-                </Link>
-              </div>
-
-              {/* Forms List inside Overview */}
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {savedForms.length === 0 ? (
-                  <div className="p-4 rounded-2xl border border-neutral-200 dark:border-[#2e2e2e] bg-neutral-50/80 dark:bg-[#252525] text-center text-xs text-neutral-500 dark:text-neutral-400">
-                    No forms created yet. Click "+ New form" to get started.
-                  </div>
-                ) : (
-                  savedForms.slice(0, 3).map((form, idx) => {
-                    const isSelected = selectedChartForm === form._id || (selectedChartForm === 'all' && idx === activeFormIndex);
-                    return (
-                      <div
-                        key={form._id}
-                        onClick={() => handleSelectFormAnalytics(form)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 group ${selectedChartForm === form._id
-                            ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-xs'
-                            : 'border-neutral-200 dark:border-[#2e2e2e] bg-neutral-50/80 dark:bg-[#252525] hover:border-neutral-300 dark:hover:border-[#3e3e3e] hover:bg-neutral-100/70 dark:hover:bg-[#2c2c2c]'
-                          }`}
-                      >
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-bold text-brand-charcoal dark:text-white truncate group-hover:text-brand-orange transition-colors">
-                              {form.name}
-                            </h4>
-                            <span className="text-[9px] font-semibold uppercase font-mono px-1.5 py-0.2 rounded bg-neutral-200 dark:bg-[#333333] text-neutral-600 dark:text-neutral-300">
-                              {form.category}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
-                            {form.fields?.length || 0} fields · Created {new Date(form.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleSelectFormAnalytics(form)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${selectedChartForm === form._id
-                                ? 'bg-brand-orange text-white'
-                                : 'bg-white dark:bg-[#333333] border border-neutral-200 dark:border-[#3e3e3e] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#3d3d3d]'
-                              }`}
-                            title="Show analytics on dashboard"
-                          >
-                            <Activity className="w-3 h-3" />
-                            <span>{selectedChartForm === form._id ? 'Active' : 'Stats'}</span>
-                          </button>
-                          <button
-                            onClick={() => handleOpenSetup(form)}
-                            className="w-7 h-7 rounded-lg border border-neutral-200 dark:border-[#3e3e3e] bg-white dark:bg-[#333333] text-neutral-600 dark:text-neutral-300 hover:text-brand-charcoal dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                            title="Form settings"
-                          >
-                            <Settings className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <button
-                  onClick={() => setAllFormsModalOpen(true)}
-                  className="text-xs font-semibold text-brand-charcoal dark:text-white hover:text-brand-orange transition-colors cursor-pointer flex items-center gap-1"
-                >
-                  <span>View all forms ({savedForms.length || 0})</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                {currentActiveForm && (
-                  <button
-                    onClick={() => handleOpenSubmissions(currentActiveForm)}
-                    className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <Inbox className="w-3.5 h-3.5" />
-                    <span>Submissions</span>
-                  </button>
-                )}
-              </div>
+          {/* Card 2: Total Submissions */}
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
+            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
+              <Flag className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Total Submissions</span>
             </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+                {totalSubmissions}
+              </p>
+            </div>
+          </div>
 
-            {/* Card 5: Quick Links & Documentation */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+          {/* Card 3: Total Spam Blocked */}
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
+            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Total Spam Blocked</span>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+                0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Middle Info Cards (Forms Overview & Quick Links) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Card 4: Forms Overview */}
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-5">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 text-neutral-700 dark:text-neutral-200 text-sm font-semibold">
-                <BookOpen className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-                <span>Quick Links & Documentation</span>
+                <FileText className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                <span>Forms Overview</span>
               </div>
+              <Link
+                href="/builder"
+                className="text-xs font-semibold text-brand-orange hover:text-brand-orange-hover transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>New form</span>
+              </Link>
+            </div>
 
-              <div className="space-y-2 text-xs font-medium">
-                <Link
-                  href="/builder"
-                  className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+            {/* Forms List inside Overview */}
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {savedForms.length === 0 ? (
+                <div className="p-4 rounded-2xl border border-neutral-200 dark:border-[#2e2e2e] bg-neutral-50/80 dark:bg-[#252525] text-center text-xs text-neutral-500 dark:text-neutral-400">
+                  No forms created yet. Click "+ New form" to get started.
+                </div>
+              ) : (
+                savedForms.slice(0, 3).map((form, idx) => {
+                  const isSelected = selectedChartForm === form._id || (selectedChartForm === 'all' && idx === activeFormIndex);
+                  return (
+                    <div
+                      key={form._id}
+                      onClick={() => handleSelectFormAnalytics(form)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 group ${selectedChartForm === form._id
+                        ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-xs'
+                        : 'border-neutral-200 dark:border-[#2e2e2e] bg-neutral-50/80 dark:bg-[#252525] hover:border-neutral-300 dark:hover:border-[#3e3e3e] hover:bg-neutral-100/70 dark:hover:bg-[#2c2c2c]'
+                        }`}
+                    >
+                      <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-brand-charcoal dark:text-white truncate group-hover:text-brand-orange transition-colors">
+                            {form.name}
+                          </h4>
+                          <span className="text-[9px] font-semibold uppercase font-mono px-1.5 py-0.2 rounded bg-neutral-200 dark:bg-[#333333] text-neutral-600 dark:text-neutral-300">
+                            {form.category}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                          {form.fields?.length || 0} fields · Created {new Date(form.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleSelectFormAnalytics(form)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${selectedChartForm === form._id
+                            ? 'bg-brand-orange text-white'
+                            : 'bg-white dark:bg-[#333333] border border-neutral-200 dark:border-[#3e3e3e] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#3d3d3d]'
+                            }`}
+                          title="Show analytics on dashboard"
+                        >
+                          <Activity className="w-3 h-3" />
+                          <span>{selectedChartForm === form._id ? 'Active' : 'Stats'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleOpenSetup(form)}
+                          className="w-7 h-7 rounded-lg border border-neutral-200 dark:border-[#3e3e3e] bg-white dark:bg-[#333333] text-neutral-600 dark:text-neutral-300 hover:text-brand-charcoal dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                          title="Form settings"
+                        >
+                          <Settings className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <button
+                onClick={() => setAllFormsModalOpen(true)}
+                className="text-xs font-semibold text-brand-charcoal dark:text-white hover:text-brand-orange transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <span>View all forms ({savedForms.length || 0})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              {currentActiveForm && (
+                <button
+                  onClick={() => handleOpenSubmissions(currentActiveForm)}
+                  className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Form templates & Studio</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-400" />
-                </Link>
-                <Link
-                  href="/docs"
-                  className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
-                >
-                  <span>Customization docs</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-400" />
-                </Link>
-                <Link
-                  href="/docs#guides"
-                  className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
-                >
-                  <span>How to Guides</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-400" />
-                </Link>
-                <Link
-                  href="/docs#troubleshooting"
-                  className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
-                >
-                  <span>Troubleshooting</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-400" />
-                </Link>
-                <Link
-                  href="/docs#api"
-                  className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
-                >
-                  <span>API reference & endpoints</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-400" />
-                </Link>
-              </div>
+                  <Inbox className="w-3.5 h-3.5" />
+                  <span>Submissions</span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* ─── Bottom Area: Form Activity & Analytics Chart ─── */}
-          <div id="form-activity-chart" className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6 scroll-mt-6">
-            {/* Header & Filter Controls */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Activity className="w-4 h-4 text-brand-orange" />
-                  <h3 className="text-base font-bold text-brand-charcoal dark:text-white font-heading">
-                    Form Activity & Analytics
-                  </h3>
-                  {selectedChartForm !== 'all' && (
-                    <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold animate-in fade-in duration-150">
-                      <span>
-                        {savedForms.find((f) => f._id === selectedChartForm)?.name || 'Selected Form'}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setSelectedChartForm('all');
-                          toast.info('Showing analytics across all forms');
-                        }}
-                        className="hover:text-neutral-900 ml-1 cursor-pointer font-bold"
-                        title="Show All Forms"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-neutral-500 font-normal">
-                  {selectedChartForm === 'all'
-                    ? 'Real-time tracking of submissions, impressions, and conversion rates across all forms'
-                    : `Real-time analytics for ${savedForms.find((f) => f._id === selectedChartForm)?.name || 'selected form'}`}
-                </p>
-              </div>
+          {/* Card 5: Quick Links & Documentation */}
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-4">
+            <div className="flex items-center gap-2.5 text-neutral-700 dark:text-neutral-200 text-sm font-semibold">
+              <BookOpen className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+              <span>Quick Links & Documentation</span>
+            </div>
 
-              {/* Metric Pills & Selectors */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                {/* Metric Toggle Tabs */}
-                <div className="flex items-center p-1 bg-neutral-100/80 dark:bg-[#252525] rounded-xl border border-neutral-200/60 dark:border-[#333333]">
-                  <button
-                    onClick={() => setChartMetric('submissions')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'submissions'
-                        ? 'bg-white dark:bg-[#1E1E1E] text-brand-orange shadow-xs'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
-                      }`}
-                  >
-                    <TrendingUp className="w-3 h-3" />
-                    <span>Submissions</span>
-                  </button>
-                  <button
-                    onClick={() => setChartMetric('impressions')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'impressions'
-                        ? 'bg-white dark:bg-[#1E1E1E] text-brand-charcoal dark:text-white shadow-xs'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
-                      }`}
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>Views</span>
-                  </button>
-                  <button
-                    onClick={() => setChartMetric('conversion')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'conversion'
-                        ? 'bg-white dark:bg-[#1E1E1E] text-emerald-600 dark:text-emerald-400 shadow-xs'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
-                      }`}
-                  >
-                    <Zap className="w-3 h-3" />
-                    <span>Conversion %</span>
-                  </button>
-                </div>
+            <div className="space-y-2 text-xs font-medium">
+              <Link
+                href="/builder"
+                className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Form templates & Studio</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs"
+                className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Customization docs</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#guides"
+                className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>How to Guides</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#troubleshooting"
+                className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>Troubleshooting</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+              <Link
+                href="/docs#api"
+                className="flex items-center justify-between text-neutral-700 dark:text-neutral-300 hover:text-brand-orange transition-colors py-0.5"
+              >
+                <span>API reference & endpoints</span>
+                <ExternalLink className="w-3 h-3 text-neutral-400" />
+              </Link>
+            </div>
+          </div>
+        </div>
 
-                {/* Form Filter */}
-                {savedForms.length > 1 && (
-                  <div className="relative">
-                    <select
-                      value={selectedChartForm}
-                      onChange={(e) => setSelectedChartForm(e.target.value)}
-                      className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
+        {/* ─── Bottom Area: Form Activity & Analytics Chart ─── */}
+        <div id="form-activity-chart" className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6 scroll-mt-6">
+          {/* Header & Filter Controls */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Activity className="w-4 h-4 text-brand-orange" />
+                <h3 className="text-base font-bold text-brand-charcoal dark:text-white font-heading">
+                  Form Activity & Analytics
+                </h3>
+                {selectedChartForm !== 'all' && (
+                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold animate-in fade-in duration-150">
+                    <span>
+                      {savedForms.find((f) => f._id === selectedChartForm)?.name || 'Selected Form'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedChartForm('all');
+                        toast.info('Showing analytics across all forms');
+                      }}
+                      className="hover:text-neutral-900 ml-1 cursor-pointer font-bold"
+                      title="Show All Forms"
                     >
-                      <option value="all">All Forms</option>
-                      {savedForms.map((f) => (
-                        <option key={f._id} value={f._id}>
-                          {f.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      ×
+                    </button>
                   </div>
                 )}
+              </div>
+              <p className="text-xs text-neutral-500 font-normal">
+                {selectedChartForm === 'all'
+                  ? 'Real-time tracking of submissions, impressions, and conversion rates across all forms'
+                  : `Real-time analytics for ${savedForms.find((f) => f._id === selectedChartForm)?.name || 'selected form'}`}
+              </p>
+            </div>
 
-                {/* Timeframe Dropdown */}
+            {/* Metric Pills & Selectors */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Metric Toggle Tabs */}
+              <div className="flex items-center p-1 bg-neutral-100/80 dark:bg-[#252525] rounded-xl border border-neutral-200/60 dark:border-[#333333]">
+                <button
+                  onClick={() => setChartMetric('submissions')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'submissions'
+                    ? 'bg-white dark:bg-[#1E1E1E] text-brand-orange shadow-xs'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
+                    }`}
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  <span>Submissions</span>
+                </button>
+                <button
+                  onClick={() => setChartMetric('impressions')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'impressions'
+                    ? 'bg-white dark:bg-[#1E1E1E] text-brand-charcoal dark:text-white shadow-xs'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
+                    }`}
+                >
+                  <Eye className="w-3 h-3" />
+                  <span>Views</span>
+                </button>
+                <button
+                  onClick={() => setChartMetric('conversion')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'conversion'
+                    ? 'bg-white dark:bg-[#1E1E1E] text-emerald-600 dark:text-emerald-400 shadow-xs'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
+                    }`}
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>Conversion %</span>
+                </button>
+              </div>
+
+              {/* Form Filter */}
+              {savedForms.length > 1 && (
                 <div className="relative">
                   <select
-                    value={chartTimeframe}
-                    onChange={(e) => setChartTimeframe(e.target.value as any)}
+                    value={selectedChartForm}
+                    onChange={(e) => setSelectedChartForm(e.target.value)}
                     className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
                   >
-                    <option value="30days">Last 30 days</option>
-                    <option value="7days">Last 7 days</option>
-                    <option value="12months">Last 12 months</option>
+                    <option value="all">All Forms</option>
+                    {savedForms.map((f) => (
+                      <option key={f._id} value={f._id}>
+                        {f.name}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-neutral-100 dark:border-[#2e2e2e]">
-              <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
-                  Total Views
-                </span>
-                <p className="text-lg font-extrabold text-brand-charcoal dark:text-white font-heading mt-0.5">
-                  {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
-                  Submissions
-                </span>
-                <p className="text-lg font-extrabold text-brand-orange font-heading mt-0.5">
-                  {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalSubmissions : 0}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
-                  Avg. Conversion
-                </span>
-                <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-heading mt-0.5">
-                  {fetchingAnalytics ? '...' : analyticsData ? `${analyticsData.avgConversion}%` : '0.0%'}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
-                  Avg. Response
-                </span>
-                <p className="text-lg font-extrabold text-brand-charcoal dark:text-white font-heading mt-0.5">
-                  {fetchingAnalytics ? '...' : analyticsData?.avgResponseTime || '42s'}
-                </p>
-              </div>
-            </div>
-
-            {/* SVG Bézier Curve Chart */}
-            <div className="w-full h-64 pt-2 relative flex flex-col justify-between select-none">
-              {/* Chart Grid Lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-35">
-                <div className="border-b border-dashed border-neutral-300 w-full" />
-                <div className="border-b border-dashed border-neutral-300 w-full" />
-                <div className="border-b border-dashed border-neutral-300 w-full" />
-                <div className="border-b border-dashed border-neutral-300 w-full" />
-              </div>
-
-              {/* SVG Visual Wave Curve */}
-              <div className="relative flex-1 w-full">
-                <svg
-                  className="w-full h-full overflow-visible"
-                  preserveAspectRatio="none"
-                  viewBox="0 0 1000 180"
+              {/* Timeframe Dropdown */}
+              <div className="relative">
+                <select
+                  value={chartTimeframe}
+                  onChange={(e) => setChartTimeframe(e.target.value as any)}
+                  className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
                 >
-                  <defs>
-                    <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stopColor={
-                          chartMetric === 'submissions'
-                            ? '#ff4f19'
-                            : chartMetric === 'impressions'
-                              ? '#4f46e5'
-                              : '#059669'
-                        }
-                        stopOpacity="0.38"
-                      />
-                      <stop
-                        offset="70%"
-                        stopColor={
-                          chartMetric === 'submissions'
-                            ? '#ff4f19'
-                            : chartMetric === 'impressions'
-                              ? '#4f46e5'
-                              : '#059669'
-                        }
-                        stopOpacity="0.06"
-                      />
-                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
+                  <option value="30days">Last 30 days</option>
+                  <option value="7days">Last 7 days</option>
+                  <option value="12months">Last 12 months</option>
+                </select>
+                <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+          </div>
 
-                  {/* Filled Area with Smooth Curve */}
-                  {areaPathData && <path d={areaPathData} fill="url(#activityGradient)" />}
+          {/* Quick Metrics Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-neutral-100 dark:border-[#2e2e2e]">
+            <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
+                Total Views
+              </span>
+              <p className="text-lg font-extrabold text-brand-charcoal dark:text-white font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
+                Submissions
+              </span>
+              <p className="text-lg font-extrabold text-brand-orange font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalSubmissions : 0}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
+                Avg. Conversion
+              </span>
+              <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData ? `${analyticsData.avgConversion}%` : '0.0%'}
+              </p>
+            </div>
+            <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-[#252525] border border-neutral-200/70 dark:border-[#333333]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-mono">
+                Avg. Response
+              </span>
+              <p className="text-lg font-extrabold text-brand-charcoal dark:text-white font-heading mt-0.5">
+                {fetchingAnalytics ? '...' : analyticsData?.avgResponseTime || '42s'}
+              </p>
+            </div>
+          </div>
 
-                  {/* Line Stroke with Smooth Curve */}
-                  {pathData && (
-                    <path
-                      d={pathData}
-                      fill="none"
-                      stroke={
+          {/* SVG Bézier Curve Chart */}
+          <div className="w-full h-64 pt-2 relative flex flex-col justify-between select-none">
+            {/* Chart Grid Lines */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-35">
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+              <div className="border-b border-dashed border-neutral-300 w-full" />
+            </div>
+
+            {/* SVG Visual Wave Curve */}
+            <div className="relative flex-1 w-full">
+              <svg
+                className="w-full h-full overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 1000 180"
+              >
+                <defs>
+                  <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={
                         chartMetric === 'submissions'
                           ? '#ff4f19'
                           : chartMetric === 'impressions'
                             ? '#4f46e5'
                             : '#059669'
                       }
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      stopOpacity="0.38"
                     />
-                  )}
+                    <stop
+                      offset="70%"
+                      stopColor={
+                        chartMetric === 'submissions'
+                          ? '#ff4f19'
+                          : chartMetric === 'impressions'
+                            ? '#4f46e5'
+                            : '#059669'
+                      }
+                      stopOpacity="0.06"
+                    />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
 
-                  {/* Interactive Points on hover */}
-                  {points.map((p, idx) => (
-                    <g key={idx}>
-                      {/* Invisible hover area target */}
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r="16"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setHoveredPoint({ index: idx, x: p.x, y: p.y, data: p.data })}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      />
+                {/* Filled Area with Smooth Curve */}
+                {areaPathData && <path d={areaPathData} fill="url(#activityGradient)" />}
 
-                      {/* Visible point */}
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r={hoveredPoint?.index === idx ? '6' : '3.5'}
-                        fill={
-                          chartMetric === 'submissions'
-                            ? '#ff4f19'
-                            : chartMetric === 'impressions'
-                              ? '#4f46e5'
-                              : '#059669'
-                        }
-                        stroke="#ffffff"
-                        strokeWidth="2"
-                        className="transition-all duration-150 pointer-events-none"
-                      />
-                    </g>
-                  ))}
-                </svg>
-
-                {/* Floating Tooltip */}
-                {hoveredPoint && (
-                  <div
-                    className="absolute z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3 bg-brand-charcoal text-white rounded-xl px-3 py-2 text-xs shadow-xl border border-neutral-700 animate-in fade-in zoom-in-95 duration-150"
-                    style={{
-                      left: `${(hoveredPoint.x / 1000) * 100}%`,
-                      top: `${Math.max((hoveredPoint.y / 180) * 100 - 15, 0)}%`,
-                    }}
-                  >
-                    <p className="font-bold text-neutral-300 text-[10px] uppercase font-mono tracking-wider">
-                      {hoveredPoint.data.label}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1 font-semibold">
-                      <span className="text-brand-orange">
-                        {hoveredPoint.data.submissions} Submissions
-                      </span>
-                      <span className="text-neutral-400">·</span>
-                      <span className="text-neutral-200">
-                        {hoveredPoint.data.impressions} Views
-                      </span>
-                      <span className="text-neutral-400">·</span>
-                      <span className="text-emerald-400">
-                        {hoveredPoint.data.conversion}%
-                      </span>
-                    </div>
-                  </div>
+                {/* Line Stroke with Smooth Curve */}
+                {pathData && (
+                  <path
+                    d={pathData}
+                    fill="none"
+                    stroke={
+                      chartMetric === 'submissions'
+                        ? '#ff4f19'
+                        : chartMetric === 'impressions'
+                          ? '#4f46e5'
+                          : '#059669'
+                    }
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 )}
-              </div>
 
-              {/* X-Axis Labels */}
-              <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 pt-3 border-t border-neutral-100 dark:border-neutral-800 font-mono">
-                {activityData.map((item, idx) => (
-                  <span
-                    key={item.label}
-                    className={idx === activityData.length - 1 ? 'text-brand-orange font-bold' : ''}
-                  >
-                    {item.label}
-                  </span>
+                {/* Interactive Points on hover */}
+                {points.map((p, idx) => (
+                  <g key={idx}>
+                    {/* Invisible hover area target */}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="16"
+                      fill="transparent"
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredPoint({ index: idx, x: p.x, y: p.y, data: p.data })}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                    />
+
+                    {/* Visible point */}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={hoveredPoint?.index === idx ? '6' : '3.5'}
+                      fill={
+                        chartMetric === 'submissions'
+                          ? '#ff4f19'
+                          : chartMetric === 'impressions'
+                            ? '#4f46e5'
+                            : '#059669'
+                      }
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      className="transition-all duration-150 pointer-events-none"
+                    />
+                  </g>
                 ))}
-              </div>
+              </svg>
+
+              {/* Floating Tooltip */}
+              {hoveredPoint && (
+                <div
+                  className="absolute z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3 bg-brand-charcoal text-white rounded-xl px-3 py-2 text-xs shadow-xl border border-neutral-700 animate-in fade-in zoom-in-95 duration-150"
+                  style={{
+                    left: `${(hoveredPoint.x / 1000) * 100}%`,
+                    top: `${Math.max((hoveredPoint.y / 180) * 100 - 15, 0)}%`,
+                  }}
+                >
+                  <p className="font-bold text-neutral-300 text-[10px] uppercase font-mono tracking-wider">
+                    {hoveredPoint.data.label}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1 font-semibold">
+                    <span className="text-brand-orange">
+                      {hoveredPoint.data.submissions} Submissions
+                    </span>
+                    <span className="text-neutral-400">·</span>
+                    <span className="text-neutral-200">
+                      {hoveredPoint.data.impressions} Views
+                    </span>
+                    <span className="text-neutral-400">·</span>
+                    <span className="text-emerald-400">
+                      {hoveredPoint.data.conversion}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* X-Axis Labels */}
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 pt-3 border-t border-neutral-100 dark:border-neutral-800 font-mono">
+              {activityData.map((item, idx) => (
+                <span
+                  key={item.label}
+                  className={idx === activityData.length - 1 ? 'text-brand-orange font-bold' : ''}
+                >
+                  {item.label}
+                </span>
+              ))}
             </div>
           </div>
-        </main>
+        </div>
+      </main>
 
       {/* ─────────────────────────────────────────────────────────────
           3. ALL FORMS CATALOG MODAL
@@ -1307,8 +1290,8 @@ export default function DashboardPage() {
                       key={form._id}
                       onClick={() => handleSelectFormAnalytics(form)}
                       className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group ${isSelected
-                          ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-xs'
-                          : 'border-neutral-200 dark:border-[#2e2e2e] hover:border-neutral-300 dark:hover:border-[#3e3e3e] bg-neutral-50 dark:bg-[#252525] hover:bg-neutral-100/80 dark:hover:bg-[#2c2c2c]'
+                        ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-xs'
+                        : 'border-neutral-200 dark:border-[#2e2e2e] hover:border-neutral-300 dark:hover:border-[#3e3e3e] bg-neutral-50 dark:bg-[#252525] hover:bg-neutral-100/80 dark:hover:bg-[#2c2c2c]'
                         }`}
                     >
                       <div className="space-y-1">
@@ -1329,8 +1312,8 @@ export default function DashboardPage() {
                         <button
                           onClick={() => handleSelectFormAnalytics(form)}
                           className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs ${isSelected
-                              ? 'border-brand-orange bg-brand-orange text-white'
-                              : 'border-neutral-200 dark:border-[#3e3e3e] bg-white dark:bg-[#333333] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#3d3d3d]'
+                            ? 'border-brand-orange bg-brand-orange text-white'
+                            : 'border-neutral-200 dark:border-[#3e3e3e] bg-white dark:bg-[#333333] text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#3d3d3d]'
                             }`}
                           title="View analytics on dashboard"
                         >
@@ -1407,12 +1390,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Tab selection */}
-            <div className="px-6 pt-4 border-b border-neutral-100 flex gap-4 text-xs font-bold">
+            <div className="px-6 pt-4 border-b border-neutral-100 dark:border-[#2e2e2e] flex gap-4 text-xs font-bold">
               <button
                 onClick={() => setSetupTab('endpoint')}
                 className={`pb-3 border-b-2 transition-colors cursor-pointer ${setupTab === 'endpoint'
-                    ? 'border-brand-orange text-brand-orange'
-                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                  ? 'border-brand-orange text-brand-orange'
+                  : 'border-transparent text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                   }`}
               >
                 POST Endpoint
@@ -1420,8 +1403,8 @@ export default function DashboardPage() {
               <button
                 onClick={() => setSetupTab('react')}
                 className={`pb-3 border-b-2 transition-colors cursor-pointer ${setupTab === 'react'
-                    ? 'border-brand-orange text-brand-orange'
-                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                  ? 'border-brand-orange text-brand-orange'
+                  : 'border-transparent text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                   }`}
               >
                 React / Next.js
@@ -1429,8 +1412,8 @@ export default function DashboardPage() {
               <button
                 onClick={() => setSetupTab('embed')}
                 className={`pb-3 border-b-2 transition-colors cursor-pointer ${setupTab === 'embed'
-                    ? 'border-brand-orange text-brand-orange'
-                    : 'border-transparent text-neutral-400 hover:text-brand-charcoal'
+                  ? 'border-brand-orange text-brand-orange'
+                  : 'border-transparent text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                   }`}
               >
                 Hosted Link
@@ -1442,10 +1425,10 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-brand-charcoal uppercase tracking-wider font-mono">
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider font-mono">
                         POST Ingestion Endpoint
                       </label>
-                      <span className="text-[11px] text-neutral-500 font-sans">
+                      <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-sans">
                         For HTML forms & AJAX
                       </span>
                     </div>
@@ -1453,7 +1436,7 @@ export default function DashboardPage() {
                       <input
                         readOnly
                         value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}`}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-800 select-all outline-none"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151515] border border-neutral-200 dark:border-[#333333] text-xs font-mono text-neutral-800 dark:text-neutral-200 select-all outline-none"
                       />
                       <button
                         onClick={() =>
@@ -1462,28 +1445,16 @@ export default function DashboardPage() {
                             'Endpoint copied!'
                           )
                         }
-                        className="px-4 py-2.5 rounded-xl bg-brand-charcoal text-white hover:bg-black text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                        className="px-4 py-2.5 rounded-xl bg-brand-charcoal dark:bg-[#2a2a2a] text-white hover:bg-black dark:hover:bg-[#333333] border border-transparent dark:border-[#383838] text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span>Copy</span>
                       </button>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-neutral-500 pt-1">
-                      <span>Looking for the standalone web page?</span>
-                      <a
-                        href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-orange hover:underline font-semibold flex items-center gap-1"
-                      >
-                        <span>Open hosted web form</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-neutral-700">HTML Example</label>
+                    <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">HTML Example</label>
                     <CodeBlock
                       language="html"
                       filename="index.html"
@@ -1500,7 +1471,7 @@ export default function DashboardPage() {
 
               {setupTab === 'react' && (
                 <div className="space-y-3">
-                  <p className="text-xs text-neutral-600">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-300">
                     Use standard fetch or Axios to submit JSON directly from your React / Next.js client component:
                   </p>
                   <CodeBlock
@@ -1526,9 +1497,9 @@ export default function DashboardPage() {
 
               {setupTab === 'embed' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                  <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-[#151515] border border-neutral-200 dark:border-[#2e2e2e] space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-brand-charcoal">Public Hosted Page</span>
+                      <span className="text-xs font-bold text-brand-charcoal dark:text-white">Public Hosted Page</span>
                       <a
                         href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
                         target="_blank"
@@ -1539,7 +1510,7 @@ export default function DashboardPage() {
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
-                    <p className="text-xs text-neutral-600 font-mono break-all">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 font-mono break-all">
                       {typeof window !== 'undefined' ? `${window.location.origin}/f/${activeSetupForm.shortId || activeSetupForm._id}` : ''}
                     </p>
                     <button
@@ -1561,14 +1532,14 @@ export default function DashboardPage() {
           5. SUBMISSIONS MODAL
       ───────────────────────────────────────────────────────────── */}
       {submissionsModalOpen && selectedFormForSubmissions && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-3xl border border-neutral-200 dark:border-[#2e2e2e] shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-neutral-100 dark:border-[#2e2e2e] flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-brand-charcoal font-heading">
+                <h3 className="text-base font-bold text-brand-charcoal dark:text-white font-heading">
                   {selectedFormForSubmissions.name} — Submissions
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {submissionsList.length} total response{submissionsList.length === 1 ? '' : 's'} recorded
                 </p>
               </div>
@@ -1576,9 +1547,9 @@ export default function DashboardPage() {
                 <button
                   onClick={handleExportCsv}
                   disabled={submissionsList.length === 0}
-                  className="px-3.5 py-1.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-semibold text-brand-charcoal flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 shadow-2xs"
+                  className="px-3.5 py-1.5 rounded-xl border border-neutral-200 dark:border-[#383838] bg-white dark:bg-[#252525] hover:bg-neutral-50 dark:hover:bg-[#2d2d2d] text-xs font-semibold text-brand-charcoal dark:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 shadow-2xs"
                 >
-                  <Download className="w-3.5 h-3.5 text-neutral-500" />
+                  <Download className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                   <span>Export CSV</span>
                 </button>
                 <button
@@ -1586,7 +1557,7 @@ export default function DashboardPage() {
                     setSubmissionsModalOpen(false);
                     setSelectedSubmissionDetail(null);
                   }}
-                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center cursor-pointer transition-colors"
+                  className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-[#2a2a2a] hover:bg-neutral-200 dark:hover:bg-[#333333] text-neutral-600 dark:text-neutral-300 flex items-center justify-center cursor-pointer transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1597,24 +1568,24 @@ export default function DashboardPage() {
               {fetchingSubmissions ? (
                 <div className="py-16 text-center space-y-2">
                   <Loader2 className="w-6 h-6 animate-spin text-brand-orange mx-auto" />
-                  <p className="text-xs text-neutral-500">Loading submissions...</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">Loading submissions...</p>
                 </div>
               ) : submissionsList.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto text-neutral-400">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-[#252525] flex items-center justify-center mx-auto text-neutral-400">
                     <Inbox className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-bold text-brand-charcoal">No submissions yet</p>
-                  <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+                  <p className="text-sm font-bold text-brand-charcoal dark:text-white">No submissions yet</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
                     Share your form link or connect the POST endpoint to start collecting real-time submissions.
                   </p>
                 </div>
               ) : (
-                <div className="border border-neutral-200/80 rounded-2xl overflow-hidden shadow-2xs bg-white">
+                <div className="border border-neutral-200/80 dark:border-[#2e2e2e] rounded-2xl overflow-hidden shadow-2xs bg-white dark:bg-[#1E1E1E]">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-neutral-50/90 border-b border-neutral-200/80 text-neutral-600 font-medium">
+                        <tr className="bg-neutral-50/90 dark:bg-[#252525] border-b border-neutral-200/80 dark:border-[#2e2e2e] text-neutral-600 dark:text-neutral-300 font-medium">
                           <th className="py-3 px-4 whitespace-nowrap font-medium text-xs">Submitted At</th>
                           {selectedFormForSubmissions.fields?.map((f: any) => (
                             <th key={f.id} className="py-3 px-4 whitespace-nowrap font-medium text-xs">
@@ -1624,22 +1595,22 @@ export default function DashboardPage() {
                           <th className="py-3 px-4 text-right whitespace-nowrap font-medium text-xs">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-neutral-100 bg-white">
+                      <tbody className="divide-y divide-neutral-100 dark:divide-[#2a2a2a] bg-white dark:bg-[#1E1E1E]">
                         {submissionsList.map((sub) => (
                           <tr
                             key={sub.id}
                             onClick={() => setSelectedSubmissionDetail(sub)}
-                            className="hover:bg-neutral-50/80 transition-colors cursor-pointer group"
+                            className="hover:bg-neutral-50/80 dark:hover:bg-[#252525] transition-colors cursor-pointer group"
                           >
                             <td className="py-3 px-4 whitespace-nowrap">
-                              <div className="text-xs font-medium text-neutral-800">
+                              <div className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
                                 {new Date(sub.submittedAt).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric',
                                 })}
                               </div>
-                              <div className="text-[10px] text-neutral-400 font-mono">
+                              <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">
                                 {new Date(sub.submittedAt).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
                                   minute: '2-digit',
@@ -1647,13 +1618,13 @@ export default function DashboardPage() {
                               </div>
                             </td>
                             {selectedFormForSubmissions.fields?.map((f: any) => (
-                              <td key={f.id} className="py-3 px-4 text-neutral-700 max-w-[200px] truncate text-xs">
+                              <td key={f.id} className="py-3 px-4 text-neutral-700 dark:text-neutral-300 max-w-[200px] truncate text-xs">
                                 {sub.data?.[f.id] !== undefined && sub.data?.[f.id] !== '' ? (
                                   typeof sub.data[f.id] === 'boolean' ? (
                                     <span
                                       className={`px-2 py-0.5 rounded text-[10px] font-semibold ${sub.data[f.id]
-                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                          : 'bg-neutral-100 text-neutral-600'
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'
+                                        : 'bg-neutral-100 dark:bg-[#2a2a2a] text-neutral-600 dark:text-neutral-400'
                                         }`}
                                     >
                                       {sub.data[f.id] ? 'Yes' : 'No'}
@@ -1662,7 +1633,7 @@ export default function DashboardPage() {
                                     String(sub.data[f.id])
                                   )
                                 ) : (
-                                  <span className="text-neutral-300">—</span>
+                                  <span className="text-neutral-300 dark:text-neutral-600">—</span>
                                 )}
                               </td>
                             ))}
@@ -1672,7 +1643,7 @@ export default function DashboardPage() {
                                   e.stopPropagation();
                                   setSelectedSubmissionDetail(sub);
                                 }}
-                                className="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[11px] font-semibold transition-colors"
+                                className="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-[#2a2a2a] hover:bg-neutral-200 dark:hover:bg-[#333333] text-neutral-700 dark:text-neutral-200 text-[11px] font-semibold transition-colors"
                               >
                                 View
                               </button>
@@ -1688,19 +1659,19 @@ export default function DashboardPage() {
 
             {/* Submission Detail Drawer / Inspector */}
             {selectedSubmissionDetail && (
-              <div className="border-t border-neutral-200 bg-neutral-50 p-6 space-y-4 max-h-72 overflow-y-auto animate-in slide-in-from-bottom-2 duration-150">
+              <div className="border-t border-neutral-200 dark:border-[#2e2e2e] bg-neutral-50 dark:bg-[#151515] p-6 space-y-4 max-h-72 overflow-y-auto animate-in slide-in-from-bottom-2 duration-150">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider font-mono">
+                    <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider font-mono">
                       Submission Details
                     </h4>
-                    <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                       Recorded on {new Date(selectedSubmissionDetail.submittedAt).toLocaleString()}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedSubmissionDetail(null)}
-                    className="text-xs text-neutral-500 hover:text-neutral-800 font-semibold cursor-pointer"
+                    className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white font-semibold cursor-pointer"
                   >
                     Close Details
                   </button>
@@ -1708,11 +1679,11 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {selectedFormForSubmissions.fields?.map((f: any) => (
-                    <div key={f.id} className="p-3 rounded-xl bg-white border border-neutral-200/80 space-y-1">
-                      <span className="text-[11px] font-medium text-neutral-500 block">
+                    <div key={f.id} className="p-3 rounded-xl bg-white dark:bg-[#202023] border border-neutral-200/80 dark:border-[#2e2e2e] space-y-1">
+                      <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 block">
                         {f.label || f.id}
                       </span>
-                      <p className="text-xs font-semibold text-neutral-900 break-words">
+                      <p className="text-xs font-semibold text-neutral-900 dark:text-white break-words">
                         {selectedSubmissionDetail.data?.[f.id] !== undefined &&
                           selectedSubmissionDetail.data?.[f.id] !== ''
                           ? String(selectedSubmissionDetail.data[f.id])
@@ -1839,11 +1810,17 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="w-7 h-7 rounded-[6px] bg-neutral-200 dark:bg-[#2a2a2a] text-neutral-900 dark:text-neutral-100 text-[11px] font-bold font-mono flex items-center justify-center overflow-hidden">
-                      {profilePhoto ? (
-                        <img src={profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
+                      {profilePhoto && profilePhoto.trim().length > 0 && !modalPhotoError ? (
+                        <img
+                          src={profilePhoto}
+                          alt="Avatar"
+                          onError={() => setModalPhotoError(true)}
+                          className="w-full h-full object-cover"
+                        />
                       ) : user.name ? (
                         user.name
                           .split(' ')
+                          .filter(Boolean)
                           .map((n) => n[0])
                           .join('')
                           .slice(0, 2)
@@ -1945,7 +1922,23 @@ export default function DashboardPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => toast.info('Password reset instructions sent to your email')}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/auth/forgot-password', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: user.email }),
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                          toast.success(`Password reset link sent to ${user.email}`);
+                        } else {
+                          toast.error(data.message || 'Failed to send reset link');
+                        }
+                      } catch {
+                        toast.error('Network error sending reset email');
+                      }
+                    }}
                     className="px-3.5 py-1.5 rounded-[8px] border border-neutral-200 dark:border-[#383838] bg-white dark:bg-[#252525] hover:bg-neutral-50 dark:hover:bg-[#2d2d2d] text-xs font-medium text-neutral-900 dark:text-white transition-colors cursor-pointer shadow-2xs shrink-0 self-start sm:self-center"
                   >
                     Change password

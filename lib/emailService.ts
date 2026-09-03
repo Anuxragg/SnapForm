@@ -278,5 +278,69 @@ export async function sendVerificationOtpEmail(
   };
 }
 
+/**
+ * Sends a password reset email using Nodemailer with the minimalist dark design.
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  resetLink: string,
+  userName?: string
+): Promise<SendOtpResult> {
+  const recipientName = userName || 'there';
+  const transporter = getNodemailerTransporter();
+
+  const descriptionHtml = `Hi ${recipientName}, we received a request to reset your password for your SnapForm account (<a href="mailto:${email}" style="color: #38bdf8; text-decoration: underline;">${email}</a>). Click the button below to choose a new password.`;
+
+  const htmlContent = generateDarkEmailHtml({
+    title: 'Reset your SnapForm password',
+    descriptionHtml,
+    ctaText: 'Reset Password',
+    ctaLink: resetLink,
+    footerNote: 'This reset link is valid for <strong>30 minutes</strong>. If you did not request a password reset, you can safely ignore this email and your password will remain unchanged.',
+  });
+
+  if (transporter) {
+    try {
+      const from = process.env.SMTP_FROM || `SnapForm <${process.env.SMTP_USER}>`;
+      const iconPath = path.join(process.cwd(), 'public', 'icon.svg');
+      const iconSvgContent = fs.existsSync(iconPath) ? fs.readFileSync(iconPath) : null;
+
+      const info = await transporter.sendMail({
+        from,
+        to: email,
+        subject: '[SnapForm] Reset Your Password',
+        text: `Reset your SnapForm password using this link: ${resetLink} (Valid for 30 minutes). If you did not make this request, please ignore this email.`,
+        html: htmlContent,
+        attachments: iconSvgContent
+          ? [
+              {
+                filename: 'icon.svg',
+                content: iconSvgContent,
+                cid: 'snapform-logo',
+                contentType: 'image/svg+xml',
+                contentDisposition: 'inline',
+              },
+            ]
+          : [],
+      });
+
+      console.log(`[SnapForm Nodemailer] Successfully sent password reset email to ${email} (MessageID: ${info.messageId})`);
+      return { success: true, messageId: info.messageId };
+    } catch (err: any) {
+      console.error('[SnapForm Nodemailer Reset Error]:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  // Development Fallback
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(`[SnapForm DEV LINK] Password Reset Link for ${email}: ${resetLink}`);
+  console.log('═══════════════════════════════════════════════════════════════');
+
+  return {
+    success: true,
+  };
+}
+
 
 

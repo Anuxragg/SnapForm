@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from 'next-themes';
@@ -39,19 +39,24 @@ export default function UserDropdownMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [internalAvatarUrl, setInternalAvatarUrl] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
-  const updateAvatarFromStorage = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('snapform_user_avatar');
-      setInternalAvatarUrl(saved);
+  const updateAvatarFromStorage = useCallback(() => {
+    if (typeof window !== 'undefined' && user?.id) {
+      const saved = localStorage.getItem(`snapform_avatar_${user.id}`);
+      setInternalAvatarUrl(saved || user?.avatar || null);
+    } else {
+      setInternalAvatarUrl(user?.avatar || null);
     }
-  };
+  }, [user?.id, user?.avatar]);
 
   useEffect(() => {
     setMounted(true);
+    setImgError(false);
     updateAvatarFromStorage();
 
     const handleAvatarUpdated = () => {
+      setImgError(false);
       updateAvatarFromStorage();
     };
 
@@ -61,9 +66,16 @@ export default function UserDropdownMenu({
       window.removeEventListener('snapform_avatar_updated', handleAvatarUpdated);
       window.removeEventListener('storage', handleAvatarUpdated);
     };
-  }, []);
+  }, [updateAvatarFromStorage]);
 
   const activeAvatar = propAvatarUrl !== undefined ? propAvatarUrl : internalAvatarUrl;
+
+  const hasValidAvatar = Boolean(
+    activeAvatar &&
+    typeof activeAvatar === 'string' &&
+    activeAvatar.trim().length > 0 &&
+    !imgError
+  );
 
   // Close on outside click
   useEffect(() => {
@@ -98,14 +110,15 @@ export default function UserDropdownMenu({
   // Extract initials (e.g. "AN")
   const initials = user.name
     ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
     : user.email
-    ? user.email.slice(0, 2).toUpperCase()
-    : 'AN';
+      ? user.email.slice(0, 2).toUpperCase()
+      : 'AN';
 
   const isUp = align === 'bottom-to-top';
 
@@ -120,44 +133,49 @@ export default function UserDropdownMenu({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] hover:border-neutral-400 dark:hover:border-[#52525b] transition-colors duration-150 cursor-pointer shadow-2xs select-none ${
-          collapsed
+        className={`w-full flex items-center rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] hover:border-neutral-400 dark:hover:border-[#52525b] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer shadow-2xs select-none ${collapsed
             ? 'justify-center p-1.5'
             : 'justify-between px-2.5 py-1.5 gap-2'
-        }`}
+          }`}
         title={user.email}
         aria-expanded={isOpen}
       >
-        <div className={`flex items-center min-w-0 ${collapsed ? 'justify-center' : 'gap-2'}`}>
+        <div className="flex items-center min-w-0 gap-2">
           {/* Initials badge */}
           <div className="w-5 h-5 rounded-[5px] bg-neutral-200/80 dark:bg-[#2a2a2a] text-[oklch(0.145_0_0)] dark:text-neutral-100 text-[11px] font-bold font-mono tracking-tight shrink-0 flex items-center justify-center overflow-hidden">
-            {activeAvatar ? (
-              <img src={activeAvatar} alt="Avatar" className="w-full h-full object-cover" />
+            {hasValidAvatar ? (
+              <img
+                src={activeAvatar!}
+                alt={user.name || user.email || 'Avatar'}
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover"
+              />
             ) : (
               initials
             )}
           </div>
 
-          {!collapsed && (
-            <span
-              className="text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 truncate max-w-[155px]"
-            >
-              {user.email}
-            </span>
-          )}
+          <span
+            className={`text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed
+                ? 'max-w-0 opacity-0 -translate-x-1 pointer-events-none'
+                : 'max-w-[155px] opacity-100 translate-x-0 truncate'
+              }`}
+          >
+            {user.email}
+          </span>
         </div>
 
-        {!collapsed && (
-          <ChevronsUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-        )}
+        <ChevronsUpDown
+          className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed ? 'max-w-0 opacity-0 pointer-events-none scale-50' : 'max-w-4 opacity-100 scale-100'
+            }`}
+        />
       </button>
 
       {/* ─── Popup Dropdown Menu ────────────────────────────────────── */}
       {isOpen && (
         <div
-          className={`absolute left-0 w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100 ${
-            isUp ? 'bottom-full mb-2' : 'top-full mt-2'
-          }`}
+          className={`absolute left-0 w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100 ${isUp ? 'bottom-full mb-2' : 'top-full mt-2'
+            }`}
           style={fontStyle}
         >
           {/* Header: Signed in as */}
@@ -262,11 +280,10 @@ export default function UserDropdownMenu({
                 <button
                   type="button"
                   onClick={() => handleThemeChange('system')}
-                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                    mounted && theme === 'system'
+                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${mounted && theme === 'system'
                       ? 'bg-neutral-100 dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
                       : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                  }`}
+                    }`}
                   title="System Theme"
                 >
                   <Monitor className="w-3.5 h-3.5" />
@@ -274,11 +291,10 @@ export default function UserDropdownMenu({
                 <button
                   type="button"
                   onClick={() => handleThemeChange('light')}
-                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                    mounted && theme === 'light'
+                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${mounted && theme === 'light'
                       ? 'bg-neutral-100 dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
                       : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                  }`}
+                    }`}
                   title="Light Theme"
                 >
                   <Sun className="w-3.5 h-3.5" />
@@ -286,11 +302,10 @@ export default function UserDropdownMenu({
                 <button
                   type="button"
                   onClick={() => handleThemeChange('dark')}
-                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                    mounted && theme === 'dark'
+                  className={`p-1 rounded-[5px] transition-all cursor-pointer ${mounted && theme === 'dark'
                       ? 'bg-neutral-100 dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
                       : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                  }`}
+                    }`}
                   title="Dark Theme"
                 >
                   <Moon className="w-3.5 h-3.5" />
@@ -304,15 +319,13 @@ export default function UserDropdownMenu({
               <button
                 type="button"
                 onClick={() => setSoundsEnabled(!soundsEnabled)}
-                className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
-                  soundsEnabled ? 'bg-[#2563eb]' : 'bg-[#e4e4e7] dark:bg-[#2e2e33]'
-                }`}
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${soundsEnabled ? 'bg-[#2563eb]' : 'bg-[#e4e4e7] dark:bg-[#2e2e33]'
+                  }`}
                 aria-label="Toggle sounds"
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-white shadow-xs transition-transform duration-200 ${
-                    soundsEnabled ? 'translate-x-4' : 'translate-x-0'
-                  }`}
+                  className={`w-4 h-4 rounded-full bg-white shadow-xs transition-transform duration-200 ${soundsEnabled ? 'translate-x-4' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>

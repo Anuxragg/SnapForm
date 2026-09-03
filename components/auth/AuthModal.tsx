@@ -239,7 +239,16 @@ export default function AuthModal() {
               </div>
 
               <div className="space-y-2 text-left">
-                <label htmlFor="modal-login-password" className="text-sm font-semibold text-neutral-200 block">Password</label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="modal-login-password" className="text-sm font-semibold text-neutral-200 block">Password</label>
+                  <a
+                    href="/forgot-password"
+                    onClick={() => closeAuthModal()}
+                    className="text-xs font-semibold text-neutral-400 hover:text-brand-orange transition-colors cursor-pointer"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
                 <div className="relative">
                   <input
                     id="modal-login-password"
