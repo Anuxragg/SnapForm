@@ -49,6 +49,7 @@ import {
   Activity,
   Zap,
   CreditCard,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface SavedForm {
@@ -117,6 +118,11 @@ export default function DashboardPage() {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [modalPhotoError, setModalPhotoError] = useState(false);
   const photoInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Delete account confirmation modal state
+  const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     setModalPhotoError(false);
@@ -188,6 +194,31 @@ export default function DashboardPage() {
       }
     } catch {
       toast.error('Network error saving name');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeletingAccount(true);
+      const res = await fetch('/api/auth/me', {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success('Your account has been deleted.');
+        setDeleteAccountModalOpen(false);
+        setWorkspaceModal(null);
+        if (user?.id && typeof window !== 'undefined') {
+          localStorage.removeItem(`snapform_avatar_${user.id}`);
+        }
+        window.location.href = '/login';
+      } else {
+        toast.error(data.message || 'Failed to delete account');
+      }
+    } catch {
+      toast.error('Network error during account deletion');
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -1955,18 +1986,162 @@ export default function DashboardPage() {
                   <div className="space-y-0.5">
                     <h4 className="text-[13px] font-semibold text-neutral-900 dark:text-white">Delete account</h4>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      Permanently remove your account, all sites, and analytics data. This cannot be undone.
+                      Permanently remove your account, all created forms, submissions, and analytics data. This cannot be undone.
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => toast.error('Account deletion requires security confirmation via email')}
+                    onClick={() => {
+                      setDeleteConfirmText('');
+                      setDeleteAccountModalOpen(true);
+                    }}
                     className="px-3.5 py-1.5 rounded-[8px] border border-rose-900/30 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 text-xs font-medium transition-colors cursor-pointer shrink-0 self-start sm:self-center"
                   >
                     Delete account
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          8. DELETE ACCOUNT CONFIRMATION MODAL (Exact Matching Mockup)
+      ───────────────────────────────────────────────────────────── */}
+      {deleteAccountModalOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            style={{
+              fontFamily:
+                'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            }}
+            className="bg-[#242424] rounded-[20px] border border-[#333333] shadow-2xl max-w-[390px] w-full p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 text-left"
+          >
+            {/* Header + Top Description */}
+            <div className="space-y-2 pb-3.5 border-b border-[#303030]">
+              <h3
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  color: 'oklch(0.985 0 0)',
+                }}
+                className="text-[15px] font-bold tracking-tight"
+              >
+                Delete your account?
+              </h3>
+              <p
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  lineHeight: '20px',
+                  color: 'oklch(0.708 0 0)',
+                }}
+              >
+                This will permanently remove your account, all created forms, form submissions, and analytics data. This cannot be undone.
+              </p>
+            </div>
+
+            {/* Confirm Prompt */}
+            <div
+              style={{
+                fontFamily:
+                  'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '14px',
+                fontWeight: 400,
+                lineHeight: '20px',
+                color: 'oklch(0.708 0 0)',
+              }}
+            >
+              <p>
+                Type{' '}
+                <span
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    lineHeight: '16px',
+                    color: 'oklch(0.985 0 0)',
+                  }}
+                  className="bg-[#141414] px-2 py-0.5 rounded border border-neutral-700 select-all inline-block align-middle"
+                >
+                  DELETE
+                </span>{' '}
+                to confirm.
+              </p>
+            </div>
+
+            {/* Confirm Input */}
+            <div className="space-y-1.5">
+              <label
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '20px',
+                  color: 'oklch(0.985 0 0)',
+                }}
+                className="block"
+              >
+                Confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                disabled={isDeletingAccount}
+                autoFocus
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  fontSize: '14px',
+                  color: 'oklch(0.985 0 0)',
+                }}
+                className="w-full bg-[#181818] border border-[#383838] focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-[8px] px-3.5 py-2 placeholder:text-neutral-600 focus:outline-none transition-colors"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setDeleteAccountModalOpen(false)}
+                disabled={isDeletingAccount}
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  color: 'oklch(0.985 0 0)',
+                }}
+                className="px-4 py-1.5 rounded-[8px] border border-[#383838] bg-[#2a2a2a] hover:bg-[#333333] text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={
+                  deleteConfirmText.trim().toUpperCase() !== 'DELETE' ||
+                  isDeletingAccount
+                }
+                style={{
+                  fontFamily:
+                    'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                }}
+                className="px-3.5 py-1.5 rounded-[8px] border border-rose-900/30 bg-rose-950/20 hover:bg-rose-950/40 disabled:bg-rose-950/10 disabled:border-transparent disabled:text-rose-500/25 text-rose-400 text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  'Delete account'
+                )}
+              </button>
             </div>
           </div>
         </div>

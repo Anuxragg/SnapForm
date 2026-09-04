@@ -9,6 +9,8 @@ interface LogoProps {
   badgeText?: string;
   className?: string;
   textClassName?: string;
+  iconContainerClassName?: string;
+  iconClassName?: string;
 }
 
 export function SnapFormIcon({
@@ -58,12 +60,14 @@ export default function Logo({
   badgeText,
   className = '',
   textClassName = 'text-2xl font-black tracking-tight text-brand-charcoal',
+  iconContainerClassName = '',
+  iconClassName = '',
 }: LogoProps) {
   const content = (
-    <div className={`flex items-center gap-2.5 group cursor-pointer select-none ${className}`}>
+    <div className={`flex items-center gap-2 group cursor-pointer select-none ${className}`}>
       {/* Brand Icon inside sleek dark/contrast container */}
-      <div className="w-8 h-8 rounded-xl bg-brand-charcoal flex items-center justify-center text-white shadow-sm transition-transform duration-200 group-hover:scale-105">
-        <SnapFormIcon className="w-4 h-6 text-white" fill="#ffffff" />
+      <div className={`w-8 h-8 rounded-xl bg-brand-charcoal flex items-center justify-center text-white shadow-sm ${iconContainerClassName}`}>
+        <SnapFormIcon className={iconClassName || "w-4 h-6 text-white"} fill="#ffffff" />
       </div>
 
       {showText && (

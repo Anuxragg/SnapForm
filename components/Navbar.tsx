@@ -58,20 +58,25 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 h-[58px] bg-black/75 border-b border-white/10 shadow-2xl backdrop-blur-2xl flex items-center text-white font-sans transition duration-500 ease-in-out">
-        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-15 h-[58px] flex items-center justify-between gap-4 transition duration-500 ease-in-out">
+      <header className="fixed top-0 left-0 right-0 z-50 h-[52px] bg-black/75 border-b border-white/10 shadow-2xl backdrop-blur-2xl flex items-center text-white font-sans transition duration-500 ease-in-out">
+        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-15 h-[52px] flex items-center justify-between gap-4 transition duration-500 ease-in-out">
 
           {/* Logo & Desktop Nav */}
-          <div className="flex items-center gap-8">
-            <Logo href="/" textClassName="text-white font-semibold text-xl sm:text-[22px] leading-none tracking-tight font-heading" />
+          <div className="flex items-center gap-7">
+            <Logo
+              href="/"
+              iconContainerClassName="w-7 h-7 rounded-[8px]"
+              iconClassName="w-3.5 h-5 text-white"
+              textClassName="text-white font-semibold text-[15px] sm:text-[16px] leading-none tracking-tight font-heading"
+            />
 
-            <nav className="hidden md:flex items-center gap-7 lg:gap-9">
+            <nav className="hidden md:flex items-center gap-5 lg:gap-6">
               {NAV_LINKS.map(({ label, href }) => (
                 <Link
                   key={label}
                   href={href}
-                  className={`text-[15px] font-semibold transition-colors duration-150 ${
-                    pathname === href ? 'text-brand-orange' : 'text-neutral-300 hover:text-white'
+                  className={`text-[13px] font-medium transition-colors duration-150 ${
+                    pathname === href ? 'text-brand-orange font-semibold' : 'text-neutral-300 hover:text-white'
                   }`}
                 >
                   {label}
@@ -83,16 +88,16 @@ export default function Navbar() {
           {/* Desktop Auth Controls */}
           <div className="hidden sm:flex items-center gap-3">
             {!user ? (
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => openAuthModal('login')}
-                  className="text-sm font-semibold text-neutral-300 hover:text-white transition-colors cursor-pointer px-3 py-1.5"
+                  className="text-[13px] font-semibold text-neutral-300 hover:text-white transition-colors cursor-pointer px-3 py-1.5"
                 >
                   Sign in
                 </button>
                 <button
                   onClick={() => openAuthModal('signup')}
-                  className="text-sm font-bold text-white bg-brand-orange hover:bg-brand-orange-hover px-4.5 py-2 rounded-full transition-all duration-150 cursor-pointer shadow-lg shadow-brand-orange/20 hover:scale-[1.02] active:scale-[0.98]"
+                  className="text-[13px] font-semibold text-white bg-brand-orange hover:bg-brand-orange-hover px-3.5 py-1.5 rounded-[8px] transition-all duration-150 cursor-pointer shadow-md shadow-brand-orange/20"
                 >
                   Get started
                 </button>

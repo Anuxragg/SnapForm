@@ -17,7 +17,7 @@ import {
   Sliders,
   Package,
 } from 'lucide-react';
-import WorkflowDemo from '@/components/WorkflowDemo';
+import HeroDashboardPreview from '@/components/HeroDashboardPreview';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HomeShaderBackground from '@/components/HomeShaderBackground';
@@ -63,14 +63,14 @@ export default function LandingPage() {
       <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20 flex-1 flex flex-col items-center">
 
         {/* Top Centered: High-Impact Typography & Branding */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-6 pb-12 sm:pb-16">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-8 sm:pb-12">
 
           {/* Tag & Headline */}
-          <div className="space-y-3">
-            <span className="text-[11px] font-bold font-mono text-white/90 uppercase tracking-[0.25em] inline-block animate-pulse px-3.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm">
+          <div className="space-y-2.5">
+            <span className="text-[10px] font-bold font-mono text-white/90 uppercase tracking-[0.2em] inline-block animate-pulse px-3 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm">
               COMPILER IS SPEED FOR DEV
             </span>
-            <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-semibold leading-[1.12] tracking-tight text-white max-w-2xl mx-auto drop-shadow-md">
+            <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] tracking-tight text-white max-w-xl mx-auto drop-shadow-md">
               <BreathingText className="text-white">
                 SnapForm
               </BreathingText>{' '}
@@ -79,19 +79,19 @@ export default function LandingPage() {
           </div>
 
           {/* Subtext description */}
-          <p className="font-subtext text-[15px] font-normal leading-[24px] text-white/90 max-w-xl mx-auto drop-shadow-sm">
+          <p className="font-subtext text-xs sm:text-[13px] md:text-sm font-normal leading-[21px] text-white/85 max-w-lg mx-auto drop-shadow-sm">
             Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
-              <button className="rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold px-8 py-3.5 h-12 flex items-center justify-center shadow-[0_10px_25px_-3px_rgba(0,0,0,0.7),0_4px_12px_rgba(0,0,0,0.5)] transition-colors duration-200 w-full sm:w-auto cursor-pointer">
+              <button className="rounded-[8px] bg-brand-orange hover:bg-brand-orange-hover text-white text-[13px] font-semibold px-5 h-9 flex items-center justify-center shadow-md transition-colors duration-200 w-full sm:w-auto cursor-pointer">
                 Hosting Form
               </button>
             </Link>
             <Link href="/builder" className="w-full sm:w-auto">
-              <button className="rounded-full bg-neutral-900/90 backdrop-blur-xl text-white hover:bg-neutral-800/90 text-sm font-bold px-8 h-12 shadow-[0_10px_25px_-3px_rgba(0,0,0,0.85),0_4px_12px_rgba(0,0,0,0.6)] transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
+              <button className="rounded-[8px] bg-neutral-900/90 backdrop-blur-xl border border-white/10 text-white hover:bg-neutral-800/90 text-[13px] font-semibold px-5 h-9 shadow-md transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
                 Form Templates
               </button>
             </Link>
@@ -99,9 +99,9 @@ export default function LandingPage() {
 
         </div>
 
-        {/* Bottom Centered: Animated Workflow Demo */}
+        {/* Bottom Centered: Live Dashboard & Submissions Preview */}
         <div className="w-full max-w-4xl lg:max-w-5xl mx-auto">
-          <WorkflowDemo />
+          <HeroDashboardPreview />
         </div>
 
       </main>

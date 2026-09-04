@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, setSessionCookie } from '@/lib/auth';
+import { getSession, setSessionCookie, clearSessionCookie } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 
@@ -111,3 +111,71 @@ export async function PATCH(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const session = await getSession();
+    if (!session || !session.id) {
+      return NextResponse.json(
+        { success: false, message: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    await connectToDatabase();
+
+    const userId = session.id;
+    const userEmail = session.email?.toLowerCase();
+
+    // 1. Find all forms created by this user
+    const FormTemplate = (await import('@/models/FormTemplate')).default;
+    const FormSubmission = (await import('@/models/FormSubmission')).default;
+    const FormView = (await import('@/models/FormView')).default;
+    const EmailOtp = (await import('@/models/EmailOtp')).default;
+    const PasswordResetToken = (await import('@/models/PasswordResetToken')).default;
+
+    const userForms = await FormTemplate.find({ userId }).select('_id').lean();
+    const formIds = userForms.map((f: any) => f._id);
+
+    // 2. Cascade delete form submissions & views
+    if (formIds.length > 0) {
+      await Promise.all([
+        FormSubmission.deleteMany({ formId: { $in: formIds } }),
+        FormView.deleteMany({ formId: { $in: formIds } }),
+      ]);
+    }
+
+    // 3. Delete user forms
+    await FormTemplate.deleteMany({ userId });
+
+    // 4. Delete tokens and otps if email exists
+    if (userEmail) {
+      await Promise.all([
+        EmailOtp.deleteMany({ email: userEmail }),
+        PasswordResetToken.deleteMany({ email: userEmail }),
+      ]);
+    }
+
+    // 5. Delete the user document
+    await User.findByIdAndDelete(userId);
+
+    // 6. Clear session cookie
+    await clearSessionCookie();
+
+    return NextResponse.json({
+      success: true,
+      message: 'Account and associated data deleted successfully',
+    });
+  } catch (error: any) {
+    console.error('Error during account deletion:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to delete account. Please try again.',
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+

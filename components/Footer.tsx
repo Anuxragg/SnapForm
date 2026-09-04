@@ -87,7 +87,7 @@ export default function Footer() {
               className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-brand-orange transition-colors cursor-pointer"
             >
               <Image
-                src="/fair.png"
+                src="/pfp.jpeg"
                 alt="Avatar"
                 width={16}
                 height={16}

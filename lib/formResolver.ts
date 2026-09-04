@@ -22,8 +22,7 @@ export interface ResolvedFormResult {
 }
 
 /**
- * Robust, universal Form Resolver Pipeline.
- * Handles Short IDs (sf_k9x2m4), ObjectIds (6a932...), Blueprints (contact, payment...), and legacy prefixes.
+ * Robust, universal Form Resolver Pipeline. 
  */
 export async function resolveForm(
   idOrSlug: string,
