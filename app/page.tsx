@@ -4,13 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Button } from '@/components/ui/button';
 import {
   ShieldCheck,
   Globe,
   Radio,
   Lock,
-  FileCode2,
   Server,
   Fingerprint,
   Gauge,
@@ -22,12 +20,11 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HomeShaderBackground from '@/components/HomeShaderBackground';
 import BreathingText from '@/components/fancy/text/breathing-text';
+import IntegrateSplitPreview from '@/components/landing/IntegrateSplitPreview';
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [terminalTab, setTerminalTab] = useState<'react' | 'nextjs'>('react');
-  const [terminalCopied, setTerminalCopied] = useState(false);
 
   // If user has an active session, redirect directly to dashboard
   useEffect(() => {
@@ -35,16 +32,6 @@ export default function LandingPage() {
       router.replace('/dashboard');
     }
   }, [user, loading, router]);
-
-  const copyTerminalCode = () => {
-    const code = terminalTab === 'react'
-      ? `import { useForm } from 'react-hook-form';\nimport { zodResolver } from '@hookform/resolvers/zod';\nimport { z } from 'zod';\n\nconst FormSchema = z.object({\n  email: z.string().email(),\n  name: z.string().min(2)\n});`
-      : `import { NextResponse } from 'next/server';\nimport { FormSchema } from './schema';\n\nexport async function POST(req) {\n  const body = await req.json();\n  const result = FormSchema.safeParse(body);\n  return NextResponse.json({ success: result.success });\n}`;
-
-    navigator.clipboard.writeText(code);
-    setTerminalCopied(true);
-    setTimeout(() => setTerminalCopied(false), 2000);
-  };
 
   // Prevent flash of home page if user is logged in
   if (user) {
@@ -80,7 +67,7 @@ export default function LandingPage() {
 
           {/* Subtext description */}
           <p className="font-subtext text-xs sm:text-[13px] md:text-sm font-normal leading-[21px] text-white/85 max-w-lg mx-auto drop-shadow-sm">
-            Stop writing boilerplate input validation. SnapForm compiles premium Next.js layout forms, Zod-backed schemas, and server-side endpoints in real-time. Speed, precision, and robust integrations that don&apos;t flake.
+            Build, validate, and host production-ready React forms in seconds. Get auto-generated Zod schemas, Next.js API handlers, and instant submission capture with zero backend hassle.
           </p>
 
           {/* CTAs */}
@@ -110,88 +97,17 @@ export default function LandingPage() {
       <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-20 pb-20 border-t border-white/10 text-center flex flex-col items-center">
 
         {/* Headline */}
-        <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4">
+        <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] text-white tracking-tight mb-4">
           Integrate <span className="text-brand-orange">this afternoon</span>
         </h2>
 
         {/* Subtitle */}
-        <p className="font-subtext text-[15px] font-normal leading-[24px] text-neutral-400 max-w-xl mx-auto mb-12">
-          A simple, elegant compiler so you can start capturing form submissions in minutes. It fits right into your code with type-safe schemas for your favorite frontend stacks.
+        <p className="font-subtext text-[15px] font-normal leading-[24px] text-white max-w-xl mx-auto mb-12">
+          Explore production-ready form templates. Inspect the type-safe code on the left and test the live interactive preview on the right.
         </p>
 
-        {/* Tabbed dark code terminal */}
-        <div className="w-full max-w-5xl mx-auto border border-white/15 bg-black/75 backdrop-blur-2xl rounded-3xl p-5 md:p-6 shadow-2xl text-left relative overflow-hidden">
-          {/* Header language tabs */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-            <div className="flex items-center gap-6">
-              <button
-                type="button"
-                onClick={() => setTerminalTab('react')}
-                className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'react'
-                  ? 'text-brand-orange border-brand-orange'
-                  : 'text-neutral-400 border-transparent hover:text-white'
-                  }`}
-              >
-                REACT COMPONENT
-              </button>
-              <button
-                type="button"
-                onClick={() => setTerminalTab('nextjs')}
-                className={`text-[10px] font-black font-mono tracking-widest transition-all cursor-pointer uppercase pb-1.5 border-b-2 ${terminalTab === 'nextjs'
-                  ? 'text-brand-orange border-brand-orange'
-                  : 'text-neutral-400 border-transparent hover:text-white'
-                  }`}
-              >
-                NEXT.JS API ROUTE
-              </button>
-            </div>
-
-            {/* Copy button */}
-            <button
-              type="button"
-              onClick={copyTerminalCode}
-              title="Copy Code"
-              className="p-2 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all cursor-pointer border border-neutral-700"
-            >
-              {terminalCopied ? <span className="text-[10px] font-bold text-brand-orange font-mono">COPIED!</span> : <FileCode2 className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Terminal content */}
-          <div className="font-mono text-[11px] md:text-xs leading-relaxed text-neutral-300 overflow-x-auto select-text whitespace-pre py-2 relative flex">
-            {/* Line numbers */}
-            <div className="text-neutral-600 text-right pr-4 select-none border-r border-neutral-800/80 mr-4 font-mono w-5">
-              {Array.from({ length: terminalTab === 'react' ? 8 : 7 }).map((_, i) => (
-                <div key={i}>{i + 1}</div>
-              ))}
-            </div>
-
-            {/* Code highlighter elements */}
-            <div className="flex-1">
-              {terminalTab === 'react' ? (
-                <code>
-                  <span className="text-pink-500">import</span> &#123; useForm &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;react-hook-form&apos;</span>;<br />
-                  <span className="text-pink-500">import</span> &#123; zodResolver &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;@hookform/resolvers/zod&apos;</span>;<br />
-                  <span className="text-pink-500">import</span> &#123; z &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;zod&apos;</span>;<br /><br />
-                  <span className="text-cyan-400">const</span> <span className="text-amber-400">FormSchema</span> = z.object(&#123;<br />
-                  &nbsp;&nbsp;email: z.string().email(),<br />
-                  &nbsp;&nbsp;name: z.string().min(<span className="text-purple-400">2</span>)<br />
-                  &#125;);
-                </code>
-              ) : (
-                <code>
-                  <span className="text-pink-500">import</span> &#123; NextResponse &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;next/server&apos;</span>;<br />
-                  <span className="text-pink-500">import</span> &#123; FormSchema &#125; <span className="text-pink-500">from</span> <span className="text-emerald-400">&apos;./schema&apos;</span>;<br /><br />
-                  <span className="text-pink-500">export async function</span> <span className="text-amber-400">POST</span>(req) &#123;<br />
-                  &nbsp;&nbsp;<span className="text-cyan-400">const</span> body = <span className="text-pink-500">await</span> req.json();<br />
-                  &nbsp;&nbsp;<span className="text-cyan-400">const</span> result = FormSchema.safeParse(body);<br />
-                  &nbsp;&nbsp;<span className="text-pink-500">return</span> NextResponse.json(&#123; success: result.success &#125;);<br />
-                  &#125;
-                </code>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Split Screen Code & Interactive Live Form Preview */}
+        <IntegrateSplitPreview />
       </section>
 
       {/* ─── SECTION: Minimal Linear / Resend Style Developer Grid ───────── */}
