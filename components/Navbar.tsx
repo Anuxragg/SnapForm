@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
+import { useTheme } from 'next-themes';
 import {
   LayoutDashboard,
   Wand2,
@@ -11,6 +12,9 @@ import {
   LogOut,
   Menu,
   X,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -23,10 +27,16 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const { user, openAuthModal, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -114,40 +124,112 @@ export default function Navbar() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 top-[calc(100%+10px)] w-52 bg-neutral-900/95 border border-white/15 rounded-2xl shadow-2xl p-1.5 z-50 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="px-3 py-2.5 border-b border-white/10 mb-1">
-                      <p className="text-[10px] font-mono font-medium uppercase tracking-widest text-neutral-400">Account</p>
-                      <p className="text-xs font-medium text-white mt-1 truncate">{user.name}</p>
-                      <p className="text-[10px] font-normal text-neutral-400 truncate mt-0.5">{user.email}</p>
+                  <div
+                    className="absolute right-0 top-[calc(100%+8px)] w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100"
+                    style={{
+                      fontFamily:
+                        'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    }}
+                  >
+                    {/* Header: Signed in as */}
+                    <div className="px-2.5 py-2">
+                      <p className="text-[12px] font-normal leading-[16px] text-[#71717a] dark:text-neutral-400">
+                        Signed in as
+                      </p>
+                      <p className="text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-0.5">
+                        {user.email}
+                      </p>
                     </div>
 
-                    {[
-                      { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-                      { icon: Wand2, label: 'Builder', href: '/builder' },
-                    ].map(({ icon: Icon, label, href }) => (
+                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
+
+                    {/* Section 1: Navigation Links */}
+                    <div className="space-y-0.5">
                       <Link
-                        key={label}
-                        href={href}
+                        href="/dashboard"
                         onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
                       >
-                        <Icon className="w-4 h-4 text-neutral-400" />
-                        <span>{label}</span>
+                        <LayoutDashboard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
+                        <span>Dashboard</span>
                       </Link>
-                    ))}
-
-                    <div className="border-t border-white/10 mt-1 pt-1">
-                      <button
-                        onClick={() => {
-                          logout();
-                          setProfileOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer text-left"
+                      <Link
+                        href="/builder"
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
                       >
-                        <LogOut className="w-4 h-4 text-rose-400" />
-                        <span>Log out</span>
-                      </button>
+                        <Wand2 className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
+                        <span>Builder</span>
+                      </Link>
+                      <Link
+                        href="/docs"
+                        onClick={() => setProfileOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
+                      >
+                        <BookOpen className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
+                        <span>Documentation</span>
+                      </Link>
                     </div>
+
+                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
+
+                    {/* Section 2: Theme Selector */}
+                    <div className="px-2.5 py-1.5 flex items-center justify-between text-[12px] font-normal leading-[16px]">
+                      <span className="text-[#71717a] dark:text-neutral-400">Theme</span>
+                      <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-[#202023] rounded-[7px] border border-[#e4e4e7] dark:border-[#2e2e33]">
+                        <button
+                          type="button"
+                          onClick={() => setTheme('system')}
+                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
+                            mounted && theme === 'system'
+                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
+                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
+                          }`}
+                          title="System"
+                        >
+                          <Monitor className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTheme('light')}
+                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
+                            mounted && theme === 'light'
+                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
+                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
+                          }`}
+                          title="Light"
+                        >
+                          <Sun className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTheme('dark')}
+                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
+                            mounted && theme === 'dark'
+                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
+                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
+                          }`}
+                          title="Dark"
+                        >
+                          <Moon className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
+
+                    {/* Section 3: Sign Out */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        setProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[#e11d48] hover:bg-[#fff1f2] dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="w-4 h-4 text-[#e11d48] shrink-0" />
+                      <span>Sign out</span>
+                    </button>
                   </div>
                 )}
               </div>

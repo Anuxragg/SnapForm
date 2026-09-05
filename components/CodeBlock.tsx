@@ -17,7 +17,7 @@ export default function CodeBlock({
   code,
   language = 'typescript',
   filename,
-  showLineNumbers = false,
+  showLineNumbers = true,
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
@@ -29,60 +29,44 @@ export default function CodeBlock({
   };
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-neutral-800/80 bg-[#141416] shadow-xl text-left font-mono">
-      {/* Code Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#1b1c20] border-b border-neutral-800/60 select-none">
-        <div className="flex items-center gap-2">
-          {/* macOS window indicator dots */}
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-          </div>
-          {filename && (
-            <span className="text-[11px] font-mono text-neutral-400 font-semibold ml-2">
-              {filename}
-            </span>
+    <div className="relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-[#333333] bg-[#151515] shadow-sm text-left font-mono group">
+      {/* Floating Top-Right Copy Action Control */}
+      <div className="absolute top-3.5 right-3.5 z-10 flex items-center select-none">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+          title="Copy code"
+        >
+          {copied ? (
+            <Check className="w-4 h-4 text-emerald-400 animate-in zoom-in duration-200" />
+          ) : (
+            <Copy className="w-4 h-4" />
           )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-400 bg-neutral-800/80 px-2 py-0.5 rounded">
-            {language}
-          </span>
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-800/90 hover:bg-neutral-700 text-neutral-300 hover:text-white text-[11px] font-sans font-semibold transition-all cursor-pointer shadow-xs active:scale-95"
-            title="Copy code"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-400">Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3 text-neutral-400" />
-                <span>Copy</span>
-              </>
-            )}
-          </button>
-        </div>
+        </button>
       </div>
 
-      {/* Syntax Highlighted Body */}
-      <div className="overflow-x-auto text-[12px] leading-relaxed">
+      {/* Syntax Highlighted Code Body with Line Numbers */}
+      <div className="overflow-x-auto text-[13px] leading-[1.75] py-4 pr-16 pl-2">
         <SyntaxHighlighter
           language={language}
           style={vscDarkPlus}
           showLineNumbers={showLineNumbers}
+          lineNumberStyle={{
+            minWidth: '2.5em',
+            paddingRight: '1.25em',
+            color: '#555761',
+            textAlign: 'right',
+            userSelect: 'none',
+            fontSize: '12px',
+          }}
           customStyle={{
             margin: 0,
-            padding: '1rem 1.25rem',
+            padding: 0,
             background: 'transparent',
-            fontSize: '12px',
+            fontSize: '13px',
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            lineHeight: '1.6',
+            lineHeight: '1.75',
           }}
           codeTagProps={{
             style: {
