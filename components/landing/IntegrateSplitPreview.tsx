@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FileCode2,
   Copy,
@@ -17,6 +17,12 @@ export default function IntegrateSplitPreview() {
   const [activeTab, setActiveTab] = useState<'nextjs' | 'react' | 'schema'>('nextjs');
   const [copied, setCopied] = useState(false);
 
+  // Scaling state
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [scaledHeight, setScaledHeight] = useState<number | null>(null);
+
   // Live Interactive Form State
   const [name, setName] = useState('Alex Johnson');
   const [email, setEmail] = useState('alex@company.com');
@@ -25,6 +31,41 @@ export default function IntegrateSplitPreview() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; subject?: string; message?: string }>({});
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (!containerRef.current || !cardRef.current) return;
+      const width = containerRef.current.clientWidth;
+      const baseWidth = 860;
+
+      if (width < baseWidth && width > 0) {
+        const s = width / baseWidth;
+        setScale(s);
+        const cardH = cardRef.current.offsetHeight || cardRef.current.scrollHeight;
+        if (cardH > 0) {
+          setScaledHeight(Math.ceil(cardH * s));
+        }
+      } else {
+        setScale(1);
+        setScaledHeight(null);
+      }
+    };
+
+    updateDimensions();
+
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(updateDimensions);
+    });
+
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    if (cardRef.current) resizeObserver.observe(cardRef.current);
+    window.addEventListener('resize', updateDimensions);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, [activeTab, submitSuccess]);
 
   const validate = () => {
     const errors: { name?: string; email?: string; subject?: string; message?: string } = {};
@@ -141,47 +182,118 @@ export type ContactInput =
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-2.5 sm:p-5 md:p-7 bg-[#F5F4F0] rounded-[20px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none overflow-hidden">
+    <div className="w-full max-w-5xl mx-auto p-2.5 sm:p-5 md:p-8 bg-[#F5F4F0] rounded-[20px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none">
       <div
+        ref={containerRef}
+        className="w-full relative overflow-hidden"
         style={{
-          fontFamily:
-            'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          height: scaledHeight ? `${scaledHeight}px` : 'auto',
         }}
-        className="w-full bg-white border border-neutral-200/90 rounded-[14px] sm:rounded-[20px] shadow-[0_12px_35px_-8px_rgba(0,0,0,0.12)] overflow-hidden text-neutral-900 flex flex-col text-left"
       >
-        {/* ─── Top Studio / File Header Bar ─── */}
-        <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-[#F7F7F6] border-b border-neutral-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-          {/* Top Row on Mobile: Brand + Copy button */}
-          <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-1.5 sm:pr-3 sm:border-r border-neutral-300/80">
-              <div className="w-5 h-5 rounded-md bg-neutral-900 flex items-center justify-center text-white shadow-xs">
-                <SnapFormIcon className="w-2.5 h-3.5 text-white" fill="#ffffff" />
+        <div
+          ref={cardRef}
+          style={{
+            width: scale < 1 ? '860px' : '100%',
+            transform: scale < 1 ? `scale(${scale})` : 'none',
+            transformOrigin: 'top left',
+            fontFamily:
+              'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          }}
+          className="bg-white border border-neutral-200/90 rounded-[14px] sm:rounded-[20px] shadow-[0_12px_35px_-8px_rgba(0,0,0,0.12)] overflow-hidden text-neutral-900 flex flex-col text-left shrink-0"
+        >
+          {/* ─── Top Studio / File Header Bar ─── */}
+          <div className="px-4 sm:px-6 py-3 bg-[#F7F7F6] border-b border-neutral-200/80 flex items-center justify-between gap-3">
+            {/* Left: Breadcrumbs & Tab Switcher */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-300/80">
+                <div className="w-5 h-5 rounded-md bg-neutral-900 flex items-center justify-center text-white shadow-xs">
+                  <SnapFormIcon className="w-2.5 h-3.5 text-white" fill="#ffffff" />
+                </div>
+                <span className="text-[12px] font-semibold text-neutral-800 font-heading">
+                  SnapForm
+                </span>
               </div>
-              <span className="text-[12px] font-semibold text-neutral-800 font-heading">
-                SnapForm
-              </span>
+
+              {/* File Tabs: api/route.ts, ContactForm.tsx, schema.ts */}
+              <div className="flex items-center gap-1 bg-neutral-200/60 p-0.5 rounded-lg border border-neutral-300/40">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('nextjs')}
+                  className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'nextjs'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <FileCode2 className={`w-3 h-3 ${activeTab === 'nextjs' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+                  api/route.ts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('react')}
+                  className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'react'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <Terminal className={`w-3 h-3 ${activeTab === 'react' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+                  ContactForm.tsx
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('schema')}
+                  className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === 'schema'
+                      ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <ShieldCheck className={`w-3 h-3 ${activeTab === 'schema' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+                  schema.ts
+                </button>
+              </div>
             </div>
 
-            {/* Copy button on Mobile */}
-            <div className="sm:hidden">
+            {/* Right: TS badge & Copy Button */}
+            <div className="flex items-center gap-2.5">
+              <div className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-neutral-700 bg-white border border-neutral-200/90 px-2.5 py-1 rounded-md shadow-2xs">
+                <svg className="w-3.5 h-3.5 shrink-0 rounded-[2px]" viewBox="0 0 24 24" fill="none">
+                  <rect width="24" height="24" rx="2" fill="#007acc" />
+                  <text
+                    x="21"
+                    y="20"
+                    fill="#ffffff"
+                    fontSize="12.5"
+                    fontWeight="800"
+                    fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                    textAnchor="end"
+                    letterSpacing="-0.5px"
+                  >
+                    TS
+                  </text>
+                </svg>
+                <span>TypeScript</span>
+              </div>
+
               <button
                 type="button"
                 onClick={copyCode}
                 title="Copy code snippet"
-                className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md border transition-all cursor-pointer shadow-2xs active:scale-95 select-none ${
+                className={`group flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1 rounded-md border transition-all cursor-pointer shadow-2xs active:scale-95 select-none ${
                   copied
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                    : 'bg-white border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                    : 'bg-white border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50/80 hover:shadow-xs'
                 }`}
               >
                 {copied ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 animate-in zoom-in duration-200" />
                     <span className="font-semibold text-emerald-700">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3 text-neutral-400" />
+                    <Copy className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
                     <span>Copy code</span>
                   </>
                 )}
@@ -189,391 +301,300 @@ export type ContactInput =
             </div>
           </div>
 
-          {/* File Tabs: api/route.ts, ContactForm.tsx, schema.ts */}
-          <div className="flex items-center gap-1 bg-neutral-200/60 p-0.5 rounded-lg border border-neutral-300/40 overflow-x-auto no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none]">
-            <button
-              type="button"
-              onClick={() => setActiveTab('nextjs')}
-              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
-                activeTab === 'nextjs'
-                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <FileCode2 className={`w-3 h-3 ${activeTab === 'nextjs' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-              api/route.ts
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('react')}
-              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
-                activeTab === 'react'
-                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <Terminal className={`w-3 h-3 ${activeTab === 'react' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-              ContactForm.tsx
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('schema')}
-              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
-                activeTab === 'schema'
-                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <ShieldCheck className={`w-3 h-3 ${activeTab === 'schema' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-              schema.ts
-            </button>
-          </div>
+          {/* ─── Split Grid: Left Code (6 cols) + Right Live UI Form (6 cols) ─── */}
+          <div className="grid grid-cols-12 divide-x divide-neutral-200/80 items-stretch">
+            {/* Left Side: Dark IDE Code Panel */}
+            <div className="col-span-6 bg-[#141517] p-4 sm:p-5 font-mono text-[11.5px] leading-[1.65] select-text flex flex-col justify-start overflow-hidden">
+              <div className="flex items-start">
+                {/* Line Numbers */}
+                <div className="text-neutral-600 text-right pr-3 select-none border-r border-neutral-800 mr-3 w-5 shrink-0">
+                  {codeSnippets[activeTab].split('\n').map((_, i) => (
+                    <div key={i} className="leading-[1.65]">
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
 
-          {/* Right on Desktop: TS badge & Copy Button */}
-          <div className="hidden sm:flex items-center gap-2.5">
-            <div className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-neutral-700 bg-white border border-neutral-200/90 px-2.5 py-1 rounded-md shadow-2xs">
-              <svg className="w-3.5 h-3.5 shrink-0 rounded-[2px]" viewBox="0 0 24 24" fill="none">
-                <rect width="24" height="24" rx="2" fill="#007acc" />
-                <text
-                  x="21"
-                  y="20"
-                  fill="#ffffff"
-                  fontSize="12.5"
-                  fontWeight="800"
-                  fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-                  textAnchor="end"
-                  letterSpacing="-0.5px"
-                >
-                  TS
-                </text>
-              </svg>
-              <span>TypeScript</span>
+                {/* Syntax Rendered Code */}
+                <pre className="text-neutral-300 flex-1 whitespace-pre font-mono leading-[1.65] overflow-hidden">
+                  {activeTab === 'react' && (
+                    <code>
+                      <span className="text-[#e06c75]">import</span> &#123; useForm &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;react-hook-form&apos;</span>;<br />
+                      <span className="text-[#e06c75]">import</span> &#123; zodResolver &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;@hookform/resolvers/zod&apos;</span>;<br />
+                      <span className="text-[#e06c75]">import</span> &#123; ContactSchema, <span className="text-[#e06c75]">type</span> ContactInput &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;./schema&apos;</span>;<br />
+                      <br />
+                      <span className="text-[#e06c75]">export function</span> <span className="text-[#e5c07b]">ContactForm</span>() &#123;<br />
+                      &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> &#123; register, handleSubmit &#125; =<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#61afef]">useForm</span>&lt;<span className="text-[#e5c07b]">ContactInput</span>&gt;(&#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolver: <span className="text-[#61afef]">zodResolver</span>(ContactSchema)<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br />
+                      <br />
+                      &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> <span className="text-[#e5c07b]">onSubmit</span> = <span className="text-[#e06c75]">async</span> (data: <span className="text-[#e5c07b]">ContactInput</span>) =&gt; &#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">await</span> <span className="text-[#61afef]">fetch</span>(<span className="text-[#98c379]">&apos;/api/f/contact-starter&apos;</span>, &#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: <span className="text-[#98c379]">&apos;POST&apos;</span>,<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: &#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#98c379]">&apos;Content-Type&apos;</span>: <span className="text-[#98c379]">&apos;application/json&apos;</span><br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#125;,<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.<span className="text-[#61afef]">stringify</span>(data)<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br />
+                      &nbsp;&nbsp;&#125;;<br />
+                      <br />
+                      &nbsp;&nbsp;<span className="text-[#e06c75]">return</span> (<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">form</span><br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#d19a66]">onSubmit</span>=&#123;<span className="text-[#61afef]">handleSubmit</span>(onSubmit)&#125;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#d19a66]">className</span>=<span className="text-[#98c379]">&quot;space-y-3&quot;</span><br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;name&apos;</span>)&#125; /&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;email&apos;</span>)&#125; /&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;subject&apos;</span>)&#125; /&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">textarea</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;message&apos;</span>)&#125; /&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">button</span>&gt;Send Message&lt;/<span className="text-[#e06c75]">button</span>&gt;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span className="text-[#e06c75]">form</span>&gt;<br />
+                      &nbsp;&nbsp;);<br />
+                      &#125;
+                    </code>
+                  )}
+
+                  {activeTab === 'nextjs' && (
+                    <code>
+                      <span className="text-[#e06c75]">import</span> &#123; NextResponse &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;next/server&apos;</span>;<br />
+                      <span className="text-[#e06c75]">import</span> &#123; ContactSchema &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;./schema&apos;</span>;<br />
+                      <br />
+                      <span className="text-[#e06c75]">export async function</span> <span className="text-[#e5c07b]">POST</span>(req: Request) &#123;<br />
+                      &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> body = <span className="text-[#e06c75]">await</span> req.<span className="text-[#61afef]">json</span>();<br />
+                      <br />
+                      &nbsp;&nbsp;<span className="text-neutral-500">// Strict schema validation with Zod</span><br />
+                      &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> result = ContactSchema.<span className="text-[#61afef]">safeParse</span>(body);<br />
+                      &nbsp;&nbsp;<span className="text-[#e06c75]">if</span> (!result.success) &#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">return</span> NextResponse.<span className="text-[#61afef]">json</span>(<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#123; error: result.error.<span className="text-[#61afef]">format</span>() &#125;,<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#123; status: <span className="text-[#d19a66]">400</span> &#125;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;);<br />
+                      &nbsp;&nbsp;&#125;<br />
+                      <br />
+                      &nbsp;&nbsp;<span className="text-neutral-500">// SnapForm handles storage &amp; MX scoring</span><br />
+                      &nbsp;&nbsp;<span className="text-[#e06c75]">return</span> NextResponse.<span className="text-[#61afef]">json</span>(&#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;success: <span className="text-[#d19a66]">true</span>,<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;submissionId: <span className="text-[#98c379]">&apos;sub_contact_92&apos;</span>,<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;capturedAt: <span className="text-[#e06c75]">new</span> <span className="text-[#61afef]">Date</span>().<span className="text-[#61afef]">toISOString</span>()<br />
+                      &nbsp;&nbsp;&#125;);<br />
+                      &#125;
+                    </code>
+                  )}
+
+                  {activeTab === 'schema' && (
+                    <code>
+                      <span className="text-[#e06c75]">import</span> &#123; z &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;zod&apos;</span>;<br />
+                      <br />
+                      <span className="text-[#e06c75]">export const</span> <span className="text-[#e5c07b]">ContactSchema</span> = z.<span className="text-[#61afef]">object</span>(&#123;<br />
+                      &nbsp;&nbsp;name: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">2</span>),<br />
+                      &nbsp;&nbsp;email: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">email</span>(),<br />
+                      &nbsp;&nbsp;subject: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">3</span>),<br />
+                      &nbsp;&nbsp;message: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">10</span>),<br />
+                      &nbsp;&nbsp;honeypot: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">optional</span>()<br />
+                      &#125;);<br />
+                      <br />
+                      <span className="text-[#e06c75]">export type</span> <span className="text-[#56b6c2]">ContactInput</span> =<br />
+                      &nbsp;&nbsp;z.<span className="text-[#61afef]">infer</span>&lt;<span className="text-[#e06c75]">typeof</span> ContactSchema&gt;;
+                    </code>
+                  )}
+                </pre>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={copyCode}
-              title="Copy code snippet"
-              className={`group flex items-center gap-1.5 text-[11.5px] font-medium px-2.5 py-1 rounded-md border transition-all cursor-pointer shadow-2xs active:scale-95 select-none ${
-                copied
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                  : 'bg-white border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50/80 hover:shadow-xs'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600 animate-in zoom-in duration-200" />
-                  <span className="font-semibold text-emerald-700">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
-                  <span>Copy code</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ─── Split Grid: Left Code (6 cols) + Right Live UI Form (6 cols) ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-neutral-200/80 items-stretch">
-          {/* Left Side: Dark IDE Code Panel (Full width on mobile, 6 cols on desktop) */}
-          <div className="w-full lg:col-span-6 bg-[#141517] p-3.5 sm:p-5 font-mono text-[11px] sm:text-[12px] leading-[1.65] select-text flex flex-col justify-start overflow-x-auto">
-            <div className="flex items-start min-w-full">
-              {/* Line Numbers */}
-              <div className="text-neutral-600 text-right pr-2.5 select-none border-r border-neutral-800 mr-2.5 w-4 sm:w-5 shrink-0 text-[10px] sm:text-[11px]">
-                {codeSnippets[activeTab].split('\n').map((_, i) => (
-                  <div key={i} className="leading-[1.65]">
-                    {i + 1}
+            {/* Right Side: Live UI Form */}
+            <div className="col-span-6 p-5 bg-[#FCFCFB] flex flex-col justify-between">
+              <div className="flex-1 flex flex-col">
+                {/* Form Title */}
+                <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-neutral-200/80">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-orange" />
+                    <span className="text-[14px] font-bold text-neutral-900 tracking-tight font-heading">
+                      Contact Inquiry Form
+                    </span>
                   </div>
-                ))}
-              </div>
-
-              {/* Syntax Rendered Code - Fully scrollable & readable */}
-              <pre className="text-neutral-300 flex-1 whitespace-pre font-mono leading-[1.65] overflow-x-auto text-[11px] sm:text-[12px]">
-                {activeTab === 'react' && (
-                  <code>
-                    <span className="text-[#e06c75]">import</span> &#123; useForm &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;react-hook-form&apos;</span>;<br />
-                    <span className="text-[#e06c75]">import</span> &#123; zodResolver &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;@hookform/resolvers/zod&apos;</span>;<br />
-                    <span className="text-[#e06c75]">import</span> &#123; ContactSchema, <span className="text-[#e06c75]">type</span> ContactInput &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;./schema&apos;</span>;<br />
-                    <br />
-                    <span className="text-[#e06c75]">export function</span> <span className="text-[#e5c07b]">ContactForm</span>() &#123;<br />
-                    &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> &#123; register, handleSubmit &#125; =<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#61afef]">useForm</span>&lt;<span className="text-[#e5c07b]">ContactInput</span>&gt;(&#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolver: <span className="text-[#61afef]">zodResolver</span>(ContactSchema)<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br />
-                    <br />
-                    &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> <span className="text-[#e5c07b]">onSubmit</span> = <span className="text-[#e06c75]">async</span> (data: <span className="text-[#e5c07b]">ContactInput</span>) =&gt; &#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">await</span> <span className="text-[#61afef]">fetch</span>(<span className="text-[#98c379]">&apos;/api/f/contact-starter&apos;</span>, &#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: <span className="text-[#98c379]">&apos;POST&apos;</span>,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: &#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#98c379]">&apos;Content-Type&apos;</span>: <span className="text-[#98c379]">&apos;application/json&apos;</span><br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#125;,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.<span className="text-[#61afef]">stringify</span>(data)<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br />
-                    &nbsp;&nbsp;&#125;;<br />
-                    <br />
-                    &nbsp;&nbsp;<span className="text-[#e06c75]">return</span> (<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">form</span><br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#d19a66]">onSubmit</span>=&#123;<span className="text-[#61afef]">handleSubmit</span>(onSubmit)&#125;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#d19a66]">className</span>=<span className="text-[#98c379]">&quot;space-y-3&quot;</span><br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;name&apos;</span>)&#125; /&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;email&apos;</span>)&#125; /&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">input</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;subject&apos;</span>)&#125; /&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">textarea</span> &#123;...<span className="text-[#61afef]">register</span>(<span className="text-[#98c379]">&apos;message&apos;</span>)&#125; /&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<span className="text-[#e06c75]">button</span>&gt;Send Message&lt;/<span className="text-[#e06c75]">button</span>&gt;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;/<span className="text-[#e06c75]">form</span>&gt;<br />
-                    &nbsp;&nbsp;);<br />
-                    &#125;
-                  </code>
-                )}
-
-                {activeTab === 'nextjs' && (
-                  <code>
-                    <span className="text-[#e06c75]">import</span> &#123; NextResponse &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;next/server&apos;</span>;<br />
-                    <span className="text-[#e06c75]">import</span> &#123; ContactSchema &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;./schema&apos;</span>;<br />
-                    <br />
-                    <span className="text-[#e06c75]">export async function</span> <span className="text-[#e5c07b]">POST</span>(req: Request) &#123;<br />
-                    &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> body = <span className="text-[#e06c75]">await</span> req.<span className="text-[#61afef]">json</span>();<br />
-                    <br />
-                    &nbsp;&nbsp;<span className="text-neutral-500">// Strict schema validation with Zod</span><br />
-                    &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> result = ContactSchema.<span className="text-[#61afef]">safeParse</span>(body);<br />
-                    &nbsp;&nbsp;<span className="text-[#e06c75]">if</span> (!result.success) &#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">return</span> NextResponse.<span className="text-[#61afef]">json</span>(<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#123; error: result.error.<span className="text-[#61afef]">format</span>() &#125;,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#123; status: <span className="text-[#d19a66]">400</span> &#125;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;);<br />
-                    &nbsp;&nbsp;&#125;<br />
-                    <br />
-                    &nbsp;&nbsp;<span className="text-neutral-500">// SnapForm handles storage &amp; MX scoring</span><br />
-                    &nbsp;&nbsp;<span className="text-[#e06c75]">return</span> NextResponse.<span className="text-[#61afef]">json</span>(&#123;<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;success: <span className="text-[#d19a66]">true</span>,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;submissionId: <span className="text-[#98c379]">&apos;sub_contact_92&apos;</span>,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;capturedAt: <span className="text-[#e06c75]">new</span> <span className="text-[#61afef]">Date</span>().<span className="text-[#61afef]">toISOString</span>()<br />
-                    &nbsp;&nbsp;&#125;);<br />
-                    &#125;
-                  </code>
-                )}
-
-                {activeTab === 'schema' && (
-                  <code>
-                    <span className="text-[#e06c75]">import</span> &#123; z &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;zod&apos;</span>;<br />
-                    <br />
-                    <span className="text-[#e06c75]">export const</span> <span className="text-[#e5c07b]">ContactSchema</span> = z.<span className="text-[#61afef]">object</span>(&#123;<br />
-                    &nbsp;&nbsp;name: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">2</span>),<br />
-                    &nbsp;&nbsp;email: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">email</span>(),<br />
-                    &nbsp;&nbsp;subject: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">3</span>),<br />
-                    &nbsp;&nbsp;message: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">min</span>(<span className="text-[#d19a66]">10</span>),<br />
-                    &nbsp;&nbsp;honeypot: z.<span className="text-[#61afef]">string</span>().<span className="text-[#61afef]">optional</span>()<br />
-                    &#125;);<br />
-                    <br />
-                    <span className="text-[#e06c75]">export type</span> <span className="text-[#56b6c2]">ContactInput</span> =<br />
-                    &nbsp;&nbsp;z.<span className="text-[#61afef]">infer</span>&lt;<span className="text-[#e06c75]">typeof</span> ContactSchema&gt;;
-                  </code>
-                )}
-              </pre>
-            </div>
-          </div>
-
-          {/* Right Side: Live UI Form (Desktop only) */}
-          <div className="hidden lg:flex lg:col-span-6 p-4 sm:p-6 bg-[#FCFCFB] flex-col justify-between">
-            <div className="flex-1 flex flex-col">
-              {/* Form Title */}
-              <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-neutral-200/80">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-orange" />
-                  <span className="text-xs sm:text-[14px] font-bold text-neutral-900 tracking-tight font-heading">
-                    Contact Inquiry Form
-                  </span>
                 </div>
-              </div>
 
-              {submitSuccess ? (
-                /* Success State */
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3.5 py-4 animate-in fade-in zoom-in duration-300">
-                  <h4 className="text-base font-bold text-neutral-900 tracking-tight">Submission Delivered</h4>
+                {submitSuccess ? (
+                  /* Success State */
+                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3.5 py-4 animate-in fade-in zoom-in duration-300">
+                    <h4 className="text-base font-bold text-neutral-900 tracking-tight">Submission Delivered</h4>
 
-                  {/* Clean Submission Summary Card */}
-                  <div className="w-full bg-white border border-neutral-200/90 rounded-xl p-3 sm:p-4 text-left text-xs space-y-2.5 shadow-2xs">
-                    <div className="flex items-center justify-between pb-2 border-b border-neutral-100 text-[11px] font-semibold">
-                      <span className="text-neutral-500 uppercase tracking-wider text-[9px]">Captured Form Data</span>
-                      <span className="flex items-center gap-1 text-emerald-600 font-medium text-[10px]">
-                        Stored · 38ms
-                      </span>
+                    {/* Clean Submission Summary Card */}
+                    <div className="w-full bg-white border border-neutral-200/90 rounded-xl p-3.5 text-left text-xs space-y-2.5 shadow-2xs">
+                      <div className="flex items-center justify-between pb-2 border-b border-neutral-100 text-[11px] font-semibold">
+                        <span className="text-neutral-500 uppercase tracking-wider text-[9px]">Captured Form Data</span>
+                        <span className="flex items-center gap-1 text-emerald-600 font-medium text-[10px]">
+                          Stored · 38ms
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 text-neutral-700 text-[11.5px]">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-neutral-400 text-[11px] shrink-0">Name:</span>
+                          <span className="font-semibold text-neutral-900 truncate">{name || 'Alex Johnson'}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-neutral-400 text-[11px] shrink-0">Email:</span>
+                          <span className="font-medium text-neutral-800 truncate">{email || 'alex@company.com'}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-neutral-400 text-[11px] shrink-0">Subject:</span>
+                          <span className="font-medium text-neutral-800 truncate">{subject || 'General Inquiry'}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-neutral-400 text-[11px] shrink-0">Message:</span>
+                          <span className="font-normal text-neutral-600 truncate max-w-[180px]">{message || 'Inquiry message'}</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-1.5 text-neutral-700 text-[11px] sm:text-[12px]">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11px] shrink-0">Name:</span>
-                        <span className="font-semibold text-neutral-900 truncate">{name || 'Alex Johnson'}</span>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11px] shrink-0">Email:</span>
-                        <span className="font-medium text-neutral-800 truncate">{email || 'alex@company.com'}</span>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11px] shrink-0">Subject:</span>
-                        <span className="font-medium text-neutral-800 truncate">{subject || 'General Inquiry'}</span>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11px] shrink-0">Message:</span>
-                        <span className="font-normal text-neutral-600 truncate max-w-[180px]">{message || 'Inquiry message'}</span>
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="inline-flex items-center justify-center gap-2 h-8 px-3.5 rounded-md bg-white border border-neutral-200 text-neutral-800 hover:text-neutral-950 hover:bg-neutral-50/80 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                    >
+                      <RefreshCw className="w-3 h-3 text-neutral-500" />
+                      <span>Test another submission</span>
+                    </button>
                   </div>
+                ) : (
+                  /* Interactive Form Fields */
+                  <form onSubmit={handleInteractiveSubmit} className="flex-1 flex flex-col justify-between space-y-3">
+                    <div className="space-y-3 flex-1 flex flex-col">
+                      {/* Full Name & Email Row */}
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {/* Full Name Field */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11.5px] font-semibold text-neutral-700">
+                              Full Name <span className="text-brand-orange">*</span>
+                            </label>
+                            {formErrors.name && (
+                              <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
+                                <AlertCircle className="w-2.5 h-2.5" />
+                                {formErrors.name}
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => {
+                              setName(e.target.value);
+                              if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                            }}
+                            placeholder="Alex Johnson"
+                            className={`w-full text-xs bg-white border ${
+                              formErrors.name ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
+                            } rounded-md px-3 py-1.5 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                          />
+                        </div>
 
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="inline-flex items-center justify-center gap-2 h-8 px-3.5 rounded-md bg-white border border-neutral-200 text-neutral-800 hover:text-neutral-950 hover:bg-neutral-50/80 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
-                  >
-                    <RefreshCw className="w-3 h-3 text-neutral-500" />
-                    <span>Test another submission</span>
-                  </button>
-                </div>
-              ) : (
-                /* Interactive Form Fields */
-                <form onSubmit={handleInteractiveSubmit} className="flex-1 flex flex-col justify-between space-y-3">
-                  <div className="space-y-3 flex-1 flex flex-col">
-                    {/* Full Name & Email Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {/* Full Name Field */}
+                        {/* Email Field */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11.5px] font-semibold text-neutral-700">
+                              Work Email <span className="text-brand-orange">*</span>
+                            </label>
+                            {formErrors.email && (
+                              <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
+                                <AlertCircle className="w-2.5 h-2.5" />
+                                {formErrors.email}
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+                            }}
+                            placeholder="you@company.com"
+                            className={`w-full text-xs bg-white border ${
+                              formErrors.email ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
+                            } rounded-md px-3 py-1.5 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Subject Field */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
-                            Full Name <span className="text-brand-orange">*</span>
+                          <label className="text-[11.5px] font-semibold text-neutral-700">
+                            Subject <span className="text-brand-orange">*</span>
                           </label>
-                          {formErrors.name && (
+                          {formErrors.subject && (
                             <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-2.5 h-2.5" />
-                              {formErrors.name}
+                              {formErrors.subject}
                             </span>
                           )}
                         </div>
                         <input
                           type="text"
-                          value={name}
+                          value={subject}
                           onChange={(e) => {
-                            setName(e.target.value);
-                            if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                            setSubject(e.target.value);
+                            if (formErrors.subject) setFormErrors({ ...formErrors, subject: undefined });
                           }}
-                          placeholder="Alex Johnson"
+                          placeholder="e.g. Next.js Form Validation"
                           className={`w-full text-xs bg-white border ${
-                            formErrors.name ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                          } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                            formErrors.subject ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
+                          } rounded-md px-3 py-1.5 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
                         />
                       </div>
 
-                      {/* Email Field */}
-                      <div className="space-y-1">
+                      {/* Message Field */}
+                      <div className="space-y-1 flex-1 flex flex-col">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
-                            Work Email <span className="text-brand-orange">*</span>
+                          <label className="text-[11.5px] font-semibold text-neutral-700">
+                            Message <span className="text-brand-orange">*</span>
                           </label>
-                          {formErrors.email && (
+                          {formErrors.message && (
                             <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-2.5 h-2.5" />
-                              {formErrors.email}
+                              {formErrors.message}
                             </span>
                           )}
                         </div>
-                        <input
-                          type="email"
-                          value={email}
+                        <textarea
+                          rows={3}
+                          value={message}
                           onChange={(e) => {
-                            setEmail(e.target.value);
-                            if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+                            setMessage(e.target.value);
+                            if (formErrors.message) setFormErrors({ ...formErrors, message: undefined });
                           }}
-                          placeholder="you@company.com"
-                          className={`w-full text-xs bg-white border ${
-                            formErrors.email ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                          } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                          placeholder="Describe your inquiry in detail..."
+                          className={`w-full flex-1 min-h-[90px] text-xs bg-white border ${
+                            formErrors.message ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
+                          } rounded-md px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors resize-none leading-relaxed`}
                         />
                       </div>
                     </div>
 
-                    {/* Subject Field */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
-                          Subject <span className="text-brand-orange">*</span>
-                        </label>
-                        {formErrors.subject && (
-                          <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
-                            <AlertCircle className="w-2.5 h-2.5" />
-                            {formErrors.subject}
-                          </span>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={subject}
-                        onChange={(e) => {
-                          setSubject(e.target.value);
-                          if (formErrors.subject) setFormErrors({ ...formErrors, subject: undefined });
-                        }}
-                        placeholder="e.g. Next.js Form Validation"
-                        className={`w-full text-xs bg-white border ${
-                          formErrors.subject ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                        } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
-                      />
-                    </div>
-
-                    {/* Message Field */}
-                    <div className="space-y-1 flex-1 flex flex-col">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
-                          Message <span className="text-brand-orange">*</span>
-                        </label>
-                        {formErrors.message && (
-                          <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
-                            <AlertCircle className="w-2.5 h-2.5" />
-                            {formErrors.message}
-                          </span>
-                        )}
-                      </div>
-                      <textarea
-                        rows={3}
-                        value={message}
-                        onChange={(e) => {
-                          setMessage(e.target.value);
-                          if (formErrors.message) setFormErrors({ ...formErrors, message: undefined });
-                        }}
-                        placeholder="Describe your inquiry in detail..."
-                        className={`w-full flex-1 min-h-[90px] sm:min-h-[110px] text-xs bg-white border ${
-                          formErrors.message ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                        } rounded-md px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors resize-none leading-relaxed`}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-9 rounded-md bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 mt-1"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Validating Schema...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Send Message</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Bottom Status bar */}
-            <div className="pt-2.5 mt-3 border-t border-neutral-200/70 flex items-center justify-between text-[10px] text-neutral-500 shrink-0 font-mono">
-              <span>Ready for production</span>
-              <span className="text-neutral-400">Next.js App Router</span>
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-9 rounded-md bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 mt-1"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Validating Schema...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send Message</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>

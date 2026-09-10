@@ -21,6 +21,7 @@ import Footer from '@/components/Footer';
 import HomeShaderBackground from '@/components/HomeShaderBackground';
 import BreathingText from '@/components/fancy/text/breathing-text';
 import IntegrateSplitPreview from '@/components/landing/IntegrateSplitPreview';
+import LandingFAQ from '@/components/landing/LandingFAQ';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -47,10 +48,10 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20 flex-1 flex flex-col items-center">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-8 sm:pb-16 flex-1 flex flex-col items-center">
 
         {/* Top Centered: High-Impact Typography & Branding */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-8 sm:pb-12">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-6 sm:pb-10">
 
           {/* Tag & Headline */}
           <div className="space-y-2.5">
@@ -66,8 +67,8 @@ export default function LandingPage() {
           </div>
 
           {/* Subtext description */}
-          <p className="font-subtext text-xs sm:text-[13px] md:text-sm font-normal leading-[21px] text-white/85 max-w-lg mx-auto drop-shadow-sm">
-            Build, validate, and host production-ready React forms in seconds. Get auto-generated Zod schemas, Next.js API handlers, and instant submission capture with zero backend hassle.
+          <p className="font-subtext text-xs sm:text-[13px] md:text-sm font-normal leading-[20px] sm:leading-[21px] text-white/85 max-w-lg mx-auto drop-shadow-sm">
+            Build, validate, and host production-ready React forms in seconds with zero backend hassle.
           </p>
 
           {/* CTAs */}
@@ -94,24 +95,27 @@ export default function LandingPage() {
       </main>
 
       {/* ─── SECTION: "Integrate this afternoon" Showcase & Code Terminal ─── */}
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-20 pb-20 border-t border-white/10 text-center flex flex-col items-center">
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-16 pb-8 sm:pb-16 border-t border-white/10 text-center flex flex-col items-center">
 
         {/* Headline */}
-        <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] text-white tracking-tight mb-4">
+        <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] text-white tracking-tight mb-2.5 sm:mb-4">
           Integrate <span className="text-brand-orange">this afternoon</span>
         </h2>
 
         {/* Subtitle */}
-        <p className="font-subtext text-[15px] font-normal leading-[24px] text-white max-w-xl mx-auto mb-12">
-          Explore production-ready form templates. Inspect the type-safe code on the left and test the live interactive preview on the right.
+        <p className="font-subtext text-xs sm:text-[14px] font-normal leading-[20px] sm:leading-[22px] text-white/90 max-w-md mx-auto mb-5 sm:mb-8">
+          Explore production-ready form templates with instant type-safe code.
         </p>
 
         {/* Split Screen Code & Interactive Live Form Preview */}
         <IntegrateSplitPreview />
       </section>
 
+      {/* ─── SECTION: Frequently Asked Questions (FAQ) ─── */}
+      <LandingFAQ />
+
       {/* ─── SECTION: Minimal Linear / Resend Style Developer Grid ───────── */}
-      <section id="features" className="relative z-10 w-full bg-black/85 backdrop-blur-3xl border-t border-white/10 py-24">
+      <section id="features" className="relative z-10 w-full bg-black/85 backdrop-blur-3xl border-t border-white/10 pt-10 sm:pt-24 pb-16 sm:pb-24">
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Header */}
           <div className="max-w-2xl mb-16 space-y-3 text-left">

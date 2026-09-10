@@ -55,20 +55,11 @@ export default function Footer() {
 
         {/* Row 2: Nav Links */}
         <div className="flex items-center gap-6 text-[13px] font-medium text-neutral-400 pb-2">
-          <Link href="/builder" className="hover:text-white transition-colors">
-            Features
+          <Link href="/privacy" className="hover:text-white transition-colors">
+            Privacy
           </Link>
-          <Link href="/builder" className="hover:text-white transition-colors">
-            Preview
-          </Link>
-          <Link href="/docs" className="hover:text-white transition-colors">
-            Proof
-          </Link>
-          <Link href="/docs" className="hover:text-white transition-colors">
-            Docs
-          </Link>
-          <Link href="/dashboard" className="hover:text-white transition-colors">
-            Console
+          <Link href="/terms" className="hover:text-white transition-colors">
+            Terms & Services
           </Link>
         </div>
 
