@@ -141,71 +141,97 @@ export type ContactInput =
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-3 sm:p-5 md:p-7 bg-[#F5F4F0] rounded-[24px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none">
+    <div className="w-full max-w-5xl mx-auto p-2.5 sm:p-5 md:p-7 bg-[#F5F4F0] rounded-[20px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none overflow-hidden">
       <div
         style={{
           fontFamily:
             'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
-        className="w-full bg-white border border-neutral-200/90 rounded-[16px] sm:rounded-[20px] shadow-[0_12px_35px_-8px_rgba(0,0,0,0.12)] overflow-hidden text-neutral-900 flex flex-col text-left"
+        className="w-full bg-white border border-neutral-200/90 rounded-[14px] sm:rounded-[20px] shadow-[0_12px_35px_-8px_rgba(0,0,0,0.12)] overflow-hidden text-neutral-900 flex flex-col text-left"
       >
         {/* ─── Top Studio / File Header Bar ─── */}
-        <div className="px-4 sm:px-6 py-3 bg-[#F7F7F6] border-b border-neutral-200/80 flex flex-wrap items-center justify-between gap-3">
-          {/* Left: Breadcrumbs & Tab Switcher */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-300/80">
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-[#F7F7F6] border-b border-neutral-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+          {/* Top Row on Mobile: Brand + Copy button */}
+          <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 sm:pr-3 sm:border-r border-neutral-300/80">
               <div className="w-5 h-5 rounded-md bg-neutral-900 flex items-center justify-center text-white shadow-xs">
                 <SnapFormIcon className="w-2.5 h-3.5 text-white" fill="#ffffff" />
               </div>
-              <span className="text-[12px] font-semibold text-neutral-800">
+              <span className="text-[12px] font-semibold text-neutral-800 font-heading">
                 SnapForm
               </span>
             </div>
 
-            {/* File Tabs: api/route.ts first, then ContactForm.tsx, then schema.ts */}
-            <div className="flex items-center gap-1 bg-neutral-200/60 p-0.5 rounded-lg border border-neutral-300/40">
+            {/* Copy button on Mobile */}
+            <div className="sm:hidden">
               <button
                 type="button"
-                onClick={() => setActiveTab('nextjs')}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeTab === 'nextjs'
-                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
+                onClick={copyCode}
+                title="Copy code snippet"
+                className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md border transition-all cursor-pointer shadow-2xs active:scale-95 select-none ${
+                  copied
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-neutral-200/90 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
-                <FileCode2 className={`w-3 h-3 ${activeTab === 'nextjs' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-                api/route.ts
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('react')}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeTab === 'react'
-                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                <Terminal className={`w-3 h-3 ${activeTab === 'react' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-                ContactForm.tsx
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('schema')}
-                className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeTab === 'schema'
-                    ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
-                    : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              >
-                <ShieldCheck className={`w-3 h-3 ${activeTab === 'schema' ? 'text-brand-orange' : 'text-neutral-700'}`} />
-                schema.ts
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span className="font-semibold text-emerald-700">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3 text-neutral-400" />
+                    <span>Copy code</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Right: Status Pill & Copy Button */}
-          <div className="flex items-center gap-2.5">
-            <div className="hidden sm:inline-flex items-center gap-1.5 text-[11.5px] font-medium text-neutral-700 bg-white border border-neutral-200/90 px-2.5 py-1 rounded-md shadow-2xs">
+          {/* File Tabs: api/route.ts, ContactForm.tsx, schema.ts */}
+          <div className="flex items-center gap-1 bg-neutral-200/60 p-0.5 rounded-lg border border-neutral-300/40 overflow-x-auto no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none]">
+            <button
+              type="button"
+              onClick={() => setActiveTab('nextjs')}
+              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
+                activeTab === 'nextjs'
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <FileCode2 className={`w-3 h-3 ${activeTab === 'nextjs' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+              api/route.ts
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('react')}
+              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
+                activeTab === 'react'
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <Terminal className={`w-3 h-3 ${activeTab === 'react' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+              ContactForm.tsx
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('schema')}
+              className={`text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
+                activeTab === 'schema'
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <ShieldCheck className={`w-3 h-3 ${activeTab === 'schema' ? 'text-brand-orange' : 'text-neutral-700'}`} />
+              schema.ts
+            </button>
+          </div>
+
+          {/* Right on Desktop: TS badge & Copy Button */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            <div className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-neutral-700 bg-white border border-neutral-200/90 px-2.5 py-1 rounded-md shadow-2xs">
               <svg className="w-3.5 h-3.5 shrink-0 rounded-[2px]" viewBox="0 0 24 24" fill="none">
                 <rect width="24" height="24" rx="2" fill="#007acc" />
                 <text
@@ -251,11 +277,11 @@ export type ContactInput =
 
         {/* ─── Split Grid: Left Code (6 cols) + Right Live UI Form (6 cols) ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-neutral-200/80 items-stretch">
-          {/* Left Side: Dark IDE Code Panel (6 cols, zero horizontal scrollbar) */}
-          <div className="lg:col-span-6 bg-[#141517] p-4 sm:p-5 font-mono text-xs sm:text-[12px] leading-[1.65] select-text flex flex-col justify-start overflow-hidden">
-            <div className="flex items-start overflow-hidden">
-              {/* Line Numbers matching code lines exactly */}
-              <div className="text-neutral-600 text-right pr-3 select-none border-r border-neutral-800 mr-3 w-5 shrink-0">
+          {/* Left Side: Dark IDE Code Panel (Full width on mobile, 6 cols on desktop) */}
+          <div className="w-full lg:col-span-6 bg-[#141517] p-3.5 sm:p-5 font-mono text-[11px] sm:text-[12px] leading-[1.65] select-text flex flex-col justify-start overflow-x-auto">
+            <div className="flex items-start min-w-full">
+              {/* Line Numbers */}
+              <div className="text-neutral-600 text-right pr-2.5 select-none border-r border-neutral-800 mr-2.5 w-4 sm:w-5 shrink-0 text-[10px] sm:text-[11px]">
                 {codeSnippets[activeTab].split('\n').map((_, i) => (
                   <div key={i} className="leading-[1.65]">
                     {i + 1}
@@ -263,8 +289,8 @@ export type ContactInput =
                 ))}
               </div>
 
-              {/* Syntax Rendered Code - Guaranteed no horizontal scroll */}
-              <pre className="text-neutral-300 flex-1 whitespace-pre font-mono leading-[1.65] overflow-hidden">
+              {/* Syntax Rendered Code - Fully scrollable & readable */}
+              <pre className="text-neutral-300 flex-1 whitespace-pre font-mono leading-[1.65] overflow-x-auto text-[11px] sm:text-[12px]">
                 {activeTab === 'react' && (
                   <code>
                     <span className="text-[#e06c75]">import</span> &#123; useForm &#125; <span className="text-[#e06c75]">from</span> <span className="text-[#98c379]">&apos;react-hook-form&apos;</span>;<br />
@@ -350,51 +376,49 @@ export type ContactInput =
             </div>
           </div>
 
-          {/* Right Side: Elongated & Well-Balanced Live UI Form (6 cols) */}
-          <div className="lg:col-span-6 p-5 sm:p-6 bg-[#FCFCFB] flex flex-col justify-between">
+          {/* Right Side: Live UI Form (Desktop only) */}
+          <div className="hidden lg:flex lg:col-span-6 p-4 sm:p-6 bg-[#FCFCFB] flex-col justify-between">
             <div className="flex-1 flex flex-col">
-              {/* Form Title & Metric Status */}
-              <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-neutral-200/80">
+              {/* Form Title */}
+              <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-neutral-200/80">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-orange" />
-                  <span className="text-sm sm:text-[15px] font-bold text-neutral-900 tracking-tight">
+                  <span className="text-xs sm:text-[14px] font-bold text-neutral-900 tracking-tight font-heading">
                     Contact Inquiry Form
                   </span>
                 </div>
-
               </div>
 
               {submitSuccess ? (
-                /* Success State (Clean Studio Aesthetic) */
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-4 animate-in fade-in zoom-in duration-300">
-                  <h4 className="text-[17px] font-bold text-neutral-900 tracking-tight">Submission Delivered</h4>
+                /* Success State */
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3.5 py-4 animate-in fade-in zoom-in duration-300">
+                  <h4 className="text-base font-bold text-neutral-900 tracking-tight">Submission Delivered</h4>
 
                   {/* Clean Submission Summary Card */}
-                  <div className="w-full bg-white border border-neutral-200/90 rounded-xl p-4 text-left text-xs space-y-3 shadow-2xs">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-neutral-100 text-[11px] font-semibold">
-                      <span className="text-neutral-500 uppercase tracking-wider text-[10px]">Captured Form Data</span>
-                      <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="w-full bg-white border border-neutral-200/90 rounded-xl p-3 sm:p-4 text-left text-xs space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-neutral-100 text-[11px] font-semibold">
+                      <span className="text-neutral-500 uppercase tracking-wider text-[9px]">Captured Form Data</span>
+                      <span className="flex items-center gap-1 text-emerald-600 font-medium text-[10px]">
                         Stored · 38ms
                       </span>
                     </div>
 
-                    <div className="space-y-2 text-neutral-700 text-[12px]">
+                    <div className="space-y-1.5 text-neutral-700 text-[11px] sm:text-[12px]">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11.5px] shrink-0">Name:</span>
+                        <span className="text-neutral-400 text-[11px] shrink-0">Name:</span>
                         <span className="font-semibold text-neutral-900 truncate">{name || 'Alex Johnson'}</span>
                       </div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11.5px] shrink-0">Email:</span>
+                        <span className="text-neutral-400 text-[11px] shrink-0">Email:</span>
                         <span className="font-medium text-neutral-800 truncate">{email || 'alex@company.com'}</span>
                       </div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11.5px] shrink-0">Subject:</span>
+                        <span className="text-neutral-400 text-[11px] shrink-0">Subject:</span>
                         <span className="font-medium text-neutral-800 truncate">{subject || 'General Inquiry'}</span>
                       </div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-neutral-400 text-[11.5px] shrink-0">Message:</span>
-                        <span className="font-normal text-neutral-600 truncate max-w-[200px]">{message || 'Inquiry message'}</span>
+                        <span className="text-neutral-400 text-[11px] shrink-0">Message:</span>
+                        <span className="font-normal text-neutral-600 truncate max-w-[180px]">{message || 'Inquiry message'}</span>
                       </div>
                     </div>
                   </div>
@@ -402,26 +426,26 @@ export type ContactInput =
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-md bg-white border border-neutral-200 text-neutral-800 hover:text-neutral-950 hover:bg-neutral-50/80 hover:border-neutral-300 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 h-8 px-3.5 rounded-md bg-white border border-neutral-200 text-neutral-800 hover:text-neutral-950 hover:bg-neutral-50/80 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
                   >
-                    <RefreshCw className="w-3.5 h-3.5 text-neutral-500" />
+                    <RefreshCw className="w-3 h-3 text-neutral-500" />
                     <span>Test another submission</span>
                   </button>
                 </div>
               ) : (
-                /* Interactive Form Fields - Filling full height */
-                <form onSubmit={handleInteractiveSubmit} className="flex-1 flex flex-col justify-between space-y-3.5">
-                  <div className="space-y-3.5 flex-1 flex flex-col">
-                    {/* Full Name & Email Row (Side by side on sm) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                /* Interactive Form Fields */
+                <form onSubmit={handleInteractiveSubmit} className="flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-3 flex-1 flex flex-col">
+                    {/* Full Name & Email Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {/* Full Name Field */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs sm:text-[12.5px] font-semibold text-neutral-700">
+                          <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
                             Full Name <span className="text-brand-orange">*</span>
                           </label>
                           {formErrors.name && (
-                            <span className="text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                            <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-2.5 h-2.5" />
                               {formErrors.name}
                             </span>
@@ -435,20 +459,20 @@ export type ContactInput =
                             if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
                           }}
                           placeholder="Alex Johnson"
-                          className={`w-full text-xs sm:text-[13px] bg-white border ${
+                          className={`w-full text-xs bg-white border ${
                             formErrors.name ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                          } rounded-md px-3.5 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                          } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
                         />
                       </div>
 
                       {/* Email Field */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs sm:text-[12.5px] font-semibold text-neutral-700">
+                          <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
                             Work Email <span className="text-brand-orange">*</span>
                           </label>
                           {formErrors.email && (
-                            <span className="text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                            <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-2.5 h-2.5" />
                               {formErrors.email}
                             </span>
@@ -462,9 +486,9 @@ export type ContactInput =
                             if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
                           }}
                           placeholder="you@company.com"
-                          className={`w-full text-xs sm:text-[13px] bg-white border ${
+                          className={`w-full text-xs bg-white border ${
                             formErrors.email ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                          } rounded-md px-3.5 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                          } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
                         />
                       </div>
                     </div>
@@ -472,11 +496,11 @@ export type ContactInput =
                     {/* Subject Field */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs sm:text-[12.5px] font-semibold text-neutral-700">
+                        <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
                           Subject <span className="text-brand-orange">*</span>
                         </label>
                         {formErrors.subject && (
-                          <span className="text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                          <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                             <AlertCircle className="w-2.5 h-2.5" />
                             {formErrors.subject}
                           </span>
@@ -490,36 +514,36 @@ export type ContactInput =
                           if (formErrors.subject) setFormErrors({ ...formErrors, subject: undefined });
                         }}
                         placeholder="e.g. Next.js Form Validation"
-                        className={`w-full text-xs sm:text-[13px] bg-white border ${
+                        className={`w-full text-xs bg-white border ${
                           formErrors.subject ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                        } rounded-md px-3.5 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
+                        } rounded-md px-3 py-1.5 sm:py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors`}
                       />
                     </div>
 
-                    {/* Message Field (Flexes to fill remaining vertical height) */}
+                    {/* Message Field */}
                     <div className="space-y-1 flex-1 flex flex-col">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs sm:text-[12.5px] font-semibold text-neutral-700">
+                        <label className="text-[11px] sm:text-[12px] font-semibold text-neutral-700">
                           Message <span className="text-brand-orange">*</span>
                         </label>
                         {formErrors.message && (
-                          <span className="text-[10px] text-red-600 font-medium flex items-center gap-0.5">
+                          <span className="text-[9px] text-red-600 font-medium flex items-center gap-0.5">
                             <AlertCircle className="w-2.5 h-2.5" />
                             {formErrors.message}
                           </span>
                         )}
                       </div>
                       <textarea
-                        rows={4}
+                        rows={3}
                         value={message}
                         onChange={(e) => {
                           setMessage(e.target.value);
                           if (formErrors.message) setFormErrors({ ...formErrors, message: undefined });
                         }}
                         placeholder="Describe your inquiry in detail..."
-                        className={`w-full flex-1 min-h-[120px] text-xs sm:text-[13px] bg-white border ${
+                        className={`w-full flex-1 min-h-[90px] sm:min-h-[110px] text-xs bg-white border ${
                           formErrors.message ? 'border-red-400 focus:border-red-500' : 'border-neutral-200 focus:border-brand-orange'
-                        } rounded-md px-3.5 py-2.5 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors resize-none leading-relaxed`}
+                        } rounded-md px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-orange/20 shadow-2xs transition-colors resize-none leading-relaxed`}
                       />
                     </div>
                   </div>
@@ -528,7 +552,7 @@ export type ContactInput =
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-10 rounded-md bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 mt-2"
+                    className="w-full h-9 rounded-md bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 mt-1"
                   >
                     {isSubmitting ? (
                       <>
@@ -546,13 +570,10 @@ export type ContactInput =
               )}
             </div>
 
-            {/* Bottom Status bar matching hero preview footer */}
-            <div className="pt-3.5 mt-4 border-t border-neutral-200/70 flex items-center justify-between text-[11px] text-neutral-500 shrink-0">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Live Sync
-              </span>
-
+            {/* Bottom Status bar */}
+            <div className="pt-2.5 mt-3 border-t border-neutral-200/70 flex items-center justify-between text-[10px] text-neutral-500 shrink-0 font-mono">
+              <span>Ready for production</span>
+              <span className="text-neutral-400">Next.js App Router</span>
             </div>
           </div>
         </div>

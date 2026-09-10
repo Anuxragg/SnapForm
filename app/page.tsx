@@ -71,14 +71,14 @@ export default function LandingPage() {
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1 w-full sm:w-auto">
-            <Link href="/dashboard" className="w-full sm:w-auto">
-              <button className="rounded-[8px] bg-brand-orange hover:bg-brand-orange-hover text-white text-[13px] font-semibold px-5 h-9 flex items-center justify-center shadow-md transition-colors duration-200 w-full sm:w-auto cursor-pointer">
+          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-3 pt-1 w-full sm:w-auto">
+            <Link href="/dashboard">
+              <button className="rounded-[7px] sm:rounded-[8px] bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold px-3.5 sm:px-5 h-8 sm:h-9 flex items-center justify-center shadow-md transition-colors duration-200 cursor-pointer">
                 Hosting Form
               </button>
             </Link>
-            <Link href="/builder" className="w-full sm:w-auto">
-              <button className="rounded-[8px] bg-neutral-900/90 backdrop-blur-xl border border-white/10 text-white hover:bg-neutral-800/90 text-[13px] font-semibold px-5 h-9 shadow-md transition-colors duration-200 flex items-center justify-center w-full sm:w-auto cursor-pointer">
+            <Link href="/builder">
+              <button className="rounded-[7px] sm:rounded-[8px] bg-neutral-900/90 backdrop-blur-xl border border-white/10 text-white hover:bg-neutral-800/90 text-xs sm:text-[13px] font-semibold px-3.5 sm:px-5 h-8 sm:h-9 shadow-md transition-colors duration-200 flex items-center justify-center cursor-pointer">
                 Form Templates
               </button>
             </Link>
