@@ -88,7 +88,7 @@ export async function POST(
     const { formId } = await params;
 
     const rateLimit = checkRateLimit(`form_sub_${clientIp}`, {
-      limit: 30,
+      limit: 60,
       windowMs: 60 * 1000,
     });
 
@@ -102,17 +102,64 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const { data } = body;
+    let rawData: Record<string, any> = {};
+    const contentType = request.headers.get('content-type') || '';
 
-    if (!data || typeof data !== 'object') {
+    if (contentType.includes('application/json')) {
+      try {
+        const body = await request.json();
+        if (body && typeof body === 'object') {
+          rawData = body.data && typeof body.data === 'object' ? body.data : body;
+        }
+      } catch (e) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid JSON payload' },
+          { status: 400 }
+        );
+      }
+    } else if (
+      contentType.includes('application/x-www-form-urlencoded') ||
+      contentType.includes('multipart/form-data')
+    ) {
+      try {
+        const formData = await request.formData();
+        for (const [key, value] of formData.entries()) {
+          rawData[key] = value;
+        }
+      } catch (e) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid form data payload' },
+          { status: 400 }
+        );
+      }
+    } else {
+      try {
+        const body = await request.json();
+        if (body && typeof body === 'object') {
+          rawData = body.data && typeof body.data === 'object' ? body.data : body;
+        }
+      } catch {
+        try {
+          const formData = await request.formData();
+          for (const [key, value] of formData.entries()) {
+            rawData[key] = value;
+          }
+        } catch {
+          // fallback to empty
+          rawData = {};
+        }
+      }
+    }
+
+    if (!rawData || typeof rawData !== 'object') {
       return NextResponse.json(
         { success: false, message: 'Invalid submission data provided' },
         { status: 400 }
       );
     }
 
-    if (data._gotcha || data._honeypot || data.bot_trap) {
+    // Honeypot spam protection
+    if (rawData._gotcha || rawData._honeypot || rawData.bot_trap || rawData._bot) {
       return NextResponse.json(
         { success: false, message: 'Spam submission detected' },
         { status: 400 }
@@ -128,22 +175,33 @@ export async function POST(
       );
     }
 
-    const formFields = resolved.fields;
+    const formFields = resolved.fields || [];
     const isDbForm = !resolved.isPredefined && Boolean(resolved.dbId);
     const targetTemplateId = resolved.dbId ? new mongoose.Types.ObjectId(resolved.dbId) : null;
-
-    if (!formFields.length && !resolved.isPredefined) {
-      return NextResponse.json(
-        { success: false, message: 'Target form not found' },
-        { status: 404 }
-      );
-    }
 
     const validationErrors: Record<string, string> = {};
     const sanitizedData: Record<string, any> = {};
 
     for (const field of formFields) {
-      let val = data[field.id];
+      // Intelligent field key matching (exact id, lowercase, stripped, or common aliases)
+      let val = rawData[field.id];
+      if (val === undefined) {
+        val = rawData[field.id.toLowerCase()];
+      }
+      if (val === undefined && field.label) {
+        val = rawData[field.label] ?? rawData[field.label.toLowerCase()] ?? rawData[field.label.toLowerCase().replace(/\s+/g, '')];
+      }
+      if (val === undefined) {
+        if (['fullName', 'contactName', 'name', 'user_name'].includes(field.id)) {
+          val = rawData['name'] ?? rawData['fullName'] ?? rawData['fullname'] ?? rawData['contactName'] ?? rawData['contact_name'];
+        } else if (['email', 'workEmail', 'userEmail'].includes(field.id)) {
+          val = rawData['email'] ?? rawData['workEmail'] ?? rawData['userEmail'] ?? rawData['mail'];
+        } else if (['phone', 'phoneNumber', 'mobile'].includes(field.id)) {
+          val = rawData['phone'] ?? rawData['phoneNumber'] ?? rawData['tel'] ?? rawData['mobile'];
+        } else if (['message', 'comments', 'notes', 'inquiry'].includes(field.id)) {
+          val = rawData['message'] ?? rawData['comments'] ?? rawData['notes'] ?? rawData['inquiry'] ?? rawData['body'];
+        }
+      }
 
       if (typeof val === 'string') {
         val = val.replace(/\0/g, '').trim();
@@ -155,7 +213,7 @@ export async function POST(
           val === null ||
           val === '' ||
           (Array.isArray(val) && val.length === 0) ||
-          (field.type === 'checkbox' && val !== true && (!Array.isArray(val) || val.length === 0))
+          (field.type === 'checkbox' && val !== true && val !== 'true' && val !== 'on' && (!Array.isArray(val) || val.length === 0))
         ) {
           validationErrors[field.id] = `${field.label || 'This field'} is required`;
           continue;
@@ -212,28 +270,34 @@ export async function POST(
         }
       }
 
-      if (typeof val === 'string') {
-        if (field.validation) {
-          if (field.validation.minLength && val.length < field.validation.minLength) {
-            validationErrors[field.id] = `Must be at least ${field.validation.minLength} characters`;
-          }
-          if (field.validation.maxLength && val.length > field.validation.maxLength) {
-            validationErrors[field.id] = `Must not exceed ${field.validation.maxLength} characters`;
-          }
-          if (field.validation.pattern) {
-            try {
-              const regex = new RegExp(field.validation.pattern);
-              if (!regex.test(val)) {
-                validationErrors[field.id] = 'Invalid format';
-              }
-            } catch {
-              // ignore invalid regex
+      if (typeof val === 'string' && field.validation) {
+        if (field.validation.minLength && val.length < field.validation.minLength) {
+          validationErrors[field.id] = `Must be at least ${field.validation.minLength} characters`;
+        }
+        if (field.validation.maxLength && val.length > field.validation.maxLength) {
+          validationErrors[field.id] = `Must not exceed ${field.validation.maxLength} characters`;
+        }
+        if (field.validation.pattern) {
+          try {
+            const regex = new RegExp(field.validation.pattern);
+            if (!regex.test(val)) {
+              validationErrors[field.id] = 'Invalid format';
             }
+          } catch {
+            // ignore invalid regex
           }
         }
       }
 
       sanitizedData[field.id] = val;
+    }
+
+    // Include any additional unmapped fields from submission
+    for (const [key, value] of Object.entries(rawData)) {
+      if (key.startsWith('_')) continue;
+      if (sanitizedData[key] === undefined && value !== undefined && value !== '') {
+        sanitizedData[key] = typeof value === 'string' ? value.replace(/\0/g, '').trim() : value;
+      }
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -263,11 +327,31 @@ export async function POST(
         ipHash,
         userAgent,
       });
+
+      // Increment template submissions count
+      await FormTemplate.updateOne(
+        { _id: targetTemplateId },
+        { $inc: { submissions: 1 } }
+      ).catch(() => {});
+    }
+
+    // Support HTML form redirects if submitted from a standard browser HTML form
+    const acceptHeader = request.headers.get('accept') || '';
+    const nextUrl = rawData._next || rawData.next || rawData.redirect;
+    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+      if (nextUrl && typeof nextUrl === 'string' && (nextUrl.startsWith('/') || nextUrl.startsWith('http'))) {
+        return NextResponse.redirect(new URL(nextUrl, request.url));
+      }
+      return NextResponse.redirect(new URL(`/form/${resolved.id}?submitted=true`, request.url));
     }
 
     return NextResponse.json({
       success: true,
       message: 'Thank you! Your response has been recorded.',
+      data: {
+        formId: resolved.id,
+        submittedAt: new Date().toISOString(),
+      },
     });
   } catch (error: any) {
     console.error('Error handling form submission:', error);

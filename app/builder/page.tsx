@@ -26,9 +26,10 @@ import {
   Check,
   Download,
   Loader2,
-  ShieldCheck,
   X,
   FileCode2,
+  RotateCw,
+  Eye,
 } from 'lucide-react';
 import TemplateSelector from '@/components/form-builder/TemplateSelector';
 import FieldEditor from '@/components/form-builder/FieldEditor';
@@ -49,6 +50,7 @@ export default function BuilderPage() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [activeBuilderTab, setActiveBuilderTab] = useState('fields');
   const [copiedText, setCopiedText] = useState(false);
+  const [canvasView, setCanvasView] = useState<'preview' | 'code'>('preview');
   
   // Submissions Modal State
   const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
@@ -253,6 +255,7 @@ export default function BuilderPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: savedFormId || (selectedTemplate as any)?.shortId || (selectedTemplate as any)?._id,
           name: formName || 'My Saved Form',
           category: formCategory || 'contact',
           description: formDescription || `Custom saved form compiled by ${user.name}`,
@@ -322,8 +325,19 @@ export default function BuilderPage() {
     );
   }
 
-  const currentFormId = savedFormId || (selectedTemplate as any)?.shortId || (selectedTemplate as any)?._id;
-  const endpointUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${currentFormId || 'sf_sample'}`;
+  const currentFormId =
+    savedFormId ||
+    (selectedTemplate as any)?.shortId ||
+    (selectedTemplate as any)?.id ||
+    (selectedTemplate as any)?._id ||
+    'sf_sample';
+  const endpointUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${currentFormId}`;
+
+  const liveFormQuery = styling
+    ? `?theme=${styling.theme || 'modern'}&primaryColor=${encodeURIComponent(styling.primaryColor || '#ff4f19')}`
+    : '';
+  const liveFormHref = savedFormId ? `/form/${savedFormId}` : `/form/${currentFormId}${liveFormQuery}`;
+  const liveFormFullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${liveFormHref}`;
 
   return (
     <div className="h-screen bg-white text-brand-charcoal font-sans flex flex-col antialiased overflow-hidden selection:bg-brand-orange selection:text-white">
@@ -380,7 +394,7 @@ export default function BuilderPage() {
           {selectedTemplate && (
             <>
               {currentFormId && (
-                <Link href={`/form/${currentFormId}`} target="_blank">
+                <Link href={liveFormHref} target="_blank">
                   <button
                     className="h-8 px-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     title="Open live public form link"
@@ -510,10 +524,10 @@ export default function BuilderPage() {
             </div>
           </div>
         ) : (
-          /* 3-Column Studio Editor */
+          /* 2-Column Studio Editor (Form Config Left, Unified Preview & Code Canvas Right) */
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 border-t border-neutral-200 h-full overflow-hidden">
             {/* Left Config Panel (Fields / Styling / Settings / Integrations) */}
-            <div className="lg:col-span-4 border-r border-neutral-200 bg-white flex flex-col overflow-hidden h-full">
+            <div className="lg:col-span-5 xl:col-span-4 border-r border-neutral-200 bg-white flex flex-col overflow-hidden h-full">
               <Tabs
                 value={activeBuilderTab}
                 onValueChange={setActiveBuilderTab}
@@ -614,17 +628,6 @@ export default function BuilderPage() {
                         className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-normal text-brand-charcoal outline-none focus:border-brand-orange focus:bg-white transition-all resize-none"
                       />
                     </div>
-
-                    {/* Security & Spam Protection */}
-                    <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2">
-                      <div className="flex items-center gap-2 text-brand-charcoal font-bold text-xs">
-                        <ShieldCheck className="w-4 h-4 text-brand-orange" />
-                        <span>Spam Protection & Rate Limiting</span>
-                      </div>
-                      <p className="text-[11px] text-neutral-500">
-                        Bot detection and IP-hash rate limiting are active automatically across all submissions.
-                      </p>
-                    </div>
                   </div>
                 </TabsContent>
 
@@ -651,9 +654,9 @@ export default function BuilderPage() {
                         />
                         <button
                           onClick={() => handleCopyEndpoint(endpointUrl)}
-                          className="px-3 py-2 rounded-xl bg-brand-charcoal text-white hover:bg-black text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                          className="h-9 px-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 hover:text-neutral-900 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 shrink-0"
                         >
-                          {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-neutral-500" />}
                           <span>{copiedText ? 'Copied' : 'Copy'}</span>
                         </button>
                       </div>
@@ -678,7 +681,7 @@ export default function BuilderPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-brand-charcoal">Public Hosted Page</span>
                           <a
-                            href={`/form/${currentFormId}`}
+                            href={liveFormHref}
                             target="_blank"
                             rel="noreferrer"
                             className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1"
@@ -688,7 +691,7 @@ export default function BuilderPage() {
                           </a>
                         </div>
                         <p className="text-[11px] text-neutral-500 font-mono break-all">
-                          {`${typeof window !== 'undefined' ? window.location.origin : ''}/form/${currentFormId}`}
+                          {liveFormFullUrl}
                         </p>
                       </div>
                     )}
@@ -697,18 +700,99 @@ export default function BuilderPage() {
               </Tabs>
             </div>
 
-            {/* Center Panel (Interactive Live Canvas) */}
-            <div className="lg:col-span-4 bg-neutral-50/70 border-r border-neutral-200 overflow-y-auto p-6 md:p-8 h-full flex flex-col justify-start">
-              <LivePreview fields={fields} styling={styling} formName={formName} />
-            </div>
+            {/* Right Main Panel (Unified Code & Preview Studio Canvas) */}
+            <div className="lg:col-span-7 xl:col-span-8 bg-neutral-100/60 p-3 sm:p-5 md:p-6 flex flex-col h-full overflow-hidden">
+              {/* Studio Component Container Card matching 21st.dev / reference image */}
+              <div className="bg-white rounded-2xl md:rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col h-full overflow-hidden text-neutral-900">
+                {/* Card Header Toolbar (Light Theme matching reference) */}
+                <div className="px-4 md:px-5 h-10 border-b border-neutral-200/80 flex items-center justify-between shrink-0 bg-[#f9fafb]">
+                  {/* Left: Icon & Component Name */}
+                  <div className="flex items-center gap-2 text-neutral-600 font-mono text-xs">
+                    <FileCode2 className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                    <span className="font-semibold text-neutral-800 tracking-tight truncate max-w-[160px] sm:max-w-xs">
+                      {formName || 'Form Component'}
+                    </span>
+                  </div>
 
-            {/* Right Panel (Generated React/Next.js/Zod Code Output) */}
-            <div className="lg:col-span-4 bg-white overflow-hidden p-5 h-full">
-              <CodeOutput
-                code={generatedCode}
-                formName={formName}
-                isLoading={generationLoading}
-              />
+                  {/* Right: Actions and Tab Switcher */}
+                  <div className="flex items-center gap-3 sm:gap-4 h-full">
+                    {/* Refresh / Recompile button */}
+                    <button
+                      onClick={() => {
+                        if (canvasView === 'code') {
+                          handleGenerateCode();
+                        } else {
+                          toast.info('Interactive preview canvas active');
+                        }
+                      }}
+                      disabled={generationLoading}
+                      title={canvasView === 'code' ? 'Recompile Code' : 'Refresh Preview'}
+                      className="text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer p-1 rounded-md hover:bg-neutral-100 active:scale-95"
+                    >
+                      <RotateCw className={`w-3.5 h-3.5 ${generationLoading ? 'animate-spin text-brand-orange' : ''}`} />
+                    </button>
+
+                    {/* Tab Switcher: Code | Preview matching exact reference design */}
+                    <div className="flex items-center gap-3.5 text-xs font-mono h-full">
+                      <button
+                        onClick={() => {
+                          setCanvasView('code');
+                          if (!generatedCode) handleGenerateCode();
+                        }}
+                        className={`h-full flex items-center cursor-pointer transition-colors relative ${
+                          canvasView === 'code'
+                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-neutral-900'
+                            : 'text-neutral-400 hover:text-neutral-700 font-medium'
+                        }`}
+                      >
+                        Code
+                      </button>
+                      <button
+                        onClick={() => setCanvasView('preview')}
+                        className={`h-full flex items-center cursor-pointer transition-colors relative ${
+                          canvasView === 'preview'
+                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-neutral-900'
+                            : 'text-neutral-400 hover:text-neutral-700 font-medium'
+                        }`}
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Body Area */}
+                <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
+                  {canvasView === 'preview' ? (
+                    <div
+                      className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-start text-brand-charcoal relative transition-colors duration-300 ${
+                        styling.theme === 'dark'
+                          ? 'bg-[#0b0f17]'
+                          : styling.theme === 'modern' || !styling.theme
+                            ? 'bg-gradient-to-tr from-slate-100/90 via-violet-50/50 to-orange-50/40'
+                            : 'bg-neutral-50/60'
+                      }`}
+                    >
+                      <LivePreview
+                        fields={fields}
+                        styling={styling}
+                        formName={formName}
+                        formDescription={formDescription}
+                        formCategory={formCategory}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-hidden p-0 flex flex-col min-h-0 bg-white text-neutral-900">
+                      <CodeOutput
+                        code={generatedCode}
+                        formName={formName}
+                        isLoading={generationLoading}
+                        onCompile={handleGenerateCode}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

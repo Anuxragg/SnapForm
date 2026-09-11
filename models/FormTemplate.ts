@@ -17,8 +17,11 @@ export interface IFormField {
 }
 
 export interface IFormStyling {
-  theme: 'minimal' | 'modern' | 'corporate';
+  theme: 'minimal' | 'modern' | 'neobrutalist' | 'dark';
   primaryColor: string;
+  borderRadius?: 'sharp' | 'subtle' | 'rounded' | 'pill';
+  inputVariant?: 'outlined' | 'filled' | 'underline';
+  buttonStyle?: 'solid' | 'gradient' | 'outline' | 'shadow';
 }
 
 export type FormCategory =
@@ -66,10 +69,13 @@ const FormFieldSchema = new Schema<IFormField>({
 const FormStylingSchema = new Schema<IFormStyling>({
   theme: {
     type: String,
-    enum: ['minimal', 'modern', 'corporate'],
+    enum: ['minimal', 'modern', 'neobrutalist', 'dark'],
     default: 'modern',
   },
   primaryColor: { type: String, default: '#ff4f19' },
+  borderRadius: { type: String, enum: ['sharp', 'subtle', 'rounded', 'pill'], default: 'rounded' },
+  inputVariant: { type: String, enum: ['outlined', 'filled', 'underline'], default: 'outlined' },
+  buttonStyle: { type: String, enum: ['solid', 'gradient', 'outline', 'shadow'], default: 'solid' },
 });
 
 const FormTemplateSchema = new Schema<IFormTemplate>(

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
-import FormTemplate, { IFormTemplate } from '@/models/FormTemplate';
+import FormTemplate, { IFormTemplate, IFormStyling } from '@/models/FormTemplate';
 import FormView from '@/models/FormView';
 import { PREDEFINED_TEMPLATES, ISeedFormTemplate } from '@/lib/templates';
 import { generateShortId, getDeterministicShortId } from '@/lib/utils';
@@ -14,10 +14,7 @@ export interface ResolvedFormResult {
   category: string;
   description: string;
   fields: any[];
-  styling: {
-    theme: 'minimal' | 'modern' | 'corporate';
-    primaryColor: string;
-  };
+  styling: IFormStyling;
   rawDoc?: IFormTemplate | null;
 }
 
@@ -40,14 +37,40 @@ export async function resolveForm(
   const normalizedId = rawId.toLowerCase();
   const cleanId = rawId.replace(/^sf_/, '');
 
-  // ─── 1. Check Predefined Blueprint Catalog ────────────────────────────────────
+  // ─── 1. Check Sample / Demo Fallbacks & Predefined Blueprint Catalog ──────────
+  if (
+    normalizedId === 'sf_sample' ||
+    normalizedId === 'sample' ||
+    cleanId === 'sample' ||
+    normalizedId === 'demo' ||
+    normalizedId === 'test'
+  ) {
+    const sample = PREDEFINED_TEMPLATES[0];
+    return {
+      found: true,
+      isPredefined: true,
+      id: 'sf_sample',
+      name: sample.name,
+      category: sample.category,
+      description: sample.description,
+      fields: sample.fields || [],
+      styling: sample.styling || { theme: 'modern', primaryColor: '#ff4f19' },
+      rawDoc: null,
+    };
+  }
+
   const predefined = PREDEFINED_TEMPLATES.find(
     (t) =>
       t.id?.toLowerCase() === normalizedId ||
+      t.id?.toLowerCase() === cleanId.toLowerCase() ||
       t.category?.toLowerCase() === normalizedId ||
+      t.category?.toLowerCase() === cleanId.toLowerCase() ||
       `${t.category}-starter`.toLowerCase() === normalizedId ||
+      `${t.category}-starter`.toLowerCase() === cleanId.toLowerCase() ||
       t.id?.replace('-starter', '').toLowerCase() === normalizedId ||
-      t.name?.toLowerCase().replace(/\s+/g, '-') === normalizedId
+      t.id?.replace('-starter', '').toLowerCase() === cleanId.toLowerCase() ||
+      t.name?.toLowerCase().replace(/\s+/g, '-') === normalizedId ||
+      t.name?.toLowerCase().replace(/\s+/g, '-') === cleanId.toLowerCase()
   );
 
   if (predefined) {

@@ -3,37 +3,89 @@ import { IFormField, IFormStyling } from '@/models/FormTemplate';
 export function generateReactComponent(
   fields: IFormField[],
   styling: IFormStyling,
-  formName: string = 'Form'
+  formName: string = 'Form',
+  description?: string,
+  category?: string
 ): string {
-  const componentName = formName.replace(/\s+/g, '');
+  const componentName = formName.replace(/[^a-zA-Z0-9]/g, '') || 'CustomForm';
   const schemaName = `${componentName}Schema`;
   const inputName = `${componentName}Input`;
   
   // Theme-specific CSS classes
-  let cardClass = '';
-  let inputClass = '';
-  let buttonClass = 'w-full text-white font-medium transition-all duration-200 ';
+  const isDark = styling.theme === 'dark';
+  let radiusClass = 'rounded-2xl';
+  let inputRadiusClass = 'rounded-xl';
+  let buttonRadiusClass = 'rounded-xl';
 
-  switch (styling.theme) {
-    case 'minimal':
-      cardClass = 'border border-neutral-200 bg-white rounded-none shadow-none p-6 max-w-lg mx-auto';
-      inputClass = 'rounded-none border-neutral-300 focus:border-neutral-900 focus-visible:ring-0';
-      buttonClass += 'rounded-none hover:opacity-90';
+  switch (styling.borderRadius) {
+    case 'sharp':
+      radiusClass = 'rounded-none';
+      inputRadiusClass = 'rounded-none';
+      buttonRadiusClass = 'rounded-none';
       break;
-    case 'corporate':
-      cardClass = 'border border-slate-300 bg-slate-50 rounded-md shadow-md p-6 max-w-lg mx-auto';
-      inputClass = 'rounded-md border-slate-300 bg-white focus:border-slate-800';
-      buttonClass += 'rounded-md shadow hover:brightness-95';
+    case 'subtle':
+      radiusClass = 'rounded-xl';
+      inputRadiusClass = 'rounded-lg';
+      buttonRadiusClass = 'rounded-lg';
       break;
-    case 'modern':
+    case 'pill':
+      radiusClass = 'rounded-3xl';
+      inputRadiusClass = 'rounded-2xl';
+      buttonRadiusClass = 'rounded-full';
+      break;
+    case 'rounded':
     default:
-      cardClass = 'border border-neutral-200/60 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl shadow-neutral-100/50 p-8 max-w-lg mx-auto';
-      inputClass = 'rounded-xl border-neutral-200 focus:ring-2';
-      buttonClass += 'rounded-xl shadow-lg shadow-primary-500/20 hover:scale-[1.01] active:scale-[0.99]';
+      radiusClass = 'rounded-2xl';
+      inputRadiusClass = 'rounded-xl';
+      buttonRadiusClass = 'rounded-xl';
       break;
   }
 
+  let cardClass = '';
+  switch (styling.theme) {
+    case 'neobrutalist':
+      cardClass = `border-2 border-black bg-white ${radiusClass} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8 max-w-lg mx-auto`;
+      break;
+    case 'dark':
+      cardClass = `border border-neutral-800 bg-[#131722] text-white ${radiusClass} shadow-2xl p-8 max-w-lg mx-auto`;
+      break;
+    case 'minimal':
+      cardClass = `border-2 border-neutral-900 bg-white ${radiusClass} shadow-none p-8 max-w-lg mx-auto`;
+      break;
+    case 'modern':
+    default:
+      cardClass = `backdrop-blur-3xl bg-white/45 border border-white/85 ${radiusClass} shadow-[0_25px_60px_-15px_rgba(0,0,0,0.08),inset_0_1.5px_2px_rgba(255,255,255,1)] p-8 max-w-lg mx-auto`;
+      break;
+  }
+
+  let inputClass = `${inputRadiusClass} transition-all `;
+  if (isDark) {
+    inputClass += 'bg-[#181f2c] border border-neutral-700 text-white';
+  } else if (styling.theme === 'minimal') {
+    inputClass += 'bg-neutral-50/80 border border-neutral-300 text-neutral-900 font-mono text-xs placeholder:text-neutral-400 hover:border-neutral-900 focus:border-neutral-900 focus:bg-white';
+  } else if (styling.theme === 'modern') {
+    inputClass += 'bg-white/50 backdrop-blur-xl border border-white/70 text-neutral-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.03)] focus:bg-white/85';
+  } else if (styling.theme === 'neobrutalist') {
+    inputClass += 'border-2 border-black bg-white text-neutral-900 font-medium';
+  } else {
+    inputClass += 'border-neutral-200 bg-white text-neutral-900';
+  }
+
+  let buttonClass = `w-full text-white font-bold transition-all duration-200 ${buttonRadiusClass} py-3 h-11 `;
+  if (styling.theme === 'neobrutalist') {
+    buttonClass += 'border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5';
+  } else if (styling.theme === 'minimal') {
+    buttonClass += 'font-mono uppercase tracking-widest text-xs font-bold shadow-none hover:opacity-90 active:scale-[0.99]';
+  } else if (styling.theme === 'modern') {
+    buttonClass += 'shadow-lg hover:opacity-95 active:scale-[0.99] border border-white/30 backdrop-blur-md';
+  } else {
+    buttonClass += 'hover:opacity-90 active:scale-[0.99] shadow-sm';
+  }
+
   // Generate component fields markup
+  const labelClass = isDark ? 'text-sm font-semibold text-neutral-200' : 'text-sm font-semibold text-neutral-700';
+  const subLabelClass = isDark ? 'text-sm font-normal text-neutral-300 cursor-pointer' : 'text-sm font-normal text-neutral-600 cursor-pointer';
+
   const fieldsMarkup = fields
     .map((field) => {
       const requiredAsterisk = field.required ? ' <span className="text-red-500">*</span>' : '';
@@ -45,7 +97,7 @@ export function generateReactComponent(
         case 'email':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="text-sm font-semibold text-neutral-700">
+          <Label htmlFor="${field.id}" className="${labelClass}">
             ${field.label}${requiredAsterisk}
           </Label>
           <Input
@@ -64,7 +116,7 @@ export function generateReactComponent(
         case 'textarea':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="text-sm font-semibold text-neutral-700">
+          <Label htmlFor="${field.id}" className="${labelClass}">
             ${field.label}${requiredAsterisk}
           </Label>
           <Textarea
@@ -86,7 +138,7 @@ export function generateReactComponent(
             
           fieldElement = `
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-neutral-700">
+          <Label className="${labelClass}">
             ${field.label}${requiredAsterisk}
           </Label>
           <Controller
@@ -115,7 +167,7 @@ ${selectOptions}
               const optId = `${field.id}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
               return `              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="${opt}" id="${optId}" />
-                <Label htmlFor="${optId}" className="text-sm font-normal text-neutral-600 cursor-pointer">
+                <Label htmlFor="${optId}" className="${subLabelClass}">
                   ${opt}
                 </Label>
               </div>`;
@@ -124,7 +176,7 @@ ${selectOptions}
             
           fieldElement = `
         <div className="space-y-2">
-          <Label className="text-sm font-semibold text-neutral-700">
+          <Label className="${labelClass}">
             ${field.label}${requiredAsterisk}
           </Label>
           <Controller
@@ -160,7 +212,7 @@ ${radioItems}
                     }
                   }}
                 />
-                <Label className="text-sm font-normal text-neutral-600 cursor-pointer">
+                <Label className="${subLabelClass}">
                   ${opt}
                 </Label>
               </div>`;
@@ -197,7 +249,7 @@ ${checkboxItems}
             )}
           />
           <div className="space-y-1 leading-none">
-            <Label htmlFor="${field.id}" className="text-sm font-semibold text-neutral-700 cursor-pointer">
+            <Label htmlFor="${field.id}" className="${labelClass} cursor-pointer">
               ${field.label}${requiredAsterisk}
             </Label>
             {errors.${field.id} && (
@@ -211,7 +263,7 @@ ${checkboxItems}
         case 'file':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="text-sm font-semibold text-neutral-700">
+          <Label htmlFor="${field.id}" className="${labelClass}">
             ${field.label}${requiredAsterisk}
           </Label>
           <Input
@@ -316,7 +368,7 @@ export default function ${componentName}() {
           ${formName}
         </CardTitle>
         <CardDescription className="text-neutral-500">
-          Please fill out the form details below.
+          ${description ? description.replace(/"/g, '\\"') : 'Please fill out the form details below.'}
         </CardDescription>
       </CardHeader>
       

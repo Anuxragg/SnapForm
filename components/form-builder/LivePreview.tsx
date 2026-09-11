@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Eye } from 'lucide-react';
+import {
+  Mail,
+  CreditCard,
+  Sparkles,
+  Calendar,
+  UserPlus,
+  MessageSquare,
+  Briefcase,
+  Tag,
+} from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { z } from 'zod';
 
@@ -20,9 +28,37 @@ interface LivePreviewProps {
   fields: IFormField[];
   styling: IFormStyling;
   formName: string;
+  formDescription?: string;
+  formCategory?: string;
 }
 
-export default function LivePreview({ fields, styling, formName }: LivePreviewProps) {
+const categoryLabels: Record<string, string> = {
+  contact: 'Contact & Leads',
+  payment: 'Payment & Checkout',
+  survey: 'Feedback & Survey',
+  booking: 'Booking & Scheduling',
+  registration: 'Event Registration',
+  feedback: 'User Feedback',
+  application: 'Job Application',
+};
+
+const categoryIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  contact: Mail,
+  payment: CreditCard,
+  survey: Sparkles,
+  booking: Calendar,
+  registration: UserPlus,
+  feedback: MessageSquare,
+  application: Briefcase,
+};
+
+export default function LivePreview({
+  fields,
+  styling,
+  formName,
+  formDescription,
+  formCategory,
+}: LivePreviewProps) {
   // Let's dynamically construct a Zod schema in the frontend to validate the interactive preview!
   const buildDynamicZodSchema = () => {
     const shape: any = {};
@@ -149,55 +185,174 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
     });
   };
 
-  // Layout themes
-  let cardClass = '';
-  let inputClass = '';
-  let buttonClass = 'w-full text-white font-medium transition-all duration-200 cursor-pointer ';
+  const isMinimal = styling.theme === 'minimal';
+  const isDarkTheme = styling.theme === 'dark';
+  const isNeobrutalist = styling.theme === 'neobrutalist';
+  const isLiquidGlass = styling.theme === 'modern' || !styling.theme;
 
-  switch (styling.theme) {
-    case 'minimal':
-      cardClass = 'border border-neutral-200 bg-white rounded-none shadow-none p-6';
-      inputClass = 'rounded-none border-neutral-300 focus:border-neutral-900 focus-visible:ring-0';
-      buttonClass += 'rounded-none hover:opacity-90';
-      break;
-    case 'corporate':
-      cardClass = 'border border-slate-300 bg-slate-50 rounded-md shadow-md p-6';
-      inputClass = 'rounded-md border-slate-300 bg-white focus:border-slate-800';
-      buttonClass += 'rounded-md shadow hover:brightness-95';
-      break;
-    case 'modern':
-    default:
-      cardClass = 'border border-brand-border bg-white rounded-2xl shadow-xl shadow-brand-charcoal/5 p-8';
-      inputClass = 'rounded-xl border-brand-border focus:ring-2 focus:ring-brand-orange/20';
-      buttonClass += 'rounded-xl shadow-lg shadow-brand-orange/10 hover:scale-[1.01] active:scale-[0.99]';
-      break;
+  // 1. Calculate Radius according to theme
+  let radiusClass = 'rounded-2xl';
+  let inputRadiusClass = 'rounded-xl';
+  let buttonRadiusClass = 'rounded-xl';
+
+  if (isMinimal || isNeobrutalist) {
+    radiusClass = 'rounded-none';
+    inputRadiusClass = 'rounded-none';
+    buttonRadiusClass = 'rounded-none';
+  } else if (isDarkTheme) {
+    radiusClass = 'rounded-2xl';
+    inputRadiusClass = 'rounded-xl';
+    buttonRadiusClass = 'rounded-xl';
+  } else {
+    // Liquid Glass
+    radiusClass = 'rounded-3xl';
+    inputRadiusClass = 'rounded-2xl';
+    buttonRadiusClass = 'rounded-2xl';
+  }
+
+  // 2. Calculate Theme & Card styling
+  let cardClass = '';
+  let labelColor = 'text-neutral-700 font-bold';
+  let subLabelColor = 'text-neutral-600';
+  let titleColor = 'text-neutral-900';
+  let descColor = 'text-neutral-500';
+
+  if (isDarkTheme) {
+    labelColor = 'text-neutral-200 font-semibold';
+    subLabelColor = 'text-neutral-300';
+    titleColor = 'text-white';
+    descColor = 'text-neutral-400';
+    cardClass = `border border-neutral-800 bg-[#121620] text-white ${radiusClass} shadow-2xl p-6 sm:p-8`;
+  } else if (isNeobrutalist) {
+    labelColor = 'text-black font-extrabold uppercase text-xs tracking-wider';
+    subLabelColor = 'text-neutral-800 font-bold';
+    titleColor = 'text-black font-black uppercase tracking-tight';
+    descColor = 'text-neutral-600 font-medium';
+    cardClass = `border-2 border-black bg-white ${radiusClass} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-8`;
+  } else if (isMinimal) {
+    labelColor = 'text-neutral-900 font-mono font-bold uppercase text-[11px] tracking-widest';
+    subLabelColor = 'text-neutral-700 font-mono text-xs';
+    titleColor = 'text-neutral-950 font-mono font-bold tracking-tight text-xl';
+    descColor = 'text-neutral-500 font-mono text-xs';
+    cardClass = `border-2 border-neutral-900 bg-white ${radiusClass} shadow-none p-6 sm:p-10`;
+  } else {
+    // Liquid Glass
+    labelColor = 'text-neutral-800 font-bold';
+    subLabelColor = 'text-neutral-600';
+    titleColor = 'text-neutral-950 font-extrabold';
+    descColor = 'text-neutral-500 font-medium';
+    cardClass = `backdrop-blur-3xl bg-white/45 border border-white/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12),0_10px_20px_-5px_rgba(0,0,0,0.04),inset_0_1.5px_2px_rgba(255,255,255,0.9),inset_0_-1.5px_2px_rgba(0,0,0,0.03)] ${radiusClass} p-6 sm:p-8 relative overflow-hidden`;
+  }
+
+  // 3. Calculate Input Field Variant
+  let inputClass = `${inputRadiusClass} transition-all `;
+  if (isDarkTheme) {
+    inputClass += 'bg-[#181f2c] border border-neutral-700/80 text-white placeholder:text-neutral-500 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20';
+  } else if (isMinimal) {
+    inputClass += 'bg-neutral-50/80 border border-neutral-300 text-neutral-900 font-mono text-xs placeholder:text-neutral-400 hover:border-neutral-900 focus:border-neutral-900 focus:bg-white focus:ring-0';
+  } else if (isNeobrutalist) {
+    inputClass += 'border-2 border-black bg-white text-neutral-900 font-medium focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]';
+  } else {
+    // Liquid Glass
+    inputClass += 'bg-white/50 backdrop-blur-xl border border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.02)] text-neutral-900 placeholder:text-neutral-400 hover:bg-white/65 focus:bg-white/85 focus:border-white focus:ring-4 focus:ring-brand-orange/20';
+  }
+
+  // 4. Calculate Button Style
+  let buttonClass = `w-full font-bold transition-all duration-200 cursor-pointer ${buttonRadiusClass} py-2.5 h-11 `;
+  let buttonInlineStyle: React.CSSProperties = {};
+
+  const primaryColor = styling.primaryColor || '#ff4f19';
+
+  if (isNeobrutalist) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+      boxShadow: '4px 4px 0px 0px #000000',
+    };
+    buttonClass += 'text-white border-2 border-black active:translate-x-0.5 active:translate-y-0.5';
+  } else if (isMinimal) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+    };
+    buttonClass += 'text-white font-mono uppercase tracking-widest text-xs font-bold shadow-none hover:opacity-90 active:scale-[0.99]';
+  } else if (isDarkTheme) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+      boxShadow: `0 8px 25px -4px ${primaryColor}77, inset 0 1px 1px rgba(255,255,255,0.3)`,
+    };
+    buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative';
+  } else {
+    // Liquid Glass
+    buttonInlineStyle = {
+      background: `linear-gradient(180deg, ${primaryColor} 0%, ${primaryColor}e6 100%)`,
+      boxShadow: `0 10px 28px -4px ${primaryColor}55, inset 0 1.5px 1.5px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.12)`,
+    };
+    buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative border border-white/30 backdrop-blur-md';
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6">
-      {/* Canvas Header */}
-      <div className="flex items-center gap-2 text-neutral-400 bg-neutral-50 border border-neutral-200/40 px-4 py-2.5 rounded-2xl w-fit mx-auto text-xs font-semibold shadow-sm">
-        <Eye className="w-3.5 h-3.5 text-neutral-500" /> Interactive Live Preview Canvas
-      </div>
-
+    <div className="w-full max-w-xl mx-auto space-y-6 relative py-4">
+      {/* Ambient colorful fluid mesh background for Liquid Glass refraction */}
+      {isLiquidGlass && (
+        <div className="absolute -inset-12 pointer-events-none overflow-visible -z-10">
+          <div
+            className="absolute -top-12 -left-12 w-80 h-80 rounded-full blur-2xl opacity-75 animate-pulse"
+            style={{ backgroundColor: `${primaryColor}40` }}
+          />
+          <div className="absolute top-1/4 -right-12 w-96 h-96 rounded-full bg-gradient-to-br from-violet-500/35 to-indigo-500/30 blur-3xl" />
+          <div className="absolute -bottom-16 left-1/6 w-88 h-88 rounded-full bg-gradient-to-tr from-cyan-400/40 via-sky-300/30 to-emerald-300/30 blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full bg-pink-400/25 blur-2xl" />
+        </div>
+      )}
       {fields.length === 0 ? (
-        <Card className="border border-dashed border-neutral-200 p-12 text-center rounded-2xl bg-white/60">
+        <div className="border border-dashed border-neutral-200 p-12 text-center rounded-2xl bg-white/60">
           <p className="text-sm font-medium text-neutral-500">Your live preview is empty.</p>
           <p className="text-xs text-neutral-400 mt-1">Configure fields in the visual panel to visualize in real-time.</p>
-        </Card>
+        </div>
       ) : (
-        <Card className={`${cardClass} transition-all duration-300`}>
-          <CardHeader className="space-y-1.5 text-left">
-            <CardTitle className="text-2xl font-bold tracking-tight text-neutral-900">
+        <div className={`${cardClass} transition-all duration-300`}>
+          <div className="text-left mb-6 space-y-2">
+            {formCategory && (
+              <div className="flex items-center">
+                {(() => {
+                  const CategoryIcon = categoryIcons[formCategory] || Tag;
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide ${
+                        isNeobrutalist
+                          ? 'border-2 border-black bg-black text-white rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] uppercase text-[10px] font-black'
+                          : isMinimal
+                            ? 'border border-neutral-900 bg-neutral-100 text-neutral-900 font-mono rounded-none uppercase text-[10px] font-bold tracking-widest'
+                            : isDarkTheme
+                              ? 'rounded-full bg-[#181f2c]/90 backdrop-blur-md text-neutral-200 border border-neutral-700/80 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                              : 'rounded-full bg-white/90 backdrop-blur-md text-neutral-800 border border-white shadow-[0_4px_14px_-2px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]'
+                      }`}
+                    >
+                      <CategoryIcon
+                        className={`w-3.5 h-3.5 shrink-0 ${
+                          isNeobrutalist ? 'text-white' : isMinimal ? 'text-neutral-900' : ''
+                        }`}
+                        style={
+                          !isNeobrutalist && !isMinimal
+                            ? { color: primaryColor }
+                            : undefined
+                        }
+                      />
+                      <span className="leading-tight">{categoryLabels[formCategory] || formCategory}</span>
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+            <h2 className={`text-2xl font-bold tracking-tight ${titleColor} font-heading leading-tight pt-0.5`}>
               {formName || 'Crafted Form'}
-            </CardTitle>
-            <CardDescription className="text-neutral-500">
-              Please fill out the form details below.
-            </CardDescription>
-          </CardHeader>
+            </h2>
+            <p className={`text-xs sm:text-[13px] ${descColor} leading-relaxed`}>
+              {formDescription || 'Please fill out the form details below.'}
+            </p>
+          </div>
 
-          <form key={fields.map(f => `${f.id}-${f.required}`).join('-')} onSubmit={handleSubmit(onSubmit)}>
-            <CardContent className="space-y-5 text-left">
+          <form key={fields.map(f => `${f.id}-${f.required}`).join('-')} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="space-y-5 text-left">
               {fields.map((field) => {
                 const requiredAsterisk = field.required ? (
                   <span className="text-rose-500 font-bold ml-0.5">*</span>
@@ -211,7 +366,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                   case 'email':
                     element = (
                       <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className="text-sm font-bold text-neutral-700">
+                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
                           {field.label}
                           {requiredAsterisk}
                         </Label>
@@ -232,7 +387,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                   case 'textarea':
                     element = (
                       <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className="text-sm font-bold text-neutral-700">
+                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
                           {field.label}
                           {requiredAsterisk}
                         </Label>
@@ -252,7 +407,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                   case 'select':
                     element = (
                       <div key={field.id} className="space-y-1.5">
-                        <Label className="text-sm font-bold text-neutral-700">
+                        <Label className={`text-sm ${labelColor}`}>
                           {field.label}
                           {requiredAsterisk}
                         </Label>
@@ -261,12 +416,12 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                           name={field.id}
                           render={({ field: { onChange, value } }) => (
                             <Select onValueChange={onChange} value={value || ''}>
-                              <SelectTrigger className={`bg-white ${inputClass}`}>
+                              <SelectTrigger className={inputClass}>
                                 <SelectValue placeholder={field.placeholder || 'Select an option'} />
                               </SelectTrigger>
-                              <SelectContent className="rounded-xl">
+                              <SelectContent className={`rounded-xl ${isDarkTheme ? 'bg-[#181f2c] border-neutral-700 text-white' : 'bg-white'}`}>
                                 {(field.options || []).map((opt) => (
-                                  <SelectItem key={opt} value={opt} className="text-sm">
+                                  <SelectItem key={opt} value={opt} className={`text-sm ${isDarkTheme ? 'text-neutral-200 focus:bg-neutral-700 focus:text-white' : ''}`}>
                                     {opt}
                                   </SelectItem>
                                 ))}
@@ -284,7 +439,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                   case 'radio':
                     element = (
                       <div key={field.id} className="space-y-1.5">
-                        <Label className="text-sm font-bold text-neutral-700">
+                        <Label className={`text-sm ${labelColor}`}>
                           {field.label}
                           {requiredAsterisk}
                         </Label>
@@ -295,13 +450,26 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                             <RadioGroup onValueChange={onChange} value={value || ''} className="flex flex-col space-y-2 mt-1">
                               {(field.options || []).map((opt) => {
                                 const optId = `preview-opt-${field.id}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                                const isChecked = value === opt;
                                 return (
-                                  <div key={opt} className="flex items-center space-x-2.5">
+                                  <label
+                                    key={opt}
+                                    htmlFor={optId}
+                                    className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                                      isChecked
+                                        ? isDarkTheme
+                                          ? 'border-brand-orange bg-[#1f2838]'
+                                          : 'border-brand-orange bg-brand-orange/5'
+                                        : isDarkTheme
+                                          ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
+                                          : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                                    }`}
+                                  >
                                     <RadioGroupItem value={opt} id={optId} className="cursor-pointer" />
-                                    <Label htmlFor={optId} className="text-sm font-normal text-neutral-600 cursor-pointer">
+                                    <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
                                       {opt}
-                                    </Label>
-                                  </div>
+                                    </span>
+                                  </label>
                                 );
                               })}
                             </RadioGroup>
@@ -319,7 +487,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       // Multi-checkbox
                       element = (
                         <div key={field.id} className="space-y-1.5">
-                          <Label className="text-sm font-bold text-neutral-700">
+                          <Label className={`text-sm ${labelColor}`}>
                             {field.label}
                             {requiredAsterisk}
                           </Label>
@@ -329,7 +497,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                             render={({ field: { onChange, value = [] } }) => (
                               <div className="flex flex-col space-y-2.5 mt-1">
                                 {field.options!.map((opt) => (
-                                  <div key={opt} className="flex items-start space-x-2.5">
+                                  <div key={opt} className={`flex items-start space-x-2.5 p-2.5 rounded-xl border ${isDarkTheme ? 'border-neutral-800 bg-[#161c28]' : 'border-neutral-200 bg-white'}`}>
                                     <Checkbox
                                       id={`preview-chk-${field.id}-${opt}`}
                                       checked={((value as string[]) || []).includes(opt)}
@@ -345,7 +513,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                                     />
                                     <Label
                                       htmlFor={`preview-chk-${field.id}-${opt}`}
-                                      className="text-sm font-normal text-neutral-600 cursor-pointer leading-none"
+                                      className={`text-sm font-normal ${subLabelColor} cursor-pointer leading-none`}
                                     >
                                       {opt}
                                     </Label>
@@ -363,7 +531,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                       // Single checkbox (boolean)
                       element = (
                         <div key={field.id} className="space-y-1">
-                          <div className="flex flex-row items-start space-x-2.5 space-y-0 py-1.5">
+                          <div className={`flex flex-row items-start space-x-2.5 space-y-0 p-3 rounded-xl border ${isDarkTheme ? 'border-neutral-800 bg-[#161c28]' : 'border-neutral-200 bg-white'}`}>
                             <Controller
                               control={control}
                               name={field.id}
@@ -378,7 +546,7 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                             />
                             <Label
                               htmlFor={`preview-${field.id}`}
-                              className="text-sm font-bold text-neutral-700 cursor-pointer leading-tight"
+                              className={`text-sm font-bold ${labelColor} cursor-pointer leading-tight`}
                             >
                               {field.label}
                               {requiredAsterisk}
@@ -395,14 +563,14 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
                   case 'file':
                     element = (
                       <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className="text-sm font-bold text-neutral-700">
+                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
                           {field.label}
                           {requiredAsterisk}
                         </Label>
                         <Input
                           id={`preview-${field.id}`}
                           type="file"
-                          className={`cursor-pointer bg-white ${inputClass}`}
+                          className={`cursor-pointer ${inputClass}`}
                           {...register(field.id)}
                         />
                         {fieldErr && (
@@ -418,20 +586,20 @@ export default function LivePreview({ fields, styling, formName }: LivePreviewPr
 
                 return element;
               })}
-            </CardContent>
+            </div>
 
-            <CardFooter className="pt-3">
+            <div className="pt-3">
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                style={{ backgroundColor: styling.primaryColor }}
+                style={buttonInlineStyle}
                 className={buttonClass}
               >
                 {isSubmitting ? 'Simulating submit...' : 'Submit Form'}
               </Button>
-            </CardFooter>
+            </div>
           </form>
-        </Card>
+        </div>
       )}
     </div>
   );

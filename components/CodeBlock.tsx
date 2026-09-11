@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,6 +11,7 @@ interface CodeBlockProps {
   language?: string;
   filename?: string;
   showLineNumbers?: boolean;
+  theme?: 'dark' | 'light';
 }
 
 export default function CodeBlock({
@@ -18,6 +19,7 @@ export default function CodeBlock({
   language = 'typescript',
   filename,
   showLineNumbers = true,
+  theme = 'light',
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
@@ -28,45 +30,57 @@ export default function CodeBlock({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isDark = theme === 'dark';
+
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-neutral-200 dark:border-[#333333] bg-[#151515] shadow-sm text-left font-mono group">
+    <div
+      className={`relative rounded-xl overflow-hidden border text-left font-mono group transition-colors ${
+        isDark
+          ? 'border-neutral-800 bg-[#151515] text-white shadow-sm'
+          : 'border-neutral-200 bg-neutral-50/70 text-neutral-900 shadow-2xs'
+      }`}
+    >
       {/* Floating Top-Right Copy Action Control */}
-      <div className="absolute top-3.5 right-3.5 z-10 flex items-center select-none">
+      <div className="absolute top-2.5 right-2.5 z-10 flex items-center select-none">
         <button
           type="button"
           onClick={handleCopy}
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+          className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center ${
+            isDark
+              ? 'text-neutral-400 hover:text-white hover:bg-white/10'
+              : 'text-neutral-400 hover:text-neutral-800 hover:bg-neutral-200/70'
+          }`}
           title="Copy code"
         >
           {copied ? (
-            <Check className="w-4 h-4 text-emerald-400 animate-in zoom-in duration-200" />
+            <Check className="w-3.5 h-3.5 text-emerald-500 animate-in zoom-in duration-200" />
           ) : (
-            <Copy className="w-4 h-4" />
+            <Copy className="w-3.5 h-3.5" />
           )}
         </button>
       </div>
 
       {/* Syntax Highlighted Code Body with Line Numbers */}
-      <div className="overflow-x-auto text-[13px] leading-[1.75] py-4 pr-16 pl-2">
+      <div className="overflow-x-auto text-[12px] leading-[1.7] py-3 pr-10 pl-2">
         <SyntaxHighlighter
           language={language}
-          style={vscDarkPlus}
+          style={isDark ? vscDarkPlus : oneLight}
           showLineNumbers={showLineNumbers}
           lineNumberStyle={{
-            minWidth: '2.5em',
-            paddingRight: '1.25em',
-            color: '#555761',
+            minWidth: '2.2em',
+            paddingRight: '1em',
+            color: isDark ? '#555761' : '#94a3b8',
             textAlign: 'right',
             userSelect: 'none',
-            fontSize: '12px',
+            fontSize: '11.5px',
           }}
           customStyle={{
             margin: 0,
             padding: 0,
             background: 'transparent',
-            fontSize: '13px',
+            fontSize: '12px',
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            lineHeight: '1.75',
+            lineHeight: '1.7',
           }}
           codeTagProps={{
             style: {
@@ -80,3 +94,4 @@ export default function CodeBlock({
     </div>
   );
 }
+

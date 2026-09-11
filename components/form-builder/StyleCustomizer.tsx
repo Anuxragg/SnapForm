@@ -1,11 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Palette, Check } from 'lucide-react';
+import { Check, Sparkles, Box, Moon, Minimize2 } from 'lucide-react';
 import { IFormStyling } from '@/models/FormTemplate';
 
 interface StyleCustomizerProps {
@@ -13,104 +11,147 @@ interface StyleCustomizerProps {
   onChange: (styling: IFormStyling) => void;
 }
 
+const themePresets = [
+  {
+    id: 'modern',
+    name: 'Liquid Glass',
+    desc: 'Frosted translucency, refractive blur & liquid specular sheen',
+    icon: Sparkles,
+  },
+  {
+    id: 'neobrutalist',
+    name: 'Neobrutalism',
+    desc: 'High-contrast bold 2px borders & retro pop shadows',
+    icon: Box,
+  },
+  {
+    id: 'dark',
+    name: 'Midnight Dark',
+    desc: 'Obsidian dark card, deep inputs & vibrant neon pop',
+    icon: Moon,
+  },
+  {
+    id: 'minimal',
+    name: 'Minimal Stark',
+    desc: 'Sharp square lines & clean high-density layout',
+    icon: Minimize2,
+  },
+];
+
 const colorPresets = [
-  { name: 'Orange-Red (Brand)', value: '#ff4f19' },
-  { name: 'Charcoal (Brand)', value: '#121212' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Violet', value: '#8b5cf6' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Pink', value: '#ec4899' },
+  { name: 'Snap Orange', value: '#ff4f19' },
+  { name: 'Indigo Electric', value: '#6366f1' },
+  { name: 'Emerald Green', value: '#10b981' },
+  { name: 'Violet Purple', value: '#8b5cf6' },
+  { name: 'Cyan Sky', value: '#06b6d4' },
+  { name: 'Rose Pink', value: '#ec4899' },
+  { name: 'Amber Gold', value: '#f59e0b' },
+  { name: 'Noir Dark', value: '#18181b' },
 ];
 
 export default function StyleCustomizer({ styling, onChange }: StyleCustomizerProps) {
-  const handleThemeChange = (theme: 'minimal' | 'modern' | 'corporate') => {
-    onChange({ ...styling, theme });
-  };
+  const currentTheme = styling.theme || 'modern';
 
-  const handleColorChange = (primaryColor: string) => {
-    onChange({ ...styling, primaryColor });
+  const update = (patch: Partial<IFormStyling>) => {
+    onChange({ ...styling, ...patch });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 rounded-xl bg-brand-orange/10 text-brand-orange border border-brand-orange/20">
-          <Palette className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-neutral-800">Visual Designer</h3>
-          <p className="text-xs text-neutral-400">Personalize styling and aesthetics</p>
+    <div className="space-y-6 text-left">
+      {/* Header */}
+      <div className="pb-2 border-b border-neutral-100">
+        <h3 className="text-sm font-bold text-neutral-800 font-heading">Visual Designer</h3>
+        <p className="text-[11px] text-neutral-400 mt-0.5">Personalize themes and primary accent colors</p>
+      </div>
+
+      {/* 1. Theme Presets Grid */}
+      <div className="space-y-2.5">
+        <Label className="text-xs font-bold text-neutral-700">Design Preset</Label>
+        <div className="grid grid-cols-1 gap-2">
+          {themePresets.map((preset) => {
+            const isSelected = currentTheme === preset.id;
+            const Icon = preset.icon;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => update({ theme: preset.id as any })}
+                className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition-all duration-200 ${
+                  isSelected
+                    ? 'border-brand-orange bg-brand-orange/5 shadow-2xs'
+                    : 'border-neutral-200/80 bg-white hover:border-neutral-300 hover:bg-neutral-50/60'
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-xl shrink-0 transition-colors ${
+                    isSelected
+                      ? 'bg-brand-orange text-white'
+                      : 'bg-neutral-100 text-neutral-600'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-bold ${isSelected ? 'text-brand-orange' : 'text-neutral-800'}`}>
+                      {preset.name}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">{preset.desc}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Theme Picker */}
-      <div className="space-y-2">
-        <Label className="text-sm font-semibold text-neutral-700">Form Layout Theme</Label>
-        <Select
-          value={styling.theme}
-          onValueChange={(val) => handleThemeChange(val as 'minimal' | 'modern' | 'corporate')}
-        >
-          <SelectTrigger className="rounded-xl border-neutral-200">
-            <SelectValue placeholder="Select theme style" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="modern">Modern Glassmorphism</SelectItem>
-            <SelectItem value="minimal">Minimal stark lines</SelectItem>
-            <SelectItem value="corporate">Rigid Business Corporate</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Primary Color Picker */}
-      <div className="space-y-3.5">
+      {/* 2. Primary Color Accent */}
+      <div className="space-y-3 pt-1">
         <div className="flex justify-between items-center">
-          <Label className="text-sm font-semibold text-neutral-700">Primary Color Accent</Label>
-          <span className="text-xs font-mono text-neutral-400 uppercase">{styling.primaryColor}</span>
+          <Label className="text-xs font-bold text-neutral-700">Primary Color Accent</Label>
+          <span className="text-[11px] font-mono font-bold text-neutral-500 uppercase">{styling.primaryColor}</span>
         </div>
 
-        {/* Presets Grid */}
-        <div className="grid grid-cols-7 gap-2">
+        {/* Color Swatches */}
+        <div className="grid grid-cols-8 gap-2">
           {colorPresets.map((preset) => {
             const isSelected = styling.primaryColor.toLowerCase() === preset.value.toLowerCase();
             return (
               <button
                 key={preset.value}
                 type="button"
-                onClick={() => handleColorChange(preset.value)}
+                onClick={() => update({ primaryColor: preset.value })}
                 style={{ backgroundColor: preset.value }}
                 title={preset.name}
-                className="w-8 h-8 rounded-full border border-neutral-200/20 shadow-sm transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer"
+                className="w-7 h-7 rounded-full border border-neutral-200/40 shadow-xs transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer"
               >
                 {isSelected && (
-                  <Check className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
+                  <Check className="w-3.5 h-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Custom Hex Input */}
-        <div className="space-y-1">
-          <Label className="text-xs font-medium text-neutral-500">Custom Accent HEX</Label>
-          <div className="relative flex items-center">
-            <span className="absolute left-3 text-neutral-400 font-mono text-sm">#</span>
-            <Input
-              type="text"
-              placeholder="6366f1"
-              maxLength={6}
-              value={styling.primaryColor.replace('#', '')}
-              onChange={(e) => {
-                const hex = e.target.value;
-                if (/^[0-9A-Fa-f]{0,6}$/.test(hex)) {
-                  handleColorChange(hex ? `#${hex}` : '#6366f1');
-                }
-              }}
-              className="pl-7 rounded-xl border-neutral-200 font-mono text-sm"
-            />
-          </div>
+        {/* Hex Input */}
+        <div className="relative flex items-center">
+          <span className="absolute left-3 text-neutral-400 font-mono text-xs">#</span>
+          <Input
+            type="text"
+            placeholder="ff4f19"
+            maxLength={6}
+            value={styling.primaryColor.replace('#', '')}
+            onChange={(e) => {
+              const hex = e.target.value;
+              if (/^[0-9A-Fa-f]{0,6}$/.test(hex)) {
+                update({ primaryColor: hex ? `#${hex}` : '#ff4f19' });
+              }
+            }}
+            className="pl-7 rounded-xl border-neutral-200 font-mono text-xs h-8 bg-neutral-50 focus:bg-white"
+          />
         </div>
       </div>
     </div>
   );
 }
+

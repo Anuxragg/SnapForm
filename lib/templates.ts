@@ -15,7 +15,7 @@ export interface ISeedFormField {
 }
 
 export interface ISeedFormStyling {
-  theme: 'minimal' | 'modern' | 'corporate';
+  theme: 'minimal' | 'modern' | 'neobrutalist' | 'dark';
   primaryColor: string;
 }
 

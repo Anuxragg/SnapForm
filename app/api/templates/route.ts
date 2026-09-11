@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
@@ -148,6 +149,46 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const session = await getSession();
+
+    const targetId = body.id || body.shortId || body._id;
+    let existingTemplate: any = null;
+
+    if (targetId && typeof targetId === 'string' && !targetId.endsWith('-starter')) {
+      const queryConditions: any[] = [
+        { shortId: targetId },
+        { shortId: targetId.replace(/^sf_/, '') },
+        { shortId: `sf_${targetId}` },
+      ];
+      if (mongoose.Types.ObjectId.isValid(targetId)) {
+        queryConditions.push({ _id: targetId });
+      }
+      const findQuery: any = { $or: queryConditions };
+      if (session && session.id) {
+        findQuery.userId = session.id;
+      }
+      existingTemplate = await FormTemplate.findOne(findQuery);
+    }
+
+    if (existingTemplate) {
+      existingTemplate.name = name.trim();
+      existingTemplate.category = category.trim().toLowerCase();
+      existingTemplate.description =
+        typeof description === 'string' && description.trim()
+          ? description.trim()
+          : existingTemplate.description;
+      existingTemplate.fields = fields;
+      existingTemplate.styling = cleanStyling;
+      if (session && session.id && !existingTemplate.userId) {
+        existingTemplate.userId = session.id;
+      }
+      await existingTemplate.save();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Form template updated successfully!',
+        data: existingTemplate,
+      });
+    }
     
     // Build sanitized insert payload with clean short ID
     const templateData: any = {

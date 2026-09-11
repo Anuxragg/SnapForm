@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -12,9 +12,37 @@ import {
   ArrowRight,
   ShieldCheck,
   ChevronDown,
+  Mail,
+  CreditCard,
+  Sparkles,
+  Calendar,
+  UserPlus,
+  MessageSquare,
+  Briefcase,
+  Tag,
 } from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { SnapFormIcon } from '@/components/Logo';
+
+const categoryLabels: Record<string, string> = {
+  contact: 'Contact & Leads',
+  payment: 'Payment & Checkout',
+  survey: 'Feedback & Survey',
+  booking: 'Booking & Scheduling',
+  registration: 'Event Registration',
+  feedback: 'User Feedback',
+  application: 'Job Application',
+};
+
+const categoryIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  contact: Mail,
+  payment: CreditCard,
+  survey: Sparkles,
+  booking: Calendar,
+  registration: UserPlus,
+  feedback: MessageSquare,
+  application: Briefcase,
+};
 
 interface PublicFormData {
   id: string;
@@ -26,9 +54,13 @@ interface PublicFormData {
   isPredefined?: boolean;
 }
 
-export default function HostedFormPage() {
+function HostedFormContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const formId = params?.formId as string;
+
+  const themeOverride = searchParams?.get('theme') as any;
+  const colorOverride = searchParams?.get('primaryColor') || searchParams?.get('color');
 
   const [form, setForm] = useState<PublicFormData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -219,22 +251,157 @@ export default function HostedFormPage() {
     );
   }
 
+  // Dynamic styling calculation with query param override support
+  const styling: IFormStyling = {
+    primaryColor: colorOverride || form?.styling?.primaryColor || '#ff4f19',
+    theme: themeOverride || form?.styling?.theme || 'modern',
+    borderRadius: form?.styling?.borderRadius || 'rounded',
+    inputVariant: form?.styling?.inputVariant || 'outlined',
+    buttonStyle: form?.styling?.buttonStyle || 'solid',
+  };
+
+  const isDarkTheme = styling.theme === 'dark';
+  const isMinimal = styling.theme === 'minimal';
+  const isNeobrutalist = styling.theme === 'neobrutalist';
+
+  let radiusClass = 'rounded-2xl sm:rounded-3xl';
+  let inputRadiusClass = 'rounded-xl';
+  let buttonRadiusClass = 'rounded-xl';
+
+  if (isMinimal || isNeobrutalist) {
+    radiusClass = 'rounded-none';
+    inputRadiusClass = 'rounded-none';
+    buttonRadiusClass = 'rounded-none';
+  } else if (isDarkTheme) {
+    radiusClass = 'rounded-2xl sm:rounded-3xl';
+    inputRadiusClass = 'rounded-xl';
+    buttonRadiusClass = 'rounded-xl';
+  } else {
+    radiusClass = 'rounded-3xl';
+    inputRadiusClass = 'rounded-2xl';
+    buttonRadiusClass = 'rounded-2xl';
+  }
+
+  let labelColor = 'text-neutral-700 font-bold';
+  let titleColor = 'text-neutral-900 font-heading';
+  let descColor = 'text-neutral-500';
+
+  let cardClass = '';
+  if (isDarkTheme) {
+    labelColor = 'text-neutral-200';
+    titleColor = 'text-white';
+    descColor = 'text-neutral-400';
+    cardClass = `border border-neutral-800 bg-[#131722] ${radiusClass} shadow-2xl p-6 sm:p-10 text-white`;
+  } else if (isNeobrutalist) {
+    labelColor = 'text-black font-extrabold uppercase text-xs';
+    titleColor = 'text-black font-black uppercase tracking-tight';
+    descColor = 'text-neutral-600';
+    cardClass = `border-2 border-black bg-white ${radiusClass} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-10`;
+  } else if (isMinimal) {
+    labelColor = 'text-neutral-900 font-mono font-bold uppercase text-[11px] tracking-widest';
+    titleColor = 'text-neutral-950 font-mono font-bold tracking-tight';
+    descColor = 'text-neutral-500 font-mono text-xs';
+    cardClass = `border-2 border-neutral-900 bg-white ${radiusClass} shadow-none p-6 sm:p-10`;
+  } else {
+    // Liquid Glass
+    labelColor = 'text-neutral-800 font-bold';
+    titleColor = 'text-neutral-900 font-extrabold';
+    descColor = 'text-neutral-500';
+    cardClass = `backdrop-blur-3xl bg-white/55 border border-white/85 ${radiusClass} shadow-[0_25px_60px_-15px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.04),inset_0_1.5px_2px_rgba(255,255,255,1)] p-6 sm:p-10 relative overflow-hidden`;
+  }
+
+  const primaryColor = styling.primaryColor || '#ff4f19';
+
+  let buttonInlineStyle: React.CSSProperties = {};
+  let buttonClass = `w-full sm:w-auto px-8 py-3 font-bold transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${buttonRadiusClass} `;
+
+  if (isNeobrutalist) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+      boxShadow: '4px 4px 0px 0px #000000',
+    };
+    buttonClass += 'text-white border-2 border-black active:translate-x-0.5 active:translate-y-0.5';
+  } else if (isMinimal) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+    };
+    buttonClass += 'text-white font-mono uppercase tracking-widest text-xs font-bold shadow-none hover:opacity-90 active:scale-[0.99]';
+  } else if (isDarkTheme) {
+    buttonInlineStyle = {
+      backgroundColor: primaryColor,
+      boxShadow: `0 8px 25px -4px ${primaryColor}77, inset 0 1px 1px rgba(255,255,255,0.3)`,
+    };
+    buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative';
+  } else {
+    // Liquid Glass
+    buttonInlineStyle = {
+      background: `linear-gradient(180deg, ${primaryColor} 0%, ${primaryColor}e6 100%)`,
+      boxShadow: `0 8px 25px -4px ${primaryColor}66, inset 0 1.5px 1px rgba(255,255,255,0.4)`,
+    };
+    buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] border border-white/30 backdrop-blur-md';
+  }
+
+  // Input styling
+  let baseInputClass = `w-full px-3.5 py-2.5 text-xs sm:text-sm font-sans outline-none transition-all duration-150 ${inputRadiusClass} `;
+  if (isDarkTheme) {
+    baseInputClass += 'bg-[#181d28] border border-neutral-700 text-white focus:border-brand-orange';
+  } else if (isMinimal) {
+    baseInputClass += 'bg-neutral-50/80 border border-neutral-300 text-neutral-900 font-mono text-xs placeholder:text-neutral-400 hover:border-neutral-900 focus:border-neutral-900 focus:bg-white';
+  } else if (isNeobrutalist) {
+    baseInputClass += 'border-2 border-black bg-white text-neutral-900 focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]';
+  } else {
+    // Liquid Glass
+    baseInputClass += 'bg-white/50 backdrop-blur-xl border border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus:bg-white/85 focus:border-white focus:ring-4 focus:ring-brand-orange/20 text-neutral-900 placeholder:text-neutral-400';
+  }
+
   return (
-    <div className="min-h-screen bg-[#fbfbfd] text-neutral-900 font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white">
+    <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0d1017] text-white' : 'bg-[#fbfbfd] text-neutral-900'} font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white`}>
       <main className="max-w-2xl w-full mx-auto">
-        <div className="bg-white border border-neutral-200/90 rounded-2xl sm:rounded-3xl shadow-xl shadow-neutral-200/30 p-6 sm:p-10 transition-all">
-          <div className="border-b border-neutral-100 pb-5 mb-7">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-heading">
+        <div className={`${cardClass} transition-all`}>
+          <div className={`border-b ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} pb-5 mb-7`}>
+            {form.category && (
+              <div className="flex items-center mb-2">
+                {(() => {
+                  const CategoryIcon = categoryIcons[form.category] || Tag;
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide ${
+                        isNeobrutalist
+                          ? 'border-2 border-black bg-black text-white rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] uppercase text-[10px] font-black'
+                          : isMinimal
+                            ? 'border border-neutral-900 bg-neutral-100 text-neutral-900 font-mono rounded-none uppercase text-[10px] font-bold tracking-widest'
+                            : isDarkTheme
+                              ? 'rounded-full bg-[#181f2c]/90 backdrop-blur-md text-neutral-200 border border-neutral-700/80 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                              : 'rounded-full bg-white/90 backdrop-blur-md text-neutral-800 border border-white shadow-[0_4px_14px_-2px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]'
+                      }`}
+                    >
+                      <CategoryIcon
+                        className={`w-3.5 h-3.5 shrink-0 ${
+                          isNeobrutalist ? 'text-white' : isMinimal ? 'text-neutral-900' : ''
+                        }`}
+                        style={
+                          !isNeobrutalist && !isMinimal
+                            ? { color: primaryColor }
+                            : undefined
+                        }
+                      />
+                      <span className="leading-tight">{categoryLabels[form.category] || form.category}</span>
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+            <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${titleColor} font-heading`}>
               {form.name}
             </h1>
 
             {form.description && (
-              <p className="text-xs sm:text-[13px] text-neutral-500 mt-2 leading-relaxed font-sans">
+              <p className={`text-xs sm:text-[13px] ${descColor} mt-2 leading-relaxed font-sans`}>
                 {form.description}
               </p>
             )}
 
-            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+            <div className={`mt-4 pt-3 border-t ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} flex items-center justify-between text-[11px] ${descColor} font-medium`}>
               <span>Please complete the questions below</span>
               <span><span className="text-red-500">*</span> Required fields</span>
             </div>
@@ -242,20 +409,20 @@ export default function HostedFormPage() {
 
           {submitted ? (
             <div className="py-8 text-center animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center mb-5 text-emerald-600 shadow-sm">
+              <div className={`w-16 h-16 mx-auto rounded-full ${isDarkTheme ? 'bg-emerald-950/50 border-2 border-emerald-800 text-emerald-400' : 'bg-emerald-50 border-2 border-emerald-200 text-emerald-600'} flex items-center justify-center mb-5 shadow-sm`}>
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-extrabold text-neutral-900 mb-2 font-heading">
+              <h2 className={`text-2xl font-extrabold ${titleColor} mb-2 font-heading`}>
                 Application Submitted
               </h2>
-              <p className="text-neutral-600 text-xs sm:text-sm max-w-md mx-auto mb-8 leading-relaxed">
+              <p className={`${descColor} text-xs sm:text-sm max-w-md mx-auto mb-8 leading-relaxed`}>
                 Thank you! Your information has been securely transmitted and recorded. The team will review your submission shortly.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   onClick={resetForm}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold transition-all text-xs w-full sm:w-auto cursor-pointer shadow-2xs"
+                  className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border ${isDarkTheme ? 'border-neutral-700 bg-neutral-800 text-white hover:bg-neutral-700' : 'border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700'} font-semibold transition-all text-xs w-full sm:w-auto cursor-pointer shadow-2xs`}
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-neutral-400" />
                   Submit Another Response
@@ -284,7 +451,7 @@ export default function HostedFormPage() {
 
                 return (
                   <div key={field.id} className="space-y-1.5">
-                    <label className="flex items-center justify-between text-[13px] font-medium text-neutral-700 font-sans">
+                    <label className={`flex items-center justify-between text-[13px] font-medium ${labelColor} font-sans`}>
                       <span>
                         {field.label}
                         {field.required && <span className="text-red-500 ml-1 font-sans">*</span>}
@@ -297,10 +464,10 @@ export default function HostedFormPage() {
                         value={value}
                         placeholder={field.placeholder || 'Your answer'}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 ${
+                        className={`${baseInputClass} ${
                           hasError
                             ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
-                            : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800 placeholder:text-neutral-400'
+                            : ''
                         }`}
                         disabled={submitting}
                       />
@@ -312,10 +479,10 @@ export default function HostedFormPage() {
                         value={value}
                         placeholder={field.placeholder || 'Provide details here...'}
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
-                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 resize-y leading-relaxed ${
+                        className={`${baseInputClass} resize-y leading-relaxed ${
                           hasError
                             ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
-                            : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800 placeholder:text-neutral-400'
+                            : ''
                         }`}
                         disabled={submitting}
                       />
@@ -326,10 +493,10 @@ export default function HostedFormPage() {
                         <select
                           value={value}
                           onChange={(e) => handleInputChange(field.id, e.target.value)}
-                          className={`w-full px-3.5 py-2.5 pr-10 rounded-xl text-xs sm:text-sm font-sans outline-none transition-all duration-150 appearance-none cursor-pointer ${
+                          className={`${baseInputClass} pr-10 appearance-none cursor-pointer ${
                             hasError
                               ? 'bg-red-50/50 border border-red-300 text-neutral-900'
-                              : 'bg-white border border-neutral-200 hover:border-neutral-300 focus:border-brand-orange focus:ring-2 focus:ring-orange-500/10 text-neutral-800'
+                              : ''
                           }`}
                           disabled={submitting}
                         >
@@ -353,10 +520,14 @@ export default function HostedFormPage() {
                           return (
                             <label
                               key={idx}
-                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
-                                isChecked
-                                  ? 'bg-orange-50/30 border-brand-orange text-neutral-900 font-medium'
-                                  : 'bg-white hover:bg-neutral-50/80 border-neutral-200 text-neutral-700'
+                              className={`flex items-center gap-3 p-3 transition-all cursor-pointer select-none ${
+                                isNeobrutalist
+                                  ? `border-2 border-black rounded-none ${isChecked ? 'bg-amber-100/50 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}`
+                                  : isMinimal
+                                    ? `border border-neutral-900 rounded-none ${isChecked ? 'bg-neutral-100 font-bold' : 'bg-white'}`
+                                    : isDarkTheme
+                                      ? `rounded-xl border border-neutral-800 ${isChecked ? 'bg-[#202736] border-brand-orange text-white' : 'bg-[#181d28] text-neutral-200'}`
+                                      : `rounded-xl border border-neutral-200 ${isChecked ? 'bg-orange-50/30 border-brand-orange text-neutral-900 font-medium' : 'bg-white text-neutral-700'}`
                               }`}
                             >
                               <input
@@ -376,7 +547,17 @@ export default function HostedFormPage() {
                     )}
 
                     {field.type === 'checkbox' && (
-                      <label className="flex items-start gap-3 p-3 rounded-xl bg-white border border-neutral-200 hover:border-neutral-300 transition-all cursor-pointer select-none">
+                      <label
+                        className={`flex items-start gap-3 p-3 transition-all cursor-pointer select-none ${
+                          isNeobrutalist
+                            ? 'border-2 border-black rounded-none bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            : isMinimal
+                              ? 'border border-neutral-900 rounded-none bg-white'
+                              : isDarkTheme
+                                ? 'rounded-xl border border-neutral-800 bg-[#181d28] text-neutral-200'
+                                : 'rounded-xl border border-neutral-200 bg-white text-neutral-700'
+                        }`}
+                      >
                         <input
                           type="checkbox"
                           checked={Boolean(value)}
@@ -384,21 +565,21 @@ export default function HostedFormPage() {
                           className="w-4 h-4 accent-brand-orange rounded mt-0.5 cursor-pointer"
                           disabled={submitting}
                         />
-                        <span className="text-xs sm:text-[13px] text-neutral-700 leading-snug">
+                        <span className="text-xs sm:text-[13px] leading-snug">
                           {field.placeholder || field.label}
                         </span>
                       </label>
                     )}
 
                     {field.type === 'file' && (
-                      <div className="border border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-white transition-colors cursor-pointer">
+                      <div className={`border border-dashed ${isNeobrutalist ? 'border-2 border-black rounded-none bg-white' : isMinimal ? 'border border-neutral-900 rounded-none bg-neutral-50' : isDarkTheme ? 'border-neutral-700 bg-[#181d28] hover:bg-[#202736] rounded-xl' : 'border-neutral-300 bg-neutral-50 hover:bg-white rounded-xl'} p-4 text-center transition-colors cursor-pointer`}>
                         <input
                           type="file"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             handleInputChange(field.id, file ? file.name : '');
                           }}
-                          className="text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-black cursor-pointer"
+                          className={`text-xs ${isDarkTheme ? 'text-neutral-300' : 'text-neutral-600'} file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-black cursor-pointer`}
                           disabled={submitting}
                         />
                       </div>
@@ -414,7 +595,7 @@ export default function HostedFormPage() {
                 );
               })}
 
-              <div className="pt-4 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className={`pt-4 border-t ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} flex flex-col sm:flex-row items-center justify-between gap-4`}>
                 <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                   <span>Protected with anti-spam honeypot</span>
@@ -423,7 +604,8 @@ export default function HostedFormPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm bg-brand-charcoal hover:bg-black active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+                  style={buttonInlineStyle}
+                  className={buttonClass}
                 >
                   {submitting ? (
                     <>
@@ -458,5 +640,20 @@ export default function HostedFormPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function HostedFormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#fbfbfd] flex flex-col items-center justify-center p-6 text-center">
+          <Loader2 className="w-8 h-8 text-brand-orange animate-spin mb-4" />
+          <p className="text-xs font-semibold text-neutral-400">Loading form...</p>
+        </div>
+      }
+    >
+      <HostedFormContent />
+    </Suspense>
   );
 }
