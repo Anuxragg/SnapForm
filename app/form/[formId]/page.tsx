@@ -34,14 +34,12 @@ export default function HostedFormPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Form values and validation errors state
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Fetch form details
   useEffect(() => {
     if (!formId) return;
 
@@ -49,7 +47,7 @@ export default function HostedFormPage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/f/${formId}`);
+        const res = await fetch(`/api/form/${formId}`);
         const json = await res.json();
 
         if (!res.ok || !json.success) {
@@ -58,7 +56,6 @@ export default function HostedFormPage() {
 
         setForm(json.data);
 
-        // Prepopulate default values
         const initialData: Record<string, any> = {};
         if (Array.isArray(json.data.fields)) {
           json.data.fields.forEach((field: IFormField) => {
@@ -85,7 +82,6 @@ export default function HostedFormPage() {
 
   const handleInputChange = (fieldId: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
-    // Clear error for this field on edit
     if (fieldErrors[fieldId]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -147,7 +143,7 @@ export default function HostedFormPage() {
 
     try {
       setSubmitting(true);
-      const res = await fetch(`/api/f/${formId}`, {
+      const res = await fetch(`/api/form/${formId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: formData }),
@@ -184,7 +180,6 @@ export default function HostedFormPage() {
     setFormData(initialData);
   };
 
-  // Loading Screen
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fbfbfd] flex flex-col items-center justify-center p-4 font-sans antialiased text-neutral-900">
@@ -201,7 +196,6 @@ export default function HostedFormPage() {
     );
   }
 
-  // Error / Not Found Screen
   if (error || !form) {
     return (
       <div className="min-h-screen bg-[#fbfbfd] flex flex-col items-center justify-center p-4 font-sans antialiased text-neutral-900">
@@ -227,11 +221,8 @@ export default function HostedFormPage() {
 
   return (
     <div className="min-h-screen bg-[#fbfbfd] text-neutral-900 font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white">
-      {/* Main Content Area */}
       <main className="max-w-2xl w-full mx-auto">
-        {/* Main White Card Container */}
         <div className="bg-white border border-neutral-200/90 rounded-2xl sm:rounded-3xl shadow-xl shadow-neutral-200/30 p-6 sm:p-10 transition-all">
-          {/* Header Section */}
           <div className="border-b border-neutral-100 pb-5 mb-7">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-heading">
               {form.name}
@@ -249,7 +240,6 @@ export default function HostedFormPage() {
             </div>
           </div>
 
-          {/* SUCCESS VIEW */}
           {submitted ? (
             <div className="py-8 text-center animate-in fade-in zoom-in-95 duration-300">
               <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center mb-5 text-emerald-600 shadow-sm">
@@ -280,7 +270,6 @@ export default function HostedFormPage() {
               </div>
             </div>
           ) : (
-            /* FORM INPUT VIEW */
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               {submitError && (
                 <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
@@ -302,7 +291,6 @@ export default function HostedFormPage() {
                       </span>
                     </label>
 
-                    {/* Field Type: Text / Email */}
                     {(field.type === 'text' || field.type === 'email') && (
                       <input
                         type={field.type}
@@ -318,7 +306,6 @@ export default function HostedFormPage() {
                       />
                     )}
 
-                    {/* Field Type: Textarea */}
                     {field.type === 'textarea' && (
                       <textarea
                         rows={4}
@@ -334,7 +321,6 @@ export default function HostedFormPage() {
                       />
                     )}
 
-                    {/* Field Type: Select Dropdown */}
                     {field.type === 'select' && (
                       <div className="relative">
                         <select
@@ -360,7 +346,6 @@ export default function HostedFormPage() {
                       </div>
                     )}
 
-                    {/* Field Type: Radio Group */}
                     {field.type === 'radio' && (
                       <div className="space-y-2 pt-0.5">
                         {field.options?.map((opt, idx) => {
@@ -390,7 +375,6 @@ export default function HostedFormPage() {
                       </div>
                     )}
 
-                    {/* Field Type: Checkbox */}
                     {field.type === 'checkbox' && (
                       <label className="flex items-start gap-3 p-3 rounded-xl bg-white border border-neutral-200 hover:border-neutral-300 transition-all cursor-pointer select-none">
                         <input
@@ -406,7 +390,6 @@ export default function HostedFormPage() {
                       </label>
                     )}
 
-                    {/* Field Type: File */}
                     {field.type === 'file' && (
                       <div className="border border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-white transition-colors cursor-pointer">
                         <input
@@ -421,7 +404,6 @@ export default function HostedFormPage() {
                       </div>
                     )}
 
-                    {/* Field Validation Error */}
                     {hasError && (
                       <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-medium animate-in fade-in duration-150">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -432,7 +414,6 @@ export default function HostedFormPage() {
                 );
               })}
 
-              {/* Submit Action Bar */}
               <div className="pt-4 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
@@ -462,7 +443,6 @@ export default function HostedFormPage() {
         </div>
       </main>
 
-      {/* Professional Brand Footer */}
       <footer className="py-8 text-center">
         <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-2">
           <Link

@@ -427,7 +427,7 @@ export default function DashboardPage() {
 
   // Copy Hosted Link
   const handleCopyLink = (formId: string) => {
-    const url = `${window.location.origin}/f/${formId}`;
+    const url = `${window.location.origin}/form/${formId}`;
     navigator.clipboard.writeText(url);
     toast.success('Public form link copied to clipboard!');
   };
@@ -1214,7 +1214,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href={`/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                  href={`/form/${activeSetupForm.shortId || activeSetupForm._id}`}
                   target="_blank"
                   rel="noreferrer"
                   className="h-8 px-3 rounded-lg border border-neutral-200 dark:border-[#383838] bg-white dark:bg-[#252525] hover:bg-neutral-50 dark:hover:bg-[#2e2e2e] text-neutral-700 dark:text-neutral-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
@@ -1270,13 +1270,13 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <input
                         readOnly
-                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}`}
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${activeSetupForm.shortId || activeSetupForm._id}`}
                         className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-50 dark:bg-[#151515] border border-neutral-200 dark:border-[#333333] text-xs font-mono text-neutral-800 dark:text-neutral-200 select-all outline-none"
                       />
                       <button
                         onClick={() =>
                           copyToClipboard(
-                            `${window.location.origin}/api/f/${activeSetupForm.shortId || activeSetupForm._id}`,
+                            `${window.location.origin}/api/form/${activeSetupForm.shortId || activeSetupForm._id}`,
                             'Endpoint copied!'
                           )
                         }
@@ -1293,7 +1293,7 @@ export default function DashboardPage() {
                     <CodeBlock
                       language="html"
                       filename="index.html"
-                      code={`<form action="${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}" method="POST">
+                      code={`<form action="${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${activeSetupForm.shortId || activeSetupForm._id}" method="POST">
   <input type="text" name="name" required placeholder="Your Name" />
   <input type="email" name="email" required placeholder="Your Email" />
   <textarea name="message" required placeholder="Your Message"></textarea>
@@ -1314,7 +1314,7 @@ export default function DashboardPage() {
                     filename="ContactForm.tsx"
                     code={`const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
-  const res = await fetch('${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${activeSetupForm.shortId || activeSetupForm._id}', {
+  const res = await fetch('${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${activeSetupForm.shortId || activeSetupForm._id}', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -323,7 +323,7 @@ export default function BuilderPage() {
   }
 
   const currentFormId = savedFormId || (selectedTemplate as any)?.shortId || (selectedTemplate as any)?._id;
-  const endpointUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/f/${currentFormId || 'sf_sample'}`;
+  const endpointUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${currentFormId || 'sf_sample'}`;
 
   return (
     <div className="h-screen bg-white text-brand-charcoal font-sans flex flex-col antialiased overflow-hidden selection:bg-brand-orange selection:text-white">
@@ -380,7 +380,7 @@ export default function BuilderPage() {
           {selectedTemplate && (
             <>
               {currentFormId && (
-                <Link href={`/f/${currentFormId}`} target="_blank">
+                <Link href={`/form/${currentFormId}`} target="_blank">
                   <button
                     className="h-8 px-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     title="Open live public form link"
@@ -678,7 +678,7 @@ export default function BuilderPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-brand-charcoal">Public Hosted Page</span>
                           <a
-                            href={`/f/${currentFormId}`}
+                            href={`/form/${currentFormId}`}
                             target="_blank"
                             rel="noreferrer"
                             className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1"
@@ -688,7 +688,7 @@ export default function BuilderPage() {
                           </a>
                         </div>
                         <p className="text-[11px] text-neutral-500 font-mono break-all">
-                          {`${typeof window !== 'undefined' ? window.location.origin : ''}/f/${currentFormId}`}
+                          {`${typeof window !== 'undefined' ? window.location.origin : ''}/form/${currentFormId}`}
                         </p>
                       </div>
                     )}

@@ -139,7 +139,7 @@ export function ContactForm() {
     });
 
   const onSubmit = async (data: ContactInput) => {
-    await fetch('/api/f/contact-starter', {
+    await fetch('/api/form/contact-starter', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -330,7 +330,7 @@ export type ContactInput =
                       &nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br />
                       <br />
                       &nbsp;&nbsp;<span className="text-[#56b6c2]">const</span> <span className="text-[#e5c07b]">onSubmit</span> = <span className="text-[#e06c75]">async</span> (data: <span className="text-[#e5c07b]">ContactInput</span>) =&gt; &#123;<br />
-                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">await</span> <span className="text-[#61afef]">fetch</span>(<span className="text-[#98c379]">&apos;/api/f/contact-starter&apos;</span>, &#123;<br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#e06c75]">await</span> <span className="text-[#61afef]">fetch</span>(<span className="text-[#98c379]">&apos;/api/form/contact-starter&apos;</span>, &#123;<br />
                       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: <span className="text-[#98c379]">&apos;POST&apos;</span>,<br />
                       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: &#123;<br />
                       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#98c379]">&apos;Content-Type&apos;</span>: <span className="text-[#98c379]">&apos;application/json&apos;</span><br />

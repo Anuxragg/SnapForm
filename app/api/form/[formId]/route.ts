@@ -28,12 +28,10 @@ export async function GET(
     const clientIp = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Ignore known bots / crawlers (e.g. Googlebot, Bingbot, HeadlessChrome, python-requests, etc.)
     const isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|headless|curl|wget|python/i.test(userAgent);
 
     let visitorHash: string | undefined = undefined;
     if (!isBot) {
-      // Deterministic anonymous visitor fingerprint (IP + User-Agent)
       visitorHash = crypto
         .createHash('sha256')
         .update(`${clientIp}::${userAgent}`)
@@ -53,11 +51,10 @@ export async function GET(
       );
     }
 
-    // If navigated directly from browser address bar (HTML request), redirect to hosted page
     const acceptHeader = request.headers.get('accept') || '';
     const fetchDest = request.headers.get('sec-fetch-dest') || '';
     if (acceptHeader.includes('text/html') && (fetchDest === 'document' || !fetchDest)) {
-      return NextResponse.redirect(new URL(`/f/${resolved.id}`, request.url));
+      return NextResponse.redirect(new URL(`/form/${resolved.id}`, request.url));
     }
 
     return NextResponse.json({
@@ -90,7 +87,6 @@ export async function POST(
     const clientIp = getClientIp(request);
     const { formId } = await params;
 
-    // DDoS & Spam protection: Max 30 submissions per minute per IP
     const rateLimit = checkRateLimit(`form_sub_${clientIp}`, {
       limit: 30,
       windowMs: 60 * 1000,
@@ -116,7 +112,6 @@ export async function POST(
       );
     }
 
-    // 1. Honeypot & Bot Trap Protection on Server
     if (data._gotcha || data._honeypot || data.bot_trap) {
       return NextResponse.json(
         { success: false, message: 'Spam submission detected' },
@@ -124,7 +119,6 @@ export async function POST(
       );
     }
 
-    // 2. Resolve Form Schema
     const resolved = await resolveForm(formId);
 
     if (!resolved || !resolved.found) {
@@ -136,7 +130,7 @@ export async function POST(
 
     const formFields = resolved.fields;
     const isDbForm = !resolved.isPredefined && Boolean(resolved.dbId);
-    const targetTemplateId = resolved.dbId ? (new mongoose.Types.ObjectId(resolved.dbId)) : null;
+    const targetTemplateId = resolved.dbId ? new mongoose.Types.ObjectId(resolved.dbId) : null;
 
     if (!formFields.length && !resolved.isPredefined) {
       return NextResponse.json(
@@ -145,19 +139,16 @@ export async function POST(
       );
     }
 
-    // 3. Strict Server-Side Validation against Form Field Definitions
     const validationErrors: Record<string, string> = {};
     const sanitizedData: Record<string, any> = {};
 
     for (const field of formFields) {
       let val = data[field.id];
 
-      // Sanitize text inputs by removing null bytes & extra trailing whitespaces
       if (typeof val === 'string') {
         val = val.replace(/\0/g, '').trim();
       }
 
-      // Required check
       if (field.required) {
         if (
           val === undefined ||
@@ -171,21 +162,19 @@ export async function POST(
         }
       }
 
-      // Skip type validation if optional and omitted
       if (val === undefined || val === null || val === '') {
         continue;
       }
 
-      // Email format check on server
       if (field.type === 'email') {
-        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        const emailRegex =
+          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
         if (typeof val !== 'string' || !emailRegex.test(val)) {
           validationErrors[field.id] = 'Please provide a valid email address';
           continue;
         }
       }
 
-      // URL format check on server
       if (field.type === 'url' && typeof val === 'string') {
         try {
           const parsedUrl = new URL(val.startsWith('http') ? val : `https://${val}`);
@@ -199,7 +188,6 @@ export async function POST(
         }
       }
 
-      // Number validation on server
       if (field.type === 'number') {
         const num = Number(val);
         if (isNaN(num)) {
@@ -209,16 +197,21 @@ export async function POST(
         val = num;
       }
 
-      // Select / Radio allowed options check on server
-      if ((field.type === 'select' || field.type === 'radio') && field.options && Array.isArray(field.options) && field.options.length > 0) {
-        const allowedValues = field.options.map((opt: any) => typeof opt === 'string' ? opt : opt.value ?? opt.label);
+      if (
+        (field.type === 'select' || field.type === 'radio') &&
+        field.options &&
+        Array.isArray(field.options) &&
+        field.options.length > 0
+      ) {
+        const allowedValues = field.options.map((opt: any) =>
+          typeof opt === 'string' ? opt : opt.value ?? opt.label
+        );
         if (!allowedValues.includes(val)) {
           validationErrors[field.id] = `"${val}" is not a valid choice`;
           continue;
         }
       }
 
-      // Text length and custom regex validation on server
       if (typeof val === 'string') {
         if (field.validation) {
           if (field.validation.minLength && val.length < field.validation.minLength) {
@@ -234,7 +227,7 @@ export async function POST(
                 validationErrors[field.id] = 'Invalid format';
               }
             } catch {
-              // ignore invalid regex definition
+              // ignore invalid regex
             }
           }
         }
@@ -254,7 +247,6 @@ export async function POST(
       );
     }
 
-    // Save to Database if it's a persisted DB Form
     if (isDbForm && targetTemplateId) {
       const clientIp =
         request.headers.get('x-forwarded-for') ||
@@ -263,6 +255,7 @@ export async function POST(
       const ipHash = crypto.createHash('sha256').update(clientIp).digest('hex').substring(0, 16);
       const userAgent = request.headers.get('user-agent') || 'unknown';
 
+      await connectToDatabase();
       await FormSubmission.create({
         formId: targetTemplateId,
         data: sanitizedData,

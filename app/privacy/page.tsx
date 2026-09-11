@@ -130,7 +130,7 @@ export default function PrivacyPage() {
                   <strong className="text-white font-semibold">You directly:</strong> When you create an account, log in via one-time passcode (OTP), configure forms, or request support (e.g. email address, account settings).
                 </li>
                 <li>
-                  <strong className="text-white font-semibold">Your form respondents:</strong> When visitors submit responses to forms hosted on your SnapForm endpoints (<code className="text-neutral-200 bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono">/api/f/:id</code>), we store and process these payloads on your behalf in encrypted storage.
+                  <strong className="text-white font-semibold">Your form respondents:</strong> When visitors submit responses to forms hosted on your SnapForm endpoints (<code className="text-neutral-200 bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono">/api/form/:id</code>), we store and process these payloads on your behalf in encrypted storage.
                 </li>
                 <li>
                   <strong className="text-white font-semibold">Automated logs & telemetry:</strong> Technical information including IP address (hashed for sliding-window rate limiting), browser user agent, submission timestamps, and referrer headers for spam filtering.

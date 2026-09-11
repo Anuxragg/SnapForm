@@ -92,7 +92,7 @@ export default function TermsPage() {
                 1. Agreement to Terms
               </h2>
               <p>
-                By accessing our website, visual form builder, compiler APIs, and form endpoints (<code className="text-neutral-200 bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono">/api/f/:id</code>), you agree to adhere to these Terms of Service. If you disagree with any part of the terms, you must not use our services.
+                By accessing our website, visual form builder, compiler APIs, and form endpoints (<code className="text-neutral-200 bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono">/api/form/:id</code>), you agree to adhere to these Terms of Service. If you disagree with any part of the terms, you must not use our services.
               </p>
             </section>
 

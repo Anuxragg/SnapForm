@@ -69,7 +69,7 @@ export function ContactForm() {
   });
 
   const onSubmit = async (data: ContactInput) => {
-    const res = await fetch('https://snapform.live/api/f/YOUR_FORM_ID', {
+    const res = await fetch('https://snapform.live/api/form/YOUR_FORM_ID', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
   }
 }`,
   htmlSnippet: `<!-- Direct HTML Form Ingestion with Zero JavaScript -->
-<form action="https://snapform.live/api/f/YOUR_FORM_ID" method="POST" class="space-y-4">
+<form action="https://snapform.live/api/form/YOUR_FORM_ID" method="POST" class="space-y-4">
   <div>
     <label for="name">Full Name</label>
     <input type="text" id="name" name="fullName" required placeholder="Alex Johnson" />
