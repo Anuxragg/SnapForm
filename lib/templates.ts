@@ -128,7 +128,7 @@ export const PREDEFINED_TEMPLATES: ISeedFormTemplate[] = [
       },
     ],
     styling: {
-      theme: 'corporate',
+      theme: 'modern',
       primaryColor: '#2563eb',
     },
   },
@@ -423,7 +423,7 @@ export const PREDEFINED_TEMPLATES: ISeedFormTemplate[] = [
       },
     ],
     styling: {
-      theme: 'corporate',
+      theme: 'modern',
       primaryColor: '#0284c7',
     },
   },

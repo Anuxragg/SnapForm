@@ -41,6 +41,7 @@ import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { useAuth } from '@/components/AuthProvider';
 import Logo from '@/components/Logo';
 import CodeBlock from '@/components/CodeBlock';
+import UserDropdownMenu from '@/components/UserDropdownMenu';
 
 export default function BuilderPage() {
   const router = useRouter();
@@ -445,45 +446,8 @@ export default function BuilderPage() {
             </>
           )}
 
-          {/* User Profile Avatar */}
-          <div className="relative">
-            <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="w-8 h-8 rounded-full bg-brand-orange text-white text-xs font-bold flex items-center justify-center shrink-0 cursor-pointer shadow-2xs hover:opacity-90 transition-opacity"
-            >
-              {user.name ? user.name[0].toUpperCase() : 'A'}
-            </button>
-
-            {profileDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute right-0 mt-2 w-52 bg-white border border-neutral-200 rounded-2xl shadow-xl p-2 z-40 animate-in fade-in slide-in-from-top-1 duration-150 text-left">
-                  <div className="px-3 py-2 mb-1 border-b border-neutral-100">
-                    <p className="text-xs font-bold text-brand-charcoal truncate">{user.name}</p>
-                    <p className="text-[10px] text-neutral-400 truncate">{user.email}</p>
-                  </div>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setProfileDropdownOpen(false)}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5 text-neutral-400" />
-                    <span>Dashboard Console</span>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setProfileDropdownOpen(false);
-                      logout();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {/* User Profile Avatar with full rich dropdown */}
+          <UserDropdownMenu triggerType="avatar" align="top-to-bottom" />
 
           {/* Dashboard console shortcut */}
           <Link

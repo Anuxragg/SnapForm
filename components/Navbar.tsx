@@ -17,6 +17,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
+import UserDropdownMenu from '@/components/UserDropdownMenu';
 
 const NAV_LINKS = [
   { label: 'Builder', href: '/builder', icon: Wand2 },
@@ -113,126 +114,7 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <div className="relative shrink-0" ref={profileRef}>
-                {/* Circular Orange Avatar Button Only */}
-                <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  aria-label="User account menu"
-                  className="w-8 h-8 rounded-full bg-brand-orange hover:brightness-110 active:scale-95 text-white text-xs font-bold flex items-center justify-center transition-all cursor-pointer shadow-md shadow-brand-orange/20 select-none"
-                >
-                  {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'A'}
-                </button>
-
-                {profileOpen && (
-                  <div
-                    className="absolute right-0 top-[calc(100%+8px)] w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100"
-                    style={{
-                      fontFamily:
-                        'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                    }}
-                  >
-                    {/* Header: Signed in as */}
-                    <div className="px-2.5 py-2">
-                      <p className="text-[12px] font-normal leading-[16px] text-[#71717a] dark:text-neutral-400">
-                        Signed in as
-                      </p>
-                      <p className="text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-0.5">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
-
-                    {/* Section 1: Navigation Links */}
-                    <div className="space-y-0.5">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setProfileOpen(false)}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link
-                        href="/builder"
-                        onClick={() => setProfileOpen(false)}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
-                      >
-                        <Wand2 className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
-                        <span>Builder</span>
-                      </Link>
-                      <Link
-                        href="/docs"
-                        onClick={() => setProfileOpen(false)}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors"
-                      >
-                        <BookOpen className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
-                        <span>Documentation</span>
-                      </Link>
-                    </div>
-
-                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
-
-                    {/* Section 2: Theme Selector */}
-                    <div className="px-2.5 py-1.5 flex items-center justify-between text-[12px] font-normal leading-[16px]">
-                      <span className="text-[#71717a] dark:text-neutral-400">Theme</span>
-                      <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-[#202023] rounded-[7px] border border-[#e4e4e7] dark:border-[#2e2e33]">
-                        <button
-                          type="button"
-                          onClick={() => setTheme('system')}
-                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                            mounted && theme === 'system'
-                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
-                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                          }`}
-                          title="System"
-                        >
-                          <Monitor className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTheme('light')}
-                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                            mounted && theme === 'light'
-                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
-                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                          }`}
-                          title="Light"
-                        >
-                          <Sun className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTheme('dark')}
-                          className={`p-1 rounded-[5px] transition-all cursor-pointer ${
-                            mounted && theme === 'dark'
-                              ? 'bg-white dark:bg-[#27272a] text-[oklch(0.145_0_0)] dark:text-white shadow-2xs font-semibold'
-                              : 'text-[#71717a] dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white'
-                          }`}
-                          title="Dark"
-                        >
-                          <Moon className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
-
-                    {/* Section 3: Sign Out */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        logout();
-                        setProfileOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[#e11d48] hover:bg-[#fff1f2] dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
-                    >
-                      <LogOut className="w-4 h-4 text-[#e11d48] shrink-0" />
-                      <span>Sign out</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <UserDropdownMenu triggerType="avatar" align="top-to-bottom" />
             )}
           </div>
 

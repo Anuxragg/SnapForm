@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from 'next-themes';
 import {
@@ -20,6 +21,7 @@ import {
 interface UserDropdownMenuProps {
   collapsed?: boolean;
   align?: 'bottom-to-top' | 'top-to-bottom';
+  triggerType?: 'sidebar' | 'avatar';
   onOpenAccountModal?: (tab?: 'account' | 'agents' | 'preferences' | 'usage' | 'billing') => void;
   avatarUrl?: string | null;
 }
@@ -27,11 +29,13 @@ interface UserDropdownMenuProps {
 export default function UserDropdownMenu({
   collapsed = false,
   align = 'bottom-to-top',
+  triggerType = 'sidebar',
   onOpenAccountModal,
   avatarUrl: propAvatarUrl,
 }: UserDropdownMenuProps) {
+  const router = useRouter();
   const { user, logout } = useAuth();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
   const [soundsEnabled, setSoundsEnabled] = useState(true);
@@ -105,6 +109,15 @@ export default function UserDropdownMenu({
     }
   };
 
+  const handleAccountClick = (tab: 'account' | 'billing') => {
+    setIsOpen(false);
+    if (onOpenAccountModal) {
+      onOpenAccountModal(tab);
+    } else {
+      router.push(`/dashboard?tab=${tab}`);
+    }
+  };
+
   if (!user) return null;
 
   // Extract initials (e.g. "AN")
@@ -128,53 +141,75 @@ export default function UserDropdownMenu({
   };
 
   return (
-    <div className="relative w-full" ref={menuRef} style={fontStyle}>
+    <div className={`relative ${triggerType === 'avatar' ? 'shrink-0' : 'w-full'}`} ref={menuRef} style={fontStyle}>
       {/* ─── Trigger Button ─────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] hover:border-neutral-400 dark:hover:border-[#52525b] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer shadow-2xs select-none ${collapsed
-            ? 'justify-center p-1.5'
-            : 'justify-between px-2.5 py-1.5 gap-2'
-          }`}
-        title={user.email}
-        aria-expanded={isOpen}
-      >
-        <div className="flex items-center min-w-0 gap-2">
-          {/* Initials badge */}
-          <div className="w-5 h-5 rounded-[5px] bg-neutral-200/80 dark:bg-[#2a2a2a] text-[oklch(0.145_0_0)] dark:text-neutral-100 text-[11px] font-bold font-mono tracking-tight shrink-0 flex items-center justify-center overflow-hidden">
-            {hasValidAvatar ? (
-              <img
-                src={activeAvatar!}
-                alt={user.name || user.email || 'Avatar'}
-                onError={() => setImgError(true)}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              initials
-            )}
+      {triggerType === 'avatar' ? (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="User account menu"
+          aria-expanded={isOpen}
+          className="w-8 h-8 rounded-full bg-brand-orange hover:brightness-110 active:scale-95 text-white text-xs font-bold flex items-center justify-center transition-all cursor-pointer shadow-md shadow-brand-orange/20 select-none overflow-hidden"
+          title={user.email}
+        >
+          {hasValidAvatar ? (
+            <img
+              src={activeAvatar!}
+              alt={user.name || user.email || 'Avatar'}
+              onError={() => setImgError(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials[0] || 'A'
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full flex items-center rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] hover:border-neutral-400 dark:hover:border-[#52525b] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer shadow-2xs select-none ${collapsed
+              ? 'justify-center p-1.5'
+              : 'justify-between px-2.5 py-1.5 gap-2'
+            }`}
+          title={user.email}
+          aria-expanded={isOpen}
+        >
+          <div className="flex items-center min-w-0 gap-2">
+            {/* Initials badge */}
+            <div className="w-5 h-5 rounded-[5px] bg-neutral-200/80 dark:bg-[#2a2a2a] text-[oklch(0.145_0_0)] dark:text-neutral-100 text-[11px] font-bold font-mono tracking-tight shrink-0 flex items-center justify-center overflow-hidden">
+              {hasValidAvatar ? (
+                <img
+                  src={activeAvatar!}
+                  alt={user.name || user.email || 'Avatar'}
+                  onError={() => setImgError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                initials
+              )}
+            </div>
+
+            <span
+              className={`text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed
+                  ? 'max-w-0 opacity-0 -translate-x-1 pointer-events-none'
+                  : 'max-w-[155px] opacity-100 translate-x-0 truncate'
+                }`}
+            >
+              {user.email}
+            </span>
           </div>
 
-          <span
-            className={`text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed
-                ? 'max-w-0 opacity-0 -translate-x-1 pointer-events-none'
-                : 'max-w-[155px] opacity-100 translate-x-0 truncate'
+          <ChevronsUpDown
+            className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed ? 'max-w-0 opacity-0 pointer-events-none scale-50' : 'max-w-4 opacity-100 scale-100'
               }`}
-          >
-            {user.email}
-          </span>
-        </div>
-
-        <ChevronsUpDown
-          className={`w-3.5 h-3.5 text-neutral-400 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsed ? 'max-w-0 opacity-0 pointer-events-none scale-50' : 'max-w-4 opacity-100 scale-100'
-            }`}
-        />
-      </button>
+          />
+        </button>
+      )}
 
       {/* ─── Popup Dropdown Menu ────────────────────────────────────── */}
       {isOpen && (
         <div
-          className={`absolute left-0 w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100 ${isUp ? 'bottom-full mb-2' : 'top-full mt-2'
+          className={`absolute ${triggerType === 'avatar' ? 'right-0' : 'left-0'} w-[240px] bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[14px] shadow-2xl p-1.5 z-50 text-[oklch(0.145_0_0)] dark:text-neutral-100 animate-in fade-in zoom-in-95 duration-100 ${isUp ? 'bottom-full mb-2' : 'top-full mt-2'
             }`}
           style={fontStyle}
         >
@@ -183,7 +218,7 @@ export default function UserDropdownMenu({
             <p className="text-[12px] font-normal leading-[16px] text-[#71717a] dark:text-neutral-400">
               Signed in as
             </p>
-            <p className="text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-0.5">
+            <p className="text-[12px] font-semibold leading-[16px] text-[oklch(0.145_0_0)] dark:text-white truncate mt-0.5">
               {user.email}
             </p>
           </div>
@@ -194,12 +229,7 @@ export default function UserDropdownMenu({
           <div className="space-y-0.5">
             <button
               type="button"
-              onClick={() => {
-                setIsOpen(false);
-                if (onOpenAccountModal) {
-                  onOpenAccountModal('account');
-                }
-              }}
+              onClick={() => handleAccountClick('account')}
               className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <IdCard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-400 shrink-0" />
@@ -208,12 +238,7 @@ export default function UserDropdownMenu({
 
             <button
               type="button"
-              onClick={() => {
-                setIsOpen(false);
-                if (onOpenAccountModal) {
-                  onOpenAccountModal('billing');
-                }
-              }}
+              onClick={() => handleAccountClick('billing')}
               className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
@@ -224,12 +249,7 @@ export default function UserDropdownMenu({
 
             <button
               type="button"
-              onClick={() => {
-                setIsOpen(false);
-                if (onOpenAccountModal) {
-                  onOpenAccountModal('billing');
-                }
-              }}
+              onClick={() => handleAccountClick('billing')}
               className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#f4f4f5] dark:hover:bg-[#252525] transition-colors cursor-pointer text-left"
             >
               <div className="flex items-center gap-2.5">
