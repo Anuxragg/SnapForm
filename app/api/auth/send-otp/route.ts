@@ -84,7 +84,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Verification code sent to ${normalizedEmail}`,
-      devCode: emailResult.devCode, // for easy testing in development if RESEND_API_KEY is not set
+      ...(process.env.NODE_ENV !== 'production' && emailResult.devCode
+        ? { devCode: emailResult.devCode }
+        : {}),
     });
   } catch (error: any) {
     console.error('Error sending verification OTP:', error);
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         message: 'Failed to send verification code. Please try again.',
-        error: error.message,
+        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
       },
       { status: 500 }
     );

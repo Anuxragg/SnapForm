@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
-import { hashPassword, setSessionCookie } from '@/lib/auth';
+import { verifyPassword, setSessionCookie } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const calculatedHash = hashPassword(password, user.salt);
-    if (calculatedHash !== user.passwordHash) {
+    const isValidPassword = verifyPassword(password, user.salt, user.passwordHash);
+    if (!isValidPassword) {
       return NextResponse.json(
         { success: false, message: 'Invalid email or password' },
         { status: 401 }

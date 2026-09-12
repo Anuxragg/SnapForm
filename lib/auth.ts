@@ -29,6 +29,24 @@ export function hashPassword(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LEN, DIGEST).toString('hex');
 }
 
+/**
+ * Verify password against stored hash with timing-safe comparison
+ */
+export function verifyPassword(password: string, salt: string, storedHash: string): boolean {
+  try {
+    if (!password || !salt || !storedHash) return false;
+    const calculatedHash = hashPassword(password, salt);
+    const calculatedBuffer = Buffer.from(calculatedHash, 'hex');
+    const storedBuffer = Buffer.from(storedHash, 'hex');
+    if (calculatedBuffer.length !== storedBuffer.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(calculatedBuffer, storedBuffer);
+  } catch {
+    return false;
+  }
+}
+
 export interface ISessionPayload {
   id: string;
   email: string;

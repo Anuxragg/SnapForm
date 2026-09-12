@@ -132,18 +132,14 @@ function LivePreviewForm({
 
         case 'checkbox':
           if (field.options && field.options.length > 0) {
-            fieldValidation = z.array(z.string());
-            if (field.required) {
-              fieldValidation = fieldValidation.min(1, 'Select at least one option');
-            } else {
-              fieldValidation = fieldValidation.optional();
-            }
+            const arr = z.array(z.string());
+            fieldValidation = field.required
+              ? arr.min(1, 'Select at least one option')
+              : arr.optional();
           } else {
-            if (field.required) {
-              fieldValidation = z.boolean().refine((val) => val === true, 'You must accept this field');
-            } else {
-              fieldValidation = z.boolean().default(false);
-            }
+            fieldValidation = field.required
+              ? z.boolean().refine((val) => val === true, 'You must accept this field')
+              : z.boolean().default(false);
           }
           break;
 
@@ -326,45 +322,48 @@ function LivePreviewForm({
                     <Controller
                       control={control}
                       name={fieldId}
-                      render={({ field: { onChange, value = [] } }) => (
-                        <div className="flex flex-col space-y-2 mt-1">
-                          {(field.options || []).map((opt) => {
-                            const optId = `preview-opt-${fieldId}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-                            const isChecked = Array.isArray(value) && value.includes(opt);
-                            return (
-                              <label
-                                key={opt}
-                                htmlFor={optId}
-                                className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
-                                  isChecked
-                                    ? isDarkTheme
-                                      ? 'border-brand-orange bg-[#1f2838]'
-                                      : 'border-brand-orange bg-brand-orange/5'
-                                    : isDarkTheme
-                                      ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
-                                      : 'border-neutral-200 bg-white hover:bg-neutral-50'
-                                }`}
-                              >
-                                <Checkbox
-                                  id={optId}
-                                  checked={isChecked}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      onChange([...(value || []), opt]);
-                                    } else {
-                                      onChange((value || []).filter((v: string) => v !== opt));
-                                    }
-                                  }}
-                                  className="cursor-pointer"
-                                />
-                                <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
-                                  {opt}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      )}
+                      render={({ field: { onChange, value } }) => {
+                        const currentValues: string[] = Array.isArray(value) ? value : [];
+                        return (
+                          <div className="flex flex-col space-y-2 mt-1">
+                            {(field.options || []).map((opt) => {
+                              const optId = `preview-opt-${fieldId}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                              const isChecked = currentValues.includes(opt);
+                              return (
+                                <label
+                                  key={opt}
+                                  htmlFor={optId}
+                                  className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                                    isChecked
+                                      ? isDarkTheme
+                                        ? 'border-brand-orange bg-[#1f2838]'
+                                        : 'border-brand-orange bg-brand-orange/5'
+                                      : isDarkTheme
+                                        ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
+                                        : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                                  }`}
+                                >
+                                  <Checkbox
+                                    id={optId}
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        onChange([...currentValues, opt]);
+                                      } else {
+                                        onChange(currentValues.filter((v: string) => v !== opt));
+                                      }
+                                    }}
+                                    className="cursor-pointer"
+                                  />
+                                  <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
+                                    {opt}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        );
+                      }}
                     />
                     {fieldErr && (
                       <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
