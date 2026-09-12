@@ -11,16 +11,20 @@ const inter = Inter({
 
 const baseUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://snapform.dev');
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'https://snappform.vercel.app');
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "SnapForm — High-Speed React Form Compiler & Headless Form Builder",
+    default: "SnapForm — React Form Compiler & Builder",
     template: "%s | SnapForm",
   },
   description:
-    "Design beautiful forms and instantly generate production-ready React components, type-safe Zod validation schemas, and Next.js API route handlers with headless submission endpoints.",
+    "Visual form compiler that outputs production-grade React components, type-safe Zod schemas, and Next.js route handlers with headless endpoints.",
   keywords: [
     "Form Builder",
     "React Form Generator",
@@ -45,16 +49,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "SnapForm — High-Speed React Form Compiler & Headless Form Builder",
+    title: "SnapForm — React Form Compiler & Builder",
     description:
-      "Visual form designer that compiles directly into production-grade React components, Zod schemas, and Next.js API routes.",
+      "Visual form compiler that outputs production-grade React components, type-safe Zod schemas, and Next.js route handlers with headless endpoints.",
     url: baseUrl,
     siteName: "SnapForm",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/logo.png",
+        url: "/icon.svg",
         width: 512,
         height: 512,
         alt: "SnapForm Logo",
@@ -62,11 +66,11 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "SnapForm — High-Speed React Form Compiler",
+    card: "summary",
+    title: "SnapForm — React Form Compiler & Builder",
     description:
-      "Generate beautiful, production-ready React forms with robust Zod validation and Next.js API routes at hyper-speed.",
-    images: ["/logo.png"],
+      "Visual form compiler that outputs production-grade React components, type-safe Zod schemas, and Next.js route handlers with headless endpoints.",
+    images: ["/icon.svg"],
     creator: "@snapform",
   },
   robots: {
