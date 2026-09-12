@@ -175,21 +175,21 @@ export default function CodeOutput({ code, formName, isLoading = false, onCompil
           <TabsList className="bg-neutral-200/50 border border-neutral-200/60 p-0.5 rounded-lg h-7">
             <TabsTrigger
               value="component"
-              className="rounded-md text-[11px] font-mono data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all"
+              className="rounded-md text-[11px] font-mono data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-active:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all dark:data-active:bg-white dark:data-active:text-neutral-900"
             >
               <FileCode className="w-3 h-3 text-brand-orange" />
               <span>{componentFileName}</span>
             </TabsTrigger>
             <TabsTrigger
               value="schema"
-              className="rounded-md text-[11px] font-mono data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all"
+              className="rounded-md text-[11px] font-mono data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-active:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all dark:data-active:bg-white dark:data-active:text-neutral-900"
             >
               <Terminal className="w-3 h-3 text-brand-orange" />
               <span>schema.ts</span>
             </TabsTrigger>
             <TabsTrigger
               value="api"
-              className="rounded-md text-[11px] font-mono data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all"
+              className="rounded-md text-[11px] font-mono data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-active:shadow-2xs text-neutral-500 hover:text-neutral-800 flex items-center gap-1.5 h-6 px-2.5 cursor-pointer transition-all dark:data-active:bg-white dark:data-active:text-neutral-900"
             >
               <Server className="w-3 h-3 text-brand-orange" />
               <span>route.ts</span>

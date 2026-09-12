@@ -42,10 +42,12 @@ import { useAuth } from '@/components/AuthProvider';
 import Logo from '@/components/Logo';
 import CodeBlock from '@/components/CodeBlock';
 import UserDropdownMenu from '@/components/UserDropdownMenu';
+import AccountModal from '@/components/AccountModal';
 
 export default function BuilderPage() {
   const router = useRouter();
   const { user, loading, logout, openAuthModal } = useAuth();
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -370,26 +372,6 @@ export default function BuilderPage() {
           )}
         </div>
 
-        {/* Dynamic Name Input in header */}
-        {selectedTemplate ? (
-          <div className="flex items-center gap-2 max-w-xs md:max-w-md">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-mono hidden md:block">
-              EDITING FORM:
-            </span>
-            <input
-              type="text"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Form name..."
-              className="h-8 rounded-xl border border-neutral-200 bg-neutral-50/80 px-3 focus:bg-white focus:border-brand-orange outline-none text-xs font-bold text-brand-charcoal w-44 sm:w-60 transition-all"
-            />
-          </div>
-        ) : (
-          <div className="text-[11px] font-semibold text-neutral-400 font-mono flex items-center gap-1.5 uppercase tracking-wider">
-            <Laptop className="w-4 h-4 text-brand-orange" /> Select form template to begin
-          </div>
-        )}
-
         {/* Action Buttons & Links */}
         <div className="flex items-center gap-2.5">
           {selectedTemplate && (
@@ -430,33 +412,15 @@ export default function BuilderPage() {
                 <span>Save to Profile</span>
               </button>
 
-              {/* Compile Code */}
-              <button
-                onClick={handleGenerateCode}
-                disabled={generationLoading || fields.length === 0}
-                className="h-8 px-3.5 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-xs disabled:opacity-50"
-              >
-                {generationLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                ) : (
-                  <Wand2 className="w-3.5 h-3.5" />
-                )}
-                <span>Compile Code</span>
-              </button>
             </>
           )}
 
           {/* User Profile Avatar with full rich dropdown */}
-          <UserDropdownMenu triggerType="avatar" align="top-to-bottom" />
-
-          {/* Dashboard console shortcut */}
-          <Link
-            href="/dashboard"
-            className="h-8 px-2.5 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
-          >
-            <LayoutDashboard className="w-3.5 h-3.5 text-brand-orange" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </Link>
+          <UserDropdownMenu
+            triggerType="avatar"
+            align="top-to-bottom"
+            onOpenAccountModal={() => setAccountModalOpen(true)}
+          />
         </div>
       </header>
 
@@ -501,28 +465,28 @@ export default function BuilderPage() {
                 <TabsList className="grid grid-cols-4 rounded-none border-b border-neutral-200 bg-neutral-50 p-1 h-12 w-full shrink-0">
                   <TabsTrigger
                     value="fields"
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-brand-orange data-[state=active]:shadow-2xs text-[11px] font-bold flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Settings2 className="w-3.5 h-3.5" />
                     <span>Fields</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="styling"
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-brand-orange data-[state=active]:shadow-2xs text-[11px] font-bold flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Palette className="w-3.5 h-3.5" />
                     <span>Style</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-brand-orange data-[state=active]:shadow-2xs text-[11px] font-bold flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Settings className="w-3.5 h-3.5" />
                     <span>Settings</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="integrations"
-                    className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-brand-orange data-[state=active]:shadow-2xs text-[11px] font-bold flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Link2 className="w-3.5 h-3.5" />
                     <span>Endpoint</span>
@@ -922,6 +886,12 @@ export default function BuilderPage() {
           </div>
         </div>
       )}
+
+      {/* Account Settings Modal */}
+      <AccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+      />
     </div>
   );
 }

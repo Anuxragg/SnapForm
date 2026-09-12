@@ -78,14 +78,14 @@ export default function StyleCustomizer({ styling, onChange }: StyleCustomizerPr
                 onClick={() => update({ theme: preset.id as any })}
                 className={`p-3 rounded-2xl border text-left flex items-start gap-3 cursor-pointer transition-all duration-200 ${
                   isSelected
-                    ? 'border-brand-orange bg-brand-orange/5 shadow-2xs'
+                    ? 'border-neutral-200/80 bg-white shadow-sm'
                     : 'border-neutral-200/80 bg-white hover:border-neutral-300 hover:bg-neutral-50/60'
                 }`}
               >
                 <div
                   className={`p-2 rounded-xl shrink-0 transition-colors ${
                     isSelected
-                      ? 'bg-brand-orange text-white'
+                      ? 'bg-neutral-900 text-white'
                       : 'bg-neutral-100 text-neutral-600'
                   }`}
                 >
@@ -93,7 +93,7 @@ export default function StyleCustomizer({ styling, onChange }: StyleCustomizerPr
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${isSelected ? 'text-brand-orange' : 'text-neutral-800'}`}>
+                    <span className={`text-xs font-bold ${isSelected ? 'text-neutral-900' : 'text-neutral-800'}`}>
                       {preset.name}
                     </span>
                   </div>
