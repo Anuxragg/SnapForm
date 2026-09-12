@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import FormSubmission from '@/models/FormSubmission';
+import FormView from '@/models/FormView';
 import { getSession } from '@/lib/auth';
 import mongoose from 'mongoose';
 
@@ -40,8 +41,8 @@ export async function GET(req: NextRequest) {
       targetFormIds = userForms.map((f: any) => f._id);
     }
 
-    // Calculate total views from the forms
-    const totalViews = userForms.reduce((acc, f: any) => {
+    // Calculate total views stored on the form documents as baseline
+    const templateViewsCount = userForms.reduce((acc, f: any) => {
       if (formId === 'all' || f._id.toString() === formId || f.shortId === formId) {
         return acc + (f.views || 0);
       }
@@ -75,20 +76,33 @@ export async function GET(req: NextRequest) {
       formatLabel = (d: Date) => months[d.getMonth()];
     }
 
-    // 3. Fetch submissions within the timeframe
+    // 3. Fetch submissions and actual view events within the timeframe
     let submissions: any[] = [];
+    let viewEvents: any[] = [];
+
     if (targetFormIds.length > 0) {
-      submissions = await FormSubmission.find({
-        formId: { $in: targetFormIds },
-        submittedAt: { $gte: startDate },
-      })
-        .sort({ submittedAt: 1 })
-        .lean();
+      const [subs, views] = await Promise.all([
+        FormSubmission.find({
+          formId: { $in: targetFormIds },
+          submittedAt: { $gte: startDate },
+        })
+          .sort({ submittedAt: 1 })
+          .lean(),
+        FormView.find({
+          formId: { $in: targetFormIds },
+          viewedAt: { $gte: startDate },
+        })
+          .sort({ viewedAt: 1 })
+          .lean(),
+      ]);
+      submissions = subs;
+      viewEvents = views;
     }
 
     const totalSubmissions = submissions.length;
+    const totalRecordedViews = Math.max(templateViewsCount, viewEvents.length);
 
-    // 4. Generate time-series buckets
+    // 4. Generate genuine time-series buckets
     const buckets: Array<{ label: string; submissions: number; impressions: number; conversion: number }> = [];
 
     if (timeframe === '7days') {
@@ -98,18 +112,26 @@ export async function GET(req: NextRequest) {
         const nextDate = new Date(bucketDate);
         nextDate.setDate(bucketDate.getDate() + 1);
 
-        const count = submissions.filter(
+        const subCount = submissions.filter(
           (s) => new Date(s.submittedAt) >= bucketDate && new Date(s.submittedAt) < nextDate
         ).length;
 
-        // Estimated impressions proportional to views / submissions
-        const approxViews = Math.round(count * 5 + (totalViews > 0 ? Math.ceil(totalViews / 7) : 0));
-        const conv = approxViews > 0 ? ((count / approxViews) * 100).toFixed(1) : count > 0 ? '100.0' : '0.0';
+        const viewCount = viewEvents.filter(
+          (v) => new Date(v.viewedAt) >= bucketDate && new Date(v.viewedAt) < nextDate
+        ).length;
+
+        const bucketImpressions = Math.max(viewCount, subCount);
+        const conv =
+          bucketImpressions > 0
+            ? ((subCount / bucketImpressions) * 100).toFixed(1)
+            : subCount > 0
+            ? '100.0'
+            : '0.0';
 
         buckets.push({
           label: formatLabel(bucketDate, i),
-          submissions: count,
-          impressions: Math.max(approxViews, count),
+          submissions: subCount,
+          impressions: bucketImpressions,
           conversion: parseFloat(conv),
         });
       }
@@ -121,17 +143,26 @@ export async function GET(req: NextRequest) {
         const nextDate = new Date(bucketDate);
         nextDate.setDate(bucketDate.getDate() + intervalDays);
 
-        const count = submissions.filter(
+        const subCount = submissions.filter(
           (s) => new Date(s.submittedAt) >= bucketDate && new Date(s.submittedAt) < nextDate
         ).length;
 
-        const approxViews = Math.round(count * 6 + (totalViews > 0 ? Math.ceil(totalViews / 15) : 0));
-        const conv = approxViews > 0 ? ((count / approxViews) * 100).toFixed(1) : count > 0 ? '100.0' : '0.0';
+        const viewCount = viewEvents.filter(
+          (v) => new Date(v.viewedAt) >= bucketDate && new Date(v.viewedAt) < nextDate
+        ).length;
+
+        const bucketImpressions = Math.max(viewCount, subCount);
+        const conv =
+          bucketImpressions > 0
+            ? ((subCount / bucketImpressions) * 100).toFixed(1)
+            : subCount > 0
+            ? '100.0'
+            : '0.0';
 
         buckets.push({
           label: formatLabel(bucketDate, i),
-          submissions: count,
-          impressions: Math.max(approxViews, count),
+          submissions: subCount,
+          impressions: bucketImpressions,
           conversion: parseFloat(conv),
         });
       }
@@ -141,24 +172,33 @@ export async function GET(req: NextRequest) {
         const bucketDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
         const nextDate = new Date(startDate.getFullYear(), startDate.getMonth() + i + 1, 1);
 
-        const count = submissions.filter(
+        const subCount = submissions.filter(
           (s) => new Date(s.submittedAt) >= bucketDate && new Date(s.submittedAt) < nextDate
         ).length;
 
-        const approxViews = Math.round(count * 6 + (totalViews > 0 ? Math.ceil(totalViews / 12) : 0));
-        const conv = approxViews > 0 ? ((count / approxViews) * 100).toFixed(1) : count > 0 ? '100.0' : '0.0';
+        const viewCount = viewEvents.filter(
+          (v) => new Date(v.viewedAt) >= bucketDate && new Date(v.viewedAt) < nextDate
+        ).length;
+
+        const bucketImpressions = Math.max(viewCount, subCount);
+        const conv =
+          bucketImpressions > 0
+            ? ((subCount / bucketImpressions) * 100).toFixed(1)
+            : subCount > 0
+            ? '100.0'
+            : '0.0';
 
         buckets.push({
           label: formatLabel(bucketDate, i),
-          submissions: count,
-          impressions: Math.max(approxViews, count),
+          submissions: subCount,
+          impressions: bucketImpressions,
           conversion: parseFloat(conv),
         });
       }
     }
 
     const calculatedTotalViews = Math.max(
-      totalViews,
+      totalRecordedViews,
       buckets.reduce((acc, b) => acc + b.impressions, 0)
     );
 
@@ -169,13 +209,42 @@ export async function GET(req: NextRequest) {
         ? '100.0'
         : '0.0';
 
+    // Calculate genuine response time if views and submissions with timestamps exist
+    let responseTimeStr = '0s';
+    if (totalSubmissions > 0) {
+      // Look for matched view to submission intervals if available
+      const durations: number[] = [];
+      submissions.forEach((sub) => {
+        if (sub.ipHash) {
+          const matchedView = viewEvents.find(
+            (v) => v.visitorHash === sub.ipHash && new Date(v.viewedAt) <= new Date(sub.submittedAt)
+          );
+          if (matchedView) {
+            const diffSec = Math.round(
+              (new Date(sub.submittedAt).getTime() - new Date(matchedView.viewedAt).getTime()) / 1000
+            );
+            if (diffSec > 0 && diffSec < 3600) {
+              durations.push(diffSec);
+            }
+          }
+        }
+      });
+
+      if (durations.length > 0) {
+        const avgSec = Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
+        responseTimeStr = avgSec >= 60 ? `${Math.floor(avgSec / 60)}m ${avgSec % 60}s` : `${avgSec}s`;
+      } else {
+        responseTimeStr = '0s';
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: {
         totalViews: calculatedTotalViews,
         totalSubmissions,
         avgConversion: overallConversion,
-        avgResponseTime: '42s',
+        avgResponseTime: responseTimeStr,
         timeSeries: buckets,
       },
     });

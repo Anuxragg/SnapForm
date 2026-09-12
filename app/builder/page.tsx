@@ -30,6 +30,7 @@ import {
   FileCode2,
   RotateCw,
   Eye,
+  Sparkles,
 } from 'lucide-react';
 import TemplateSelector from '@/components/form-builder/TemplateSelector';
 import FieldEditor from '@/components/form-builder/FieldEditor';
@@ -430,17 +431,15 @@ export default function BuilderPage() {
       <main className="relative z-10 flex-1 w-full flex flex-col overflow-hidden bg-white">
         {!selectedTemplate ? (
           /* Template Picker Screen */
-          <div className="flex-1 overflow-y-auto px-6 py-12 text-center w-full">
-            <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold font-mono text-brand-orange uppercase tracking-[0.25em]">
-                  STARTER TEMPLATES
-                </span>
-                <h1 className="text-3xl md:text-4xl font-heading font-extrabold tracking-tight text-brand-charcoal">
-                  Choose a Starter Form
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full bg-neutral-50/40 dark:bg-[#121212]">
+            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+              {/* Studio Header */}
+              <div className="text-center max-w-xl mx-auto space-y-2 pt-4">
+                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-neutral-900 dark:text-white">
+                  Create a New Form
                 </h1>
-                <p className="text-xs md:text-sm text-neutral-500 max-w-2xl mx-auto leading-relaxed font-normal">
-                  Select an industry-specific starter configuration below. You can customize fields, validation rules, endpoint actions, and styles inside the studio editor.
+                <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                  Start with a clean canvas to customize form fields, schema validation, endpoints, and themes.
                 </p>
               </div>
 

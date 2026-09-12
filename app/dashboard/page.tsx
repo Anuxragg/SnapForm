@@ -866,7 +866,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
-                {fetchingAnalytics ? '...' : analyticsData?.avgResponseTime || '42s'}
+                {fetchingAnalytics ? '...' : analyticsData ? analyticsData.avgResponseTime : '0s'}
               </p>
             </div>
           </div>

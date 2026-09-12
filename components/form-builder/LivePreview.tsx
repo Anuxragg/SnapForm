@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -52,25 +52,36 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string; st
   application: Briefcase,
 };
 
-export default function LivePreview({
+function LivePreviewForm({
   fields,
   styling,
-  formName,
-  formDescription,
-  formCategory,
-}: LivePreviewProps) {
-  // Let's dynamically construct a Zod schema in the frontend to validate the interactive preview!
-  const buildDynamicZodSchema = () => {
-    const shape: any = {};
+  labelColor,
+  subLabelColor,
+  inputClass,
+  buttonClass,
+  buttonInlineStyle,
+  isDarkTheme,
+}: {
+  fields: IFormField[];
+  styling: IFormStyling;
+  labelColor: string;
+  subLabelColor: string;
+  inputClass: string;
+  buttonClass: string;
+  buttonInlineStyle: React.CSSProperties;
+  isDarkTheme: boolean;
+}) {
+  const dynamicSchema = useMemo(() => {
+    const shape: Record<string, z.ZodTypeAny> = {};
 
-    fields.forEach((field) => {
-      let fieldValidation: any = z.string();
+    fields.forEach((field, idx) => {
+      const fieldId = field.id?.trim() || `field_${idx}`;
+      let fieldValidation: z.ZodTypeAny = z.string();
 
       switch (field.type) {
         case 'email':
-          fieldValidation = z.string().email('Invalid email address');
           if (field.required) {
-            fieldValidation = fieldValidation.min(1, 'Email is required');
+            fieldValidation = z.string().min(1, 'Email is required').email('Invalid email address');
           } else {
             fieldValidation = z.union([z.string().email('Invalid email address'), z.literal('')]).optional();
           }
@@ -80,23 +91,20 @@ export default function LivePreview({
         case 'text': {
           let base = z.string();
 
-          // Apply min length first
           if (field.required) {
             const minLen = field.validation?.minLength ?? 1;
             const minMsg = minLen > 1
-              ? `${field.label} must be at least ${minLen} characters`
-              : `${field.label} is required`;
+              ? `${field.label || 'Field'} must be at least ${minLen} characters`
+              : `${field.label || 'Field'} is required`;
             base = base.min(minLen, minMsg);
           } else if (field.validation?.minLength) {
             base = base.min(field.validation.minLength, `Minimum length is ${field.validation.minLength}`);
           }
 
-          // Max length
           if (field.validation?.maxLength) {
             base = base.max(field.validation.maxLength, `Maximum length is ${field.validation.maxLength}`);
           }
 
-          // Regex pattern
           if (field.validation?.pattern) {
             try {
               const regex = new RegExp(field.validation.pattern);
@@ -104,7 +112,6 @@ export default function LivePreview({
             } catch { /* ignore invalid regex */ }
           }
 
-          // Make optional last
           fieldValidation = field.required ? base : base.optional().or(z.literal(''));
           break;
         }
@@ -133,7 +140,7 @@ export default function LivePreview({
             }
           } else {
             if (field.required) {
-              fieldValidation = z.boolean().refine(val => val === true, 'You must accept this field');
+              fieldValidation = z.boolean().refine((val) => val === true, 'You must accept this field');
             } else {
               fieldValidation = z.boolean().default(false);
             }
@@ -142,9 +149,7 @@ export default function LivePreview({
 
         case 'file':
           if (field.required) {
-            fieldValidation = z.any().refine((files) => {
-              return files && files.length > 0;
-            }, 'File is required');
+            fieldValidation = z.any().refine((files) => files && files.length > 0, 'File is required');
           } else {
             fieldValidation = z.any().optional();
           }
@@ -154,29 +159,21 @@ export default function LivePreview({
           fieldValidation = z.string().optional();
       }
 
-      shape[field.id] = fieldValidation;
+      shape[fieldId] = fieldValidation;
     });
 
     return z.object(shape);
-  };
-
-  const dynamicSchema = buildDynamicZodSchema();
+  }, [fields]);
 
   const {
     register,
     handleSubmit,
     control,
-    reset,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(dynamicSchema),
     mode: 'onSubmit',
   });
-
-  // Re-initialize values and clear errors whenever fields layout changes
-  useEffect(() => {
-    reset({});
-  }, [fields, reset]);
 
   const onSubmit = (data: any) => {
     console.log('Live Preview submission:', data);
@@ -185,6 +182,275 @@ export default function LivePreview({
     });
   };
 
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="space-y-5 text-left">
+        {fields.map((field, idx) => {
+          const fieldId = field.id?.trim() || `field_${idx}`;
+          const requiredAsterisk = field.required ? (
+            <span className="text-rose-500 font-bold ml-0.5">*</span>
+          ) : null;
+
+          let element: React.ReactNode = null;
+          const fieldErr = (errors as any)[fieldId];
+
+          switch (field.type) {
+            case 'text':
+            case 'email':
+              element = (
+                <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                  <Label htmlFor={`preview-${fieldId}`} className={`text-sm ${labelColor}`}>
+                    {field.label}
+                    {requiredAsterisk}
+                  </Label>
+                  <Input
+                    id={`preview-${fieldId}`}
+                    type={field.type === 'email' ? 'email' : 'text'}
+                    placeholder={field.placeholder || ''}
+                    className={inputClass}
+                    {...register(fieldId)}
+                  />
+                  {fieldErr && (
+                    <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                  )}
+                </div>
+              );
+              break;
+
+            case 'textarea':
+              element = (
+                <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                  <Label htmlFor={`preview-${fieldId}`} className={`text-sm ${labelColor}`}>
+                    {field.label}
+                    {requiredAsterisk}
+                  </Label>
+                  <Textarea
+                    id={`preview-${fieldId}`}
+                    placeholder={field.placeholder || ''}
+                    className={`min-h-[100px] ${inputClass}`}
+                    {...register(fieldId)}
+                  />
+                  {fieldErr && (
+                    <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                  )}
+                </div>
+              );
+              break;
+
+            case 'select':
+              element = (
+                <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                  <Label className={`text-sm ${labelColor}`}>
+                    {field.label}
+                    {requiredAsterisk}
+                  </Label>
+                  <Controller
+                    control={control}
+                    name={fieldId}
+                    render={({ field: { onChange, value } }) => (
+                      <Select onValueChange={onChange} value={value || ''}>
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                        </SelectTrigger>
+                        <SelectContent className={`rounded-xl ${isDarkTheme ? 'bg-[#181f2c] border-neutral-700 text-white' : 'bg-white'}`}>
+                          {(field.options || []).map((opt) => (
+                            <SelectItem key={opt} value={opt} className={`text-sm ${isDarkTheme ? 'text-neutral-200 focus:bg-neutral-700 focus:text-white' : ''}`}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {fieldErr && (
+                    <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                  )}
+                </div>
+              );
+              break;
+
+            case 'radio':
+              element = (
+                <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                  <Label className={`text-sm ${labelColor}`}>
+                    {field.label}
+                    {requiredAsterisk}
+                  </Label>
+                  <Controller
+                    control={control}
+                    name={fieldId}
+                    render={({ field: { onChange, value } }) => (
+                      <RadioGroup onValueChange={onChange} value={value || ''} className="flex flex-col space-y-2 mt-1">
+                        {(field.options || []).map((opt) => {
+                          const optId = `preview-opt-${fieldId}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                          const isChecked = value === opt;
+                          return (
+                            <label
+                              key={opt}
+                              htmlFor={optId}
+                              className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                                isChecked
+                                  ? isDarkTheme
+                                    ? 'border-brand-orange bg-[#1f2838]'
+                                    : 'border-brand-orange bg-brand-orange/5'
+                                  : isDarkTheme
+                                    ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
+                                    : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                              }`}
+                            >
+                              <RadioGroupItem value={opt} id={optId} className="cursor-pointer" />
+                              <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
+                                {opt}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </RadioGroup>
+                    )}
+                  />
+                  {fieldErr && (
+                    <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                  )}
+                </div>
+              );
+              break;
+
+            case 'checkbox':
+              if (field.options && field.options.length > 0) {
+                element = (
+                  <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                    <Label className={`text-sm ${labelColor}`}>
+                      {field.label}
+                      {requiredAsterisk}
+                    </Label>
+                    <Controller
+                      control={control}
+                      name={fieldId}
+                      render={({ field: { onChange, value = [] } }) => (
+                        <div className="flex flex-col space-y-2 mt-1">
+                          {(field.options || []).map((opt) => {
+                            const optId = `preview-opt-${fieldId}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                            const isChecked = Array.isArray(value) && value.includes(opt);
+                            return (
+                              <label
+                                key={opt}
+                                htmlFor={optId}
+                                className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
+                                  isChecked
+                                    ? isDarkTheme
+                                      ? 'border-brand-orange bg-[#1f2838]'
+                                      : 'border-brand-orange bg-brand-orange/5'
+                                    : isDarkTheme
+                                      ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
+                                      : 'border-neutral-200 bg-white hover:bg-neutral-50'
+                                }`}
+                              >
+                                <Checkbox
+                                  id={optId}
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      onChange([...(value || []), opt]);
+                                    } else {
+                                      onChange((value || []).filter((v: string) => v !== opt));
+                                    }
+                                  }}
+                                  className="cursor-pointer"
+                                />
+                                <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
+                                  {opt}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    />
+                    {fieldErr && (
+                      <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                    )}
+                  </div>
+                );
+              } else {
+                element = (
+                  <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                    <div className="flex items-center space-x-2.5 pt-1">
+                      <Controller
+                        control={control}
+                        name={fieldId}
+                        render={({ field: { onChange, value } }) => (
+                          <Checkbox
+                            id={`preview-${fieldId}`}
+                            checked={!!value}
+                            onCheckedChange={onChange}
+                          />
+                        )}
+                      />
+                      <Label
+                        htmlFor={`preview-${fieldId}`}
+                        className={`text-sm cursor-pointer ${labelColor}`}
+                      >
+                        {field.label}
+                        {requiredAsterisk}
+                      </Label>
+                    </div>
+                    {fieldErr && (
+                      <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                    )}
+                  </div>
+                );
+              }
+              break;
+
+            case 'file':
+              element = (
+                <div key={`${fieldId}-${idx}`} className="space-y-1.5">
+                  <Label htmlFor={`preview-${fieldId}`} className={`text-sm ${labelColor}`}>
+                    {field.label}
+                    {requiredAsterisk}
+                  </Label>
+                  <Input
+                    id={`preview-${fieldId}`}
+                    type="file"
+                    className={`cursor-pointer ${inputClass}`}
+                    {...register(fieldId)}
+                  />
+                  {fieldErr && (
+                    <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
+                  )}
+                </div>
+              );
+              break;
+
+            default:
+              break;
+          }
+
+          return element;
+        })}
+      </div>
+
+      <div className="pt-3">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          style={buttonInlineStyle}
+          className={buttonClass}
+        >
+          {isSubmitting ? 'Simulating submit...' : 'Submit Form'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export default function LivePreview({
+  fields,
+  styling,
+  formName,
+  formDescription,
+  formCategory,
+}: LivePreviewProps) {
   const isMinimal = styling.theme === 'minimal';
   const isDarkTheme = styling.theme === 'dark';
   const isNeobrutalist = styling.theme === 'neobrutalist';
@@ -289,6 +555,10 @@ export default function LivePreview({
     buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative border border-white/30 backdrop-blur-md';
   }
 
+  const formKey = useMemo(() => {
+    return fields.map((f, i) => `${f.id || `f_${i}`}-${f.type}-${f.required}`).join('_');
+  }, [fields]);
+
   return (
     <div className="w-full max-w-xl mx-auto space-y-6 relative py-4">
       {/* Ambient colorful fluid mesh background for Liquid Glass refraction */}
@@ -351,254 +621,17 @@ export default function LivePreview({
             </p>
           </div>
 
-          <form key={fields.map(f => `${f.id}-${f.required}`).join('-')} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="space-y-5 text-left">
-              {fields.map((field) => {
-                const requiredAsterisk = field.required ? (
-                  <span className="text-rose-500 font-bold ml-0.5">*</span>
-                ) : null;
-
-                let element = null;
-                const fieldErr = (errors as any)[field.id];
-
-                switch (field.type) {
-                  case 'text':
-                  case 'email':
-                    element = (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
-                          {field.label}
-                          {requiredAsterisk}
-                        </Label>
-                        <Input
-                          id={`preview-${field.id}`}
-                          type={field.type === 'email' ? 'email' : 'text'}
-                          placeholder={field.placeholder || ''}
-                          className={inputClass}
-                          {...register(field.id)}
-                        />
-                        {fieldErr && (
-                          <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                        )}
-                      </div>
-                    );
-                    break;
-
-                  case 'textarea':
-                    element = (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
-                          {field.label}
-                          {requiredAsterisk}
-                        </Label>
-                        <Textarea
-                          id={`preview-${field.id}`}
-                          placeholder={field.placeholder || ''}
-                          className={`min-h-[100px] ${inputClass}`}
-                          {...register(field.id)}
-                        />
-                        {fieldErr && (
-                          <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                        )}
-                      </div>
-                    );
-                    break;
-
-                  case 'select':
-                    element = (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label className={`text-sm ${labelColor}`}>
-                          {field.label}
-                          {requiredAsterisk}
-                        </Label>
-                        <Controller
-                          control={control}
-                          name={field.id}
-                          render={({ field: { onChange, value } }) => (
-                            <Select onValueChange={onChange} value={value || ''}>
-                              <SelectTrigger className={inputClass}>
-                                <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                              </SelectTrigger>
-                              <SelectContent className={`rounded-xl ${isDarkTheme ? 'bg-[#181f2c] border-neutral-700 text-white' : 'bg-white'}`}>
-                                {(field.options || []).map((opt) => (
-                                  <SelectItem key={opt} value={opt} className={`text-sm ${isDarkTheme ? 'text-neutral-200 focus:bg-neutral-700 focus:text-white' : ''}`}>
-                                    {opt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                        {fieldErr && (
-                          <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                        )}
-                      </div>
-                    );
-                    break;
-
-                  case 'radio':
-                    element = (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label className={`text-sm ${labelColor}`}>
-                          {field.label}
-                          {requiredAsterisk}
-                        </Label>
-                        <Controller
-                          control={control}
-                          name={field.id}
-                          render={({ field: { onChange, value } }) => (
-                            <RadioGroup onValueChange={onChange} value={value || ''} className="flex flex-col space-y-2 mt-1">
-                              {(field.options || []).map((opt) => {
-                                const optId = `preview-opt-${field.id}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-                                const isChecked = value === opt;
-                                return (
-                                  <label
-                                    key={opt}
-                                    htmlFor={optId}
-                                    className={`flex items-center space-x-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
-                                      isChecked
-                                        ? isDarkTheme
-                                          ? 'border-brand-orange bg-[#1f2838]'
-                                          : 'border-brand-orange bg-brand-orange/5'
-                                        : isDarkTheme
-                                          ? 'border-neutral-800 bg-[#161c28] hover:bg-[#1c2433]'
-                                          : 'border-neutral-200 bg-white hover:bg-neutral-50'
-                                    }`}
-                                  >
-                                    <RadioGroupItem value={opt} id={optId} className="cursor-pointer" />
-                                    <span className={`text-sm font-normal ${subLabelColor} cursor-pointer`}>
-                                      {opt}
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                            </RadioGroup>
-                          )}
-                        />
-                        {fieldErr && (
-                          <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                        )}
-                      </div>
-                    );
-                    break;
-
-                  case 'checkbox':
-                    if (field.options && field.options.length > 0) {
-                      // Multi-checkbox
-                      element = (
-                        <div key={field.id} className="space-y-1.5">
-                          <Label className={`text-sm ${labelColor}`}>
-                            {field.label}
-                            {requiredAsterisk}
-                          </Label>
-                          <Controller
-                            control={control}
-                            name={field.id}
-                            render={({ field: { onChange, value = [] } }) => (
-                              <div className="flex flex-col space-y-2.5 mt-1">
-                                {field.options!.map((opt) => (
-                                  <div key={opt} className={`flex items-start space-x-2.5 p-2.5 rounded-xl border ${isDarkTheme ? 'border-neutral-800 bg-[#161c28]' : 'border-neutral-200 bg-white'}`}>
-                                    <Checkbox
-                                      id={`preview-chk-${field.id}-${opt}`}
-                                      checked={((value as string[]) || []).includes(opt)}
-                                      className="cursor-pointer mt-0.5"
-                                      onCheckedChange={(checked) => {
-                                        const current = (value as string[]) || [];
-                                        if (checked) {
-                                          onChange([...current, opt]);
-                                        } else {
-                                          onChange(current.filter((val: string) => val !== opt));
-                                        }
-                                      }}
-                                    />
-                                    <Label
-                                      htmlFor={`preview-chk-${field.id}-${opt}`}
-                                      className={`text-sm font-normal ${subLabelColor} cursor-pointer leading-none`}
-                                    >
-                                      {opt}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          />
-                          {fieldErr && (
-                            <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      // Single checkbox (boolean)
-                      element = (
-                        <div key={field.id} className="space-y-1">
-                          <div className={`flex flex-row items-start space-x-2.5 space-y-0 p-3 rounded-xl border ${isDarkTheme ? 'border-neutral-800 bg-[#161c28]' : 'border-neutral-200 bg-white'}`}>
-                            <Controller
-                              control={control}
-                              name={field.id}
-                              render={({ field: { onChange, value } }) => (
-                                <Checkbox
-                                  checked={!!value}
-                                  onCheckedChange={onChange}
-                                  id={`preview-${field.id}`}
-                                  className="cursor-pointer mt-0.5"
-                                />
-                              )}
-                            />
-                            <Label
-                              htmlFor={`preview-${field.id}`}
-                              className={`text-sm font-bold ${labelColor} cursor-pointer leading-tight`}
-                            >
-                              {field.label}
-                              {requiredAsterisk}
-                            </Label>
-                          </div>
-                          {fieldErr && (
-                            <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                          )}
-                        </div>
-                      );
-                    }
-                    break;
-
-                  case 'file':
-                    element = (
-                      <div key={field.id} className="space-y-1.5">
-                        <Label htmlFor={`preview-${field.id}`} className={`text-sm ${labelColor}`}>
-                          {field.label}
-                          {requiredAsterisk}
-                        </Label>
-                        <Input
-                          id={`preview-${field.id}`}
-                          type="file"
-                          className={`cursor-pointer ${inputClass}`}
-                          {...register(field.id)}
-                        />
-                        {fieldErr && (
-                          <p className="text-xs font-medium text-rose-500">{fieldErr.message}</p>
-                        )}
-                      </div>
-                    );
-                    break;
-
-                  default:
-                    break;
-                }
-
-                return element;
-              })}
-            </div>
-
-            <div className="pt-3">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                style={buttonInlineStyle}
-                className={buttonClass}
-              >
-                {isSubmitting ? 'Simulating submit...' : 'Submit Form'}
-              </Button>
-            </div>
-          </form>
+          <LivePreviewForm
+            key={formKey}
+            fields={fields}
+            styling={styling}
+            labelColor={labelColor}
+            subLabelColor={subLabelColor}
+            inputClass={inputClass}
+            buttonClass={buttonClass}
+            buttonInlineStyle={buttonInlineStyle}
+            isDarkTheme={isDarkTheme}
+          />
         </div>
       )}
     </div>
