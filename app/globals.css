@@ -51,9 +51,25 @@
   --color-brand-sand-dark: #e9e6df;
   --color-brand-sand-darker: #dbd7ce;
   --color-brand-orange: #ff4f19;
-  --color-brand-orange-hover: #e63e0d;
-  --color-brand-charcoal: #121212;
   --color-brand-border: #e3ded6;
+}
+
+@keyframes breathing-wave {
+  0% {
+    font-variation-settings: 'wght' 600, 'slnt' 0;
+    font-weight: 600;
+    opacity: 1;
+  }
+  45% {
+    font-variation-settings: 'wght' 100, 'slnt' -6;
+    font-weight: 100;
+    opacity: 0.75;
+  }
+  100% {
+    font-variation-settings: 'wght' 600, 'slnt' 0;
+    font-weight: 600;
+    opacity: 1;
+  }
 }
 
 :root {

@@ -418,7 +418,7 @@ export type ContactInput =
                 {submitSuccess ? (
                   /* Success State */
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3.5 py-4 animate-in fade-in zoom-in duration-300">
-                    <h4 className="text-base font-bold text-neutral-900 tracking-tight">Submission Delivered</h4>
+                    <p className="text-base font-bold text-neutral-900 tracking-tight">Submission Delivered</p>
 
                     {/* Clean Submission Summary Card */}
                     <div className="w-full bg-white border border-neutral-200/90 rounded-xl p-3.5 text-left text-xs space-y-2.5 shadow-2xs">
@@ -467,7 +467,7 @@ export type ContactInput =
                         {/* Full Name Field */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
-                            <label className="text-[11.5px] font-semibold text-neutral-700">
+                            <label htmlFor="preview-full-name" className="text-[11.5px] font-semibold text-neutral-700">
                               Full Name <span className="text-brand-orange">*</span>
                             </label>
                             {formErrors.name && (
@@ -478,6 +478,8 @@ export type ContactInput =
                             )}
                           </div>
                           <input
+                            id="preview-full-name"
+                            aria-label="Full Name"
                             type="text"
                             value={name}
                             onChange={(e) => {
@@ -494,7 +496,7 @@ export type ContactInput =
                         {/* Email Field */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
-                            <label className="text-[11.5px] font-semibold text-neutral-700">
+                            <label htmlFor="preview-work-email" className="text-[11.5px] font-semibold text-neutral-700">
                               Work Email <span className="text-brand-orange">*</span>
                             </label>
                             {formErrors.email && (
@@ -505,6 +507,8 @@ export type ContactInput =
                             )}
                           </div>
                           <input
+                            id="preview-work-email"
+                            aria-label="Work Email"
                             type="email"
                             value={email}
                             onChange={(e) => {
@@ -522,7 +526,7 @@ export type ContactInput =
                       {/* Subject Field */}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11.5px] font-semibold text-neutral-700">
+                          <label htmlFor="preview-subject" className="text-[11.5px] font-semibold text-neutral-700">
                             Subject <span className="text-brand-orange">*</span>
                           </label>
                           {formErrors.subject && (
@@ -533,6 +537,8 @@ export type ContactInput =
                           )}
                         </div>
                         <input
+                          id="preview-subject"
+                          aria-label="Subject"
                           type="text"
                           value={subject}
                           onChange={(e) => {
@@ -549,7 +555,7 @@ export type ContactInput =
                       {/* Message Field */}
                       <div className="space-y-1 flex-1 flex flex-col">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11.5px] font-semibold text-neutral-700">
+                          <label htmlFor="preview-message" className="text-[11.5px] font-semibold text-neutral-700">
                             Message <span className="text-brand-orange">*</span>
                           </label>
                           {formErrors.message && (
@@ -560,6 +566,8 @@ export type ContactInput =
                           )}
                         </div>
                         <textarea
+                          id="preview-message"
+                          aria-label="Message"
                           rows={3}
                           value={message}
                           onChange={(e) => {

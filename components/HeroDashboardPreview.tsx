@@ -138,6 +138,7 @@ export default function HeroDashboardPreview() {
                   type="text"
                   readOnly
                   placeholder="Find..."
+                  aria-label="Find forms or metrics"
                   className="w-full bg-white border border-neutral-200 rounded-md pl-7 pr-6 py-1.5 text-[12px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none cursor-default shadow-2xs"
                 />
                 <span className="text-[10px] font-mono text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 border border-neutral-200 rounded px-1 bg-neutral-50">
@@ -240,9 +241,9 @@ export default function HeroDashboardPreview() {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-[13px] font-bold text-neutral-900 font-heading tracking-tight">
+                  <p className="text-[13px] font-bold text-neutral-900 font-heading tracking-tight">
                     Submissions over time
-                  </h3>
+                  </p>
                   <p className="text-[11px] text-neutral-400 font-mono">Last 30 days</p>
                 </div>
 
@@ -365,9 +366,9 @@ export default function HeroDashboardPreview() {
               {/* Card 1: Top Forms */}
               <div className="p-3 rounded-xl bg-[#F9F9F8] border border-neutral-200/80 space-y-2 text-left">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[12px] font-bold text-neutral-900 font-heading">
+                  <p className="text-[12px] font-bold text-neutral-900 font-heading">
                     Top Forms
-                  </h4>
+                  </p>
                   <span className="text-[10px] text-neutral-400 font-mono">16.5k responses</span>
                 </div>
                 <div className="space-y-1.5">
@@ -392,9 +393,9 @@ export default function HeroDashboardPreview() {
               {/* Card 2: Traffic Sources */}
               <div className="p-3 rounded-xl bg-[#F9F9F8] border border-neutral-200/80 space-y-2 text-left">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[12px] font-bold text-neutral-900 font-heading">
+                  <p className="text-[12px] font-bold text-neutral-900 font-heading">
                     Traffic Sources
-                  </h4>
+                  </p>
                   <span className="text-[10px] text-neutral-400 font-mono">22 referrers</span>
                 </div>
                 <div className="space-y-1.5">

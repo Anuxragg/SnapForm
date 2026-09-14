@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     await connectToDatabase();
-    
+
     // Double check user exists in DB to be secure
     const user = await User.findById(session.id);
     if (!user) {
