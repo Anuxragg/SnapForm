@@ -17,6 +17,7 @@ import {
   Inbox,
   Link2,
   Mail,
+  Menu,
   Users,
   User,
   HelpCircle,
@@ -79,6 +80,7 @@ export default function DashboardPage() {
 
   // Navigation and view state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [formsMenuExpanded, setFormsMenuExpanded] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -541,14 +543,23 @@ export default function DashboardPage() {
       <Toaster position="bottom-right" richColors />
 
       {/* ─────────────────────────────────────────────────────────────
-          1. LEFT SIDEBAR
+          1. LEFT SIDEBAR (Desktop Sticky + Mobile Drawer)
       ───────────────────────────────────────────────────────────── */}
+      {/* Mobile Drawer Overlay Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
       <aside
         style={{
           fontFamily:
             'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
-        className={`sticky top-0 h-screen z-20 bg-[#f4f4f5] dark:bg-[#1C1C1C] border-r border-[#e5e5e8] dark:border-[#2a2a2a] flex flex-col justify-between shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] ${sidebarCollapsed ? 'w-[68px]' : 'w-64'
+        className={`hidden md:flex sticky top-0 h-screen z-20 bg-[#f4f4f5] dark:bg-[#1C1C1C] border-r border-[#e5e5e8] dark:border-[#2a2a2a] flex-col justify-between shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] ${sidebarCollapsed ? 'w-[68px]' : 'w-64'
           }`}
       >
         {/* Top Section */}
@@ -755,8 +766,6 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-
-
           </div>
         </div>
 
@@ -798,6 +807,190 @@ export default function DashboardPage() {
         </div>
       </aside>
 
+      {/* Mobile Sidebar Overlay Drawer */}
+      {mobileSidebarOpen && (
+        <aside
+          style={{
+            fontFamily:
+              'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          }}
+          className="fixed inset-y-0 right-0 w-72 z-50 bg-[#f4f4f5] dark:bg-[#1C1C1C] border-l border-[#e5e5e8] dark:border-[#2a2a2a] flex flex-col justify-between md:hidden shadow-2xl animate-in slide-in-from-right duration-200"
+        >
+          {/* Top Section */}
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            {/* Sidebar Brand Header */}
+            <div className="h-14 border-b border-[#e5e5e8] dark:border-[#2a2a2a] flex items-center justify-between px-4 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-[8px] bg-brand-charcoal flex items-center justify-center text-white shrink-0 shadow-sm">
+                  <SnapFormIcon className="w-3.5 h-4.5 text-white" fill="#ffffff" />
+                </div>
+                <span className="font-heading font-bold text-base text-brand-charcoal dark:text-white tracking-tight">
+                  SnapForm
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileSidebarOpen(false)}
+                className="p-1.5 rounded-xl text-neutral-500 hover:text-brand-charcoal dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Search Input */}
+            <div className="px-3 pt-3 pb-0.5">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Find..."
+                  className="w-full bg-white dark:bg-[#1C1C1C] border border-[#e4e4e7] dark:border-[#2a2a2a] rounded-[8px] pl-7 pr-3 py-1 text-[12px] font-normal leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-100 placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] dark:focus:border-[#4a4a4a] transition-all shadow-2xs"
+                />
+                <Search className="w-3.5 h-3.5 text-[#a1a1aa] dark:text-[#71717a] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Navigation Items */}
+            <div className="p-3 space-y-4">
+              {/* Dashboard Link */}
+              <div>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="w-full h-9 flex items-center gap-2.5 px-2.5 rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-white bg-[#e4e4e7] dark:bg-[#2a2a2a]"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-[#3f3f46] dark:text-neutral-300 shrink-0" />
+                  <span>Dashboard</span>
+                </Link>
+              </div>
+
+              {/* FORMS Section */}
+              <div className="space-y-0.5">
+                <div className="flex items-center justify-between px-2.5 py-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] font-medium leading-[16px] uppercase tracking-wider text-neutral-600 dark:text-[#a1a1aa]">
+                      FORMS
+                    </span>
+                    <span className="text-[11px] font-normal leading-[16px] text-neutral-500 dark:text-[#71717a]">
+                      {savedForms.length || 1}
+                    </span>
+                  </div>
+                  <Link
+                    href="/builder"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="w-4 h-4 rounded flex items-center justify-center text-neutral-400 hover:text-brand-charcoal dark:hover:text-white"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                {/* Form links */}
+                <div className="space-y-0.5">
+                  <button
+                    onClick={() => setFormsMenuExpanded(!formsMenuExpanded)}
+                    className="w-full h-9 flex items-center justify-between px-2.5 rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-200 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <FileText className="w-4 h-4 text-neutral-600 dark:text-neutral-400 shrink-0" />
+                      <span className="text-left truncate max-w-[140px]">
+                        {currentActiveForm ? currentActiveForm.name : 'SnapForm'}
+                      </span>
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${formsMenuExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                  </button>
+
+                  {formsMenuExpanded && (
+                    <div className="pl-6 pr-2 space-y-0.5">
+                      <button
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          if (currentActiveForm) handleSelectFormAnalytics(currentActiveForm);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70"
+                      >
+                        <Activity className="w-3.5 h-3.5 text-brand-orange" />
+                        <span>View Analytics</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          if (currentActiveForm) handleOpenSetup(currentActiveForm);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70"
+                      >
+                        <Globe className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Form Setup</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          if (currentActiveForm) router.push(`/builder?t=${currentActiveForm.category}`);
+                          else router.push('/builder');
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70"
+                      >
+                        <Settings className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Settings</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          if (currentActiveForm) handleOpenSubmissions(currentActiveForm);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[6px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-neutral-800/70"
+                      >
+                        <Inbox className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Submissions</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setMobileSidebarOpen(false);
+                      setAllFormsModalOpen(true);
+                    }}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-[8px] text-[12px] font-medium leading-[16px] text-neutral-600 dark:text-neutral-400 hover:text-[oklch(0.145_0_0)] dark:hover:text-white"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>View all forms</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="p-3 border-t border-[#e5e5e8] dark:border-[#2a2a2a] space-y-2.5 shrink-0 bg-[#f4f4f5] dark:bg-[#1C1C1C]">
+            <Link
+              href="/docs"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="w-full h-9 flex items-center justify-between px-2.5 rounded-[8px] text-[12px] font-medium leading-[16px] text-[oklch(0.145_0_0)] dark:text-neutral-300 hover:bg-[#e8e8eb] dark:hover:bg-[#262626]"
+            >
+              <div className="flex items-center gap-2.5">
+                <HelpCircle className="w-4 h-4 text-neutral-500 shrink-0" />
+                <span>Help & Support</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+            </Link>
+
+            <UserDropdownMenu
+              collapsed={false}
+              align="bottom-to-top"
+              avatarUrl={profilePhoto}
+              onOpenAccountModal={(tab) => {
+                setMobileSidebarOpen(false);
+                setWorkspaceModal('account');
+                if (tab) setAccountModalTab(tab);
+              }}
+            />
+          </div>
+        </aside>
+      )}
+
       {/* ─────────────────────────────────────────────────────────────
           2. MAIN CONTENT AREA
       ───────────────────────────────────────────────────────────── */}
@@ -806,66 +999,83 @@ export default function DashboardPage() {
           fontFamily:
             'InterVariable, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
-        className="relative flex-1 h-screen overflow-y-auto p-6 md:p-8 space-y-6 bg-white dark:bg-[#1E1E1E] transition-colors duration-200"
+        className="relative flex-1 min-w-0 h-screen overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 bg-white dark:bg-[#1E1E1E] transition-colors duration-200"
       >
+        {/* Mobile Top Navigation Bar (Shown on small screens) */}
+        <div className="md:hidden flex items-center justify-between pb-2 border-b border-neutral-200/80 dark:border-[#2a2a2a]">
+          {/* Brand Logo on Left */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-[6px] bg-brand-charcoal flex items-center justify-center text-white shrink-0 shadow-xs">
+              <SnapFormIcon className="w-2.5 h-3.5 text-white" fill="#ffffff" />
+            </div>
+            <span className="font-heading font-bold text-sm text-brand-charcoal dark:text-white tracking-tight">
+              SnapForm
+            </span>
+          </div>
+
+          {/* Hamburger Menu on Right (Replacing PFP) */}
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(true)}
+            className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-[#252525] dark:hover:bg-[#303030] text-neutral-700 dark:text-neutral-200 transition-colors cursor-pointer shadow-2xs"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Dynamic Greeting Header */}
         <div className="pt-1">
-          <h1 className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight">
             {greeting}
           </h1>
         </div>
 
-
-
         {/* ─── Top 4 Metric Cards ─── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {/* Card 1: Total Views */}
-          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-              <Eye className="w-3.5 h-3.5 text-brand-orange" />
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all space-y-1">
+            <div className="text-neutral-500 dark:text-neutral-400 text-[11px] sm:text-xs font-medium">
               <span>Total Views</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+              <p className="text-lg sm:text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
                 {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalViews : 0}
               </p>
             </div>
           </div>
 
           {/* Card 2: Submissions */}
-          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-              <TrendingUp className="w-3.5 h-3.5 text-brand-orange" />
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all space-y-1">
+            <div className="text-neutral-500 dark:text-neutral-400 text-[11px] sm:text-xs font-medium">
               <span>Submissions</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+              <p className="text-lg sm:text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
                 {fetchingAnalytics ? '...' : analyticsData ? analyticsData.totalSubmissions : totalSubmissions}
               </p>
             </div>
           </div>
 
           {/* Card 3: Avg. Conversion */}
-          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-              <Zap className="w-3.5 h-3.5 text-brand-orange" />
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all space-y-1">
+            <div className="text-neutral-500 dark:text-neutral-400 text-[11px] sm:text-xs font-medium">
               <span>Avg. Conversion</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+              <p className="text-lg sm:text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
                 {fetchingAnalytics ? '...' : analyticsData ? `${analyticsData.avgConversion}%` : '0.0%'}
               </p>
             </div>
           </div>
 
           {/* Card 4: Avg. Response */}
-          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:shadow-xs transition-all space-y-2">
-            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 text-xs font-semibold">
-              <Clock className="w-3.5 h-3.5 text-brand-orange" />
+          <div className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all space-y-1">
+            <div className="text-neutral-500 dark:text-neutral-400 text-[11px] sm:text-xs font-medium">
               <span>Avg. Response</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
+              <p className="text-lg sm:text-2xl font-bold text-brand-charcoal dark:text-white tracking-tight font-heading">
                 {fetchingAnalytics ? '...' : analyticsData ? analyticsData.avgResponseTime : '0s'}
               </p>
             </div>
@@ -873,18 +1083,17 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── Bottom Area: Form Activity & Analytics Chart ─── */}
-        <div id="form-activity-chart" className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-3xl p-6 shadow-xs hover:shadow-sm transition-all space-y-6 scroll-mt-6">
+        <div id="form-activity-chart" className="bg-white dark:bg-[#1E1E1E] border border-neutral-200/90 dark:border-[#2e2e2e] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xs hover:shadow-sm transition-all space-y-4 sm:space-y-6 scroll-mt-6">
           {/* Header & Filter Controls */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Activity className="w-4 h-4 text-brand-orange" />
-                <h3 className="text-base font-bold text-brand-charcoal dark:text-white font-heading">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+            <div className="space-y-0.5 sm:space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-brand-charcoal dark:text-white font-heading">
                   Form Activity & Analytics
                 </h3>
                 {selectedChartForm !== 'all' && (
-                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold animate-in fade-in duration-150">
-                    <span>
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-[10px] sm:text-xs font-semibold animate-in fade-in duration-150">
+                    <span className="truncate max-w-[120px] sm:max-w-none">
                       {savedForms.find((f) => f._id === selectedChartForm)?.name || 'Selected Form'}
                     </span>
                     <button
@@ -892,7 +1101,7 @@ export default function DashboardPage() {
                         setSelectedChartForm('all');
                         toast.info('Showing analytics across all forms');
                       }}
-                      className="hover:text-neutral-900 ml-1 cursor-pointer font-bold"
+                      className="hover:text-neutral-900 ml-0.5 cursor-pointer font-bold"
                       title="Show All Forms"
                     >
                       ×
@@ -900,7 +1109,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-              <p className="text-xs text-neutral-500 font-normal">
+              <p className="text-[11px] sm:text-xs text-neutral-500 font-normal">
                 {selectedChartForm === 'all'
                   ? 'Real-time tracking of submissions, impressions, and conversion rates across all forms'
                   : `Real-time analytics for ${savedForms.find((f) => f._id === selectedChartForm)?.name || 'selected form'}`}
@@ -908,38 +1117,40 @@ export default function DashboardPage() {
             </div>
 
             {/* Metric Pills & Selectors */}
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2.5 max-w-full">
               {/* Metric Toggle Tabs */}
-              <div className="flex items-center p-1 bg-neutral-100/80 dark:bg-[#252525] rounded-xl border border-neutral-200/60 dark:border-[#333333]">
+              <div className="flex items-center p-0.5 sm:p-1 bg-neutral-100/80 dark:bg-[#252525] rounded-lg sm:rounded-xl border border-neutral-200/60 dark:border-[#333333]">
                 <button
                   onClick={() => setChartMetric('submissions')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'submissions'
+                  className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${chartMetric === 'submissions'
                     ? 'bg-white dark:bg-[#1E1E1E] text-brand-orange shadow-xs'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                     }`}
                 >
-                  <TrendingUp className="w-3 h-3" />
-                  <span>Submissions</span>
+                  <TrendingUp className="w-3 h-3 shrink-0" />
+                  <span className="hidden sm:inline">Submissions</span>
+                  <span className="sm:hidden">Subs</span>
                 </button>
                 <button
                   onClick={() => setChartMetric('impressions')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'impressions'
+                  className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${chartMetric === 'impressions'
                     ? 'bg-white dark:bg-[#1E1E1E] text-brand-orange shadow-xs'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                     }`}
                 >
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-3 h-3 shrink-0" />
                   <span>Views</span>
                 </button>
                 <button
                   onClick={() => setChartMetric('conversion')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${chartMetric === 'conversion'
+                  className={`px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 ${chartMetric === 'conversion'
                     ? 'bg-white dark:bg-[#1E1E1E] text-brand-orange shadow-xs'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white'
                     }`}
                 >
-                  <Zap className="w-3 h-3" />
-                  <span>Conversion %</span>
+                  <Zap className="w-3 h-3 shrink-0" />
+                  <span className="hidden sm:inline">Conversion %</span>
+                  <span className="sm:hidden">Conv</span>
                 </button>
               </div>
 
@@ -949,7 +1160,7 @@ export default function DashboardPage() {
                   <select
                     value={selectedChartForm}
                     onChange={(e) => setSelectedChartForm(e.target.value)}
-                    className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
+                    className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 pr-5 sm:pr-7 text-[10px] sm:text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
                   >
                     <option value="all">All Forms</option>
                     {savedForms.map((f) => (
@@ -958,7 +1169,7 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               )}
 
@@ -967,13 +1178,13 @@ export default function DashboardPage() {
                 <select
                   value={chartTimeframe}
                   onChange={(e) => setChartTimeframe(e.target.value as any)}
-                  className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-xl px-3 py-1.5 pr-7 text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
+                  className="appearance-none bg-white dark:bg-[#252525] border border-neutral-200 dark:border-[#333333] rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 pr-5 sm:pr-7 text-[10px] sm:text-xs font-semibold text-neutral-700 dark:text-neutral-200 outline-none hover:border-neutral-300 dark:hover:border-[#3e3e3e] focus:border-brand-orange cursor-pointer shadow-xs"
                 >
-                  <option value="30days">Last 30 days</option>
-                  <option value="7days">Last 7 days</option>
-                  <option value="12months">Last 12 months</option>
+                  <option value="30days">30 days</option>
+                  <option value="7days">7 days</option>
+                  <option value="12months">12 months</option>
                 </select>
-                <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -1084,15 +1295,27 @@ export default function DashboardPage() {
             </div>
 
             {/* X-Axis Labels */}
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 pt-3 border-t border-neutral-100 dark:border-neutral-800 font-mono">
-              {activityData.map((item, idx) => (
-                <span
-                  key={item.label}
-                  className={idx === activityData.length - 1 ? 'text-brand-orange font-bold' : ''}
-                >
-                  {item.label}
-                </span>
-              ))}
+            <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 pt-3 border-t border-neutral-100 dark:border-neutral-800 font-mono select-none overflow-hidden">
+              {activityData.map((item, idx) => {
+                const isLast = idx === activityData.length - 1;
+                const isDense = activityData.length > 7;
+                const isKeyMobilePoint =
+                  idx === 0 ||
+                  idx === Math.floor((activityData.length - 1) / 3) ||
+                  idx === Math.floor(((activityData.length - 1) * 2) / 3) ||
+                  isLast;
+
+                return (
+                  <span
+                    key={item.label}
+                    className={`whitespace-nowrap transition-colors ${
+                      isLast ? 'text-brand-orange font-bold' : ''
+                    } ${isDense && !isKeyMobilePoint ? 'hidden sm:inline' : 'inline'}`}
+                  >
+                    {item.label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>

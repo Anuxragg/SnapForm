@@ -55,6 +55,7 @@ export default function BuilderPage() {
   const [activeBuilderTab, setActiveBuilderTab] = useState('fields');
   const [copiedText, setCopiedText] = useState(false);
   const [canvasView, setCanvasView] = useState<'preview' | 'code'>('preview');
+  const [mobileStudioView, setMobileStudioView] = useState<'editor' | 'preview'>('editor');
   
   // Submissions Modal State
   const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
@@ -351,40 +352,42 @@ export default function BuilderPage() {
       {/* ─────────────────────────────────────────────────────────────
           1. BUILDER TOP HEADER
       ───────────────────────────────────────────────────────────── */}
-      <header className="relative z-20 bg-white dark:bg-[#181818] border-b border-neutral-200/80 dark:border-[#262626] px-5 py-2.5 flex flex-row items-center justify-between sticky top-0 shadow-2xs shrink-0 font-sans">
-        <div className="flex items-center gap-3">
+      <header className="relative z-20 bg-white dark:bg-[#181818] border-b border-neutral-200/80 dark:border-[#262626] px-3 sm:px-5 py-2 sm:py-2.5 flex flex-row items-center justify-between sticky top-0 shadow-2xs shrink-0 font-sans">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Logo
             href="/dashboard"
             badgeText="STUDIO"
-            textClassName="text-base font-bold tracking-tight text-neutral-900 dark:text-white font-heading"
+            textClassName="text-sm sm:text-base font-bold tracking-tight text-neutral-900 dark:text-white font-heading"
           />
 
           {selectedTemplate && (
             <>
-              <div className="text-neutral-300 dark:text-neutral-700 select-none">|</div>
+              <div className="text-neutral-300 dark:text-neutral-700 select-none hidden sm:block">|</div>
               <button
                 onClick={handleDeselectTemplate}
-                className="h-8 px-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-orange dark:hover:text-brand-orange hover:bg-neutral-50 dark:hover:bg-[#252525] border border-neutral-200/90 dark:border-[#2a2a2a] flex items-center gap-1.5 cursor-pointer transition-all text-xs font-semibold shadow-2xs"
+                className="h-8 px-2 sm:px-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-orange dark:hover:text-brand-orange hover:bg-neutral-50 dark:hover:bg-[#252525] border border-neutral-200/90 dark:border-[#2a2a2a] flex items-center gap-1 cursor-pointer transition-all text-xs font-semibold shadow-2xs"
+                title="Change Template"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Change Template</span>
+                <span className="hidden sm:inline">Change Template</span>
+                <span className="sm:hidden text-[11px]">Templates</span>
               </button>
             </>
           )}
         </div>
 
         {/* Action Buttons & Links */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {selectedTemplate && (
             <>
               {currentFormId && (
                 <Link href={liveFormHref} target="_blank">
                   <button
-                    className="h-8 px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                    className="h-8 px-2 sm:px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     title="Open live public form link"
                   >
                     <ExternalLink className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-                    <span className="hidden sm:inline">Live Link</span>
+                    <span className="hidden md:inline">Live Link</span>
                   </button>
                 </Link>
               )}
@@ -392,25 +395,26 @@ export default function BuilderPage() {
               {/* Submissions Modal Trigger */}
               <button
                 onClick={handleOpenSubmissions}
-                className="h-8 px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-8 px-2 sm:px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="View recorded submissions"
               >
                 <Inbox className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-                <span className="hidden sm:inline">Submissions</span>
+                <span className="hidden md:inline">Submissions</span>
               </button>
 
               {/* Save Form */}
               <button
                 onClick={handleSaveForm}
                 disabled={savingTemplate || fields.length === 0}
-                className="h-8 px-3.5 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#282828] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs disabled:opacity-50"
+                className="h-8 px-2.5 sm:px-3.5 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#282828] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs disabled:opacity-50"
               >
                 {savingTemplate ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-orange" />
                 ) : (
                   <Save className="w-3.5 h-3.5 text-brand-orange" />
                 )}
-                <span>Save to Profile</span>
+                <span className="hidden sm:inline">Save to Profile</span>
+                <span className="sm:hidden text-[11px]">Save</span>
               </button>
 
             </>
@@ -452,9 +456,39 @@ export default function BuilderPage() {
           </div>
         ) : (
           /* 2-Column Studio Editor (Form Config Left, Unified Preview & Code Canvas Right) */
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 border-t border-neutral-200/80 dark:border-[#262626] h-full overflow-hidden">
+          <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-0 border-t border-neutral-200/80 dark:border-[#262626] h-full overflow-hidden">
+            {/* Mobile Switcher between Config and Canvas (< lg) */}
+            <div className="lg:hidden flex items-center justify-center p-2 bg-white dark:bg-[#181818] border-b border-neutral-200/80 dark:border-[#262626] shrink-0">
+              <div className="flex bg-neutral-100 dark:bg-[#252525] p-1 rounded-xl w-full max-w-xs">
+                <button
+                  type="button"
+                  onClick={() => setMobileStudioView('editor')}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mobileStudioView === 'editor'
+                      ? 'bg-white dark:bg-[#181818] text-neutral-900 dark:text-white shadow-2xs'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Settings2 className="w-3.5 h-3.5" />
+                  <span>Config</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileStudioView('preview')}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mobileStudioView === 'preview'
+                      ? 'bg-white dark:bg-[#181818] text-neutral-900 dark:text-white shadow-2xs'
+                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Preview & Code</span>
+                </button>
+              </div>
+            </div>
+
             {/* Left Config Panel (Fields / Styling / Settings / Integrations) */}
-            <div className="lg:col-span-5 xl:col-span-4 border-r border-neutral-200/80 dark:border-[#262626] bg-white dark:bg-[#141414] flex flex-col overflow-hidden h-full">
+            <div className={`lg:col-span-5 xl:col-span-4 border-r border-neutral-200/80 dark:border-[#262626] bg-white dark:bg-[#141414] flex-col overflow-hidden h-full ${mobileStudioView === 'preview' ? 'hidden lg:flex' : 'flex'}`}>
               <Tabs
                 value={activeBuilderTab}
                 onValueChange={setActiveBuilderTab}
@@ -628,7 +662,7 @@ export default function BuilderPage() {
             </div>
 
             {/* Right Main Panel (Unified Code & Preview Studio Canvas) */}
-            <div className="lg:col-span-7 xl:col-span-8 bg-neutral-100/60 p-3 sm:p-5 md:p-6 flex flex-col h-full overflow-hidden">
+            <div className={`lg:col-span-7 xl:col-span-8 bg-neutral-100/60 p-2 sm:p-5 md:p-6 flex-col h-full overflow-hidden ${mobileStudioView === 'editor' ? 'hidden lg:flex' : 'flex'}`}>
               {/* Studio Component Container Card matching 21st.dev / reference image */}
               <div className="bg-white rounded-2xl md:rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col h-full overflow-hidden text-neutral-900">
                 {/* Card Header Toolbar (Light Theme matching reference) */}
