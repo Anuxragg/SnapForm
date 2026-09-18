@@ -151,7 +151,7 @@ export default function TemplateSelector({
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="w-11 h-11 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-neutral-900 dark:bg-[#252525] text-white dark:text-white border dark:border-[#333333] flex items-center justify-center shadow-sm">
                 <Plus className="w-5 h-5" />
               </div>
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-neutral-100 dark:bg-[#282828] text-neutral-700 dark:text-neutral-300 border border-neutral-200/60 dark:border-[#333333]">
@@ -172,13 +172,13 @@ export default function TemplateSelector({
             <div className="p-3.5 rounded-xl bg-neutral-50/80 dark:bg-[#151515] border border-neutral-200/70 dark:border-[#2a2a2a] space-y-2 opacity-80 group-hover:opacity-100 transition-opacity">
               <div className="h-4 w-24 bg-neutral-200 dark:bg-[#2a2a2a] rounded" />
               <div className="h-6 w-full bg-white dark:bg-[#1E1E1E] rounded border border-neutral-200/60 dark:border-[#2e2e2e]" />
-              <div className="h-5 w-16 bg-neutral-900 dark:bg-white rounded ml-auto" />
+              <div className="h-5 w-16 bg-neutral-900 dark:bg-[#2e2e2e] rounded ml-auto" />
             </div>
           </div>
 
           <div className="pt-4 border-t border-neutral-200/70 dark:border-[#2a2a2a] mt-5 flex items-center justify-between text-xs font-bold text-neutral-900 dark:text-white">
             <span>Create Blank Form</span>
-            <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-[#282828] group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-neutral-900 flex items-center justify-center transition-all group-hover:translate-x-1">
+            <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-[#282828] group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-[#333333] dark:group-hover:text-white flex items-center justify-center transition-all group-hover:translate-x-1">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -236,7 +236,7 @@ export default function TemplateSelector({
                     }}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
                       isSelected
-                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold'
+                        ? 'bg-neutral-900 dark:bg-[#2a2a2a] text-white font-semibold'
                         : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#252525]'
                     }`}
                   >

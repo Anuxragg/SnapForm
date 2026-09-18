@@ -129,8 +129,8 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground font-sans transition-colors duration-200">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AuthProvider>

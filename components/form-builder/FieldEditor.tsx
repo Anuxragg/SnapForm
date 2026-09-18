@@ -120,18 +120,13 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
     <div className="space-y-4">
       {/* Editor Header */}
       <div className="flex justify-between items-center bg-white dark:bg-[#1C1C1C] px-4 py-3 rounded-2xl border border-neutral-200/80 dark:border-[#2a2a2a] shadow-xs">
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white font-heading">
-            Form Fields
-          </h3>
-          <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-mono">
-            {fields.length} {fields.length === 1 ? 'field' : 'fields'} configured
-          </p>
-        </div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white font-heading">
+          Form Fields
+        </h3>
         <Button
           size="sm"
           onClick={handleAddField}
-          className="h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 text-white font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer text-xs px-3 transition-all"
+          className="h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-[#252525] dark:hover:bg-[#303030] dark:border dark:border-[#333333] text-white font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer text-xs px-3 transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Field</span>
@@ -182,11 +177,6 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                             Required
                           </span>
                         )}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-[#252525] text-neutral-600 dark:text-neutral-300 border border-neutral-200/60 dark:border-[#303030]">
-                          {field.type}
-                        </span>
                       </div>
                     </div>
                   </div>

@@ -344,27 +344,27 @@ export default function BuilderPage() {
   const liveFormFullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${liveFormHref}`;
 
   return (
-    <div className="h-screen bg-white text-brand-charcoal font-sans flex flex-col antialiased overflow-hidden selection:bg-brand-orange selection:text-white">
+    <div className="h-screen bg-neutral-50 dark:bg-[#121212] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col antialiased overflow-hidden selection:bg-brand-orange selection:text-white">
       {/* Sonner notifications */}
       <Toaster position="bottom-right" richColors />
 
       {/* ─────────────────────────────────────────────────────────────
           1. BUILDER TOP HEADER
       ───────────────────────────────────────────────────────────── */}
-      <header className="relative z-20 bg-white border-b border-neutral-200 px-5 py-3 flex flex-row items-center justify-between sticky top-0 shadow-2xs shrink-0 font-sans">
+      <header className="relative z-20 bg-white dark:bg-[#181818] border-b border-neutral-200/80 dark:border-[#262626] px-5 py-2.5 flex flex-row items-center justify-between sticky top-0 shadow-2xs shrink-0 font-sans">
         <div className="flex items-center gap-3">
           <Logo
             href="/dashboard"
             badgeText="STUDIO"
-            textClassName="text-base font-bold tracking-tight text-brand-charcoal font-heading"
+            textClassName="text-base font-bold tracking-tight text-neutral-900 dark:text-white font-heading"
           />
 
           {selectedTemplate && (
             <>
-              <div className="text-neutral-200 select-none">|</div>
+              <div className="text-neutral-300 dark:text-neutral-700 select-none">|</div>
               <button
                 onClick={handleDeselectTemplate}
-                className="h-8 px-2.5 rounded-xl text-neutral-500 hover:text-brand-orange hover:bg-neutral-50 border border-neutral-200/60 flex items-center gap-1 cursor-pointer transition-all text-xs font-semibold"
+                className="h-8 px-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-orange dark:hover:text-brand-orange hover:bg-neutral-50 dark:hover:bg-[#252525] border border-neutral-200/90 dark:border-[#2a2a2a] flex items-center gap-1.5 cursor-pointer transition-all text-xs font-semibold shadow-2xs"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Change Template</span>
@@ -380,10 +380,10 @@ export default function BuilderPage() {
               {currentFormId && (
                 <Link href={liveFormHref} target="_blank">
                   <button
-                    className="h-8 px-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                    className="h-8 px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     title="Open live public form link"
                   >
-                    <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                     <span className="hidden sm:inline">Live Link</span>
                   </button>
                 </Link>
@@ -392,10 +392,10 @@ export default function BuilderPage() {
               {/* Submissions Modal Trigger */}
               <button
                 onClick={handleOpenSubmissions}
-                className="h-8 px-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-8 px-3 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="View recorded submissions"
               >
-                <Inbox className="w-3.5 h-3.5 text-neutral-400" />
+                <Inbox className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                 <span className="hidden sm:inline">Submissions</span>
               </button>
 
@@ -403,7 +403,7 @@ export default function BuilderPage() {
               <button
                 onClick={handleSaveForm}
                 disabled={savingTemplate || fields.length === 0}
-                className="h-8 px-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-brand-charcoal font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs disabled:opacity-50"
+                className="h-8 px-3.5 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#282828] text-neutral-700 dark:text-neutral-200 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs disabled:opacity-50"
               >
                 {savingTemplate ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-orange" />
@@ -428,10 +428,10 @@ export default function BuilderPage() {
       {/* ─────────────────────────────────────────────────────────────
           2. MAIN STUDIO CANVAS
       ───────────────────────────────────────────────────────────── */}
-      <main className="relative z-10 flex-1 w-full flex flex-col overflow-hidden bg-white">
+      <main className="relative z-10 flex-1 w-full flex flex-col overflow-hidden bg-neutral-50 dark:bg-[#121212]">
         {!selectedTemplate ? (
           /* Template Picker Screen */
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full bg-neutral-50/40 dark:bg-[#121212]">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full bg-neutral-50/60 dark:bg-[#121212]">
             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
               {/* Studio Header */}
               <div className="text-center max-w-xl mx-auto space-y-2 pt-4">
@@ -452,40 +452,40 @@ export default function BuilderPage() {
           </div>
         ) : (
           /* 2-Column Studio Editor (Form Config Left, Unified Preview & Code Canvas Right) */
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 border-t border-neutral-200 h-full overflow-hidden">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 border-t border-neutral-200/80 dark:border-[#262626] h-full overflow-hidden">
             {/* Left Config Panel (Fields / Styling / Settings / Integrations) */}
-            <div className="lg:col-span-5 xl:col-span-4 border-r border-neutral-200 bg-white flex flex-col overflow-hidden h-full">
+            <div className="lg:col-span-5 xl:col-span-4 border-r border-neutral-200/80 dark:border-[#262626] bg-white dark:bg-[#141414] flex flex-col overflow-hidden h-full">
               <Tabs
                 value={activeBuilderTab}
                 onValueChange={setActiveBuilderTab}
                 className="w-full flex-1 flex flex-col overflow-hidden"
               >
                 {/* 4-Tab Navigation Bar matching Dashboard Capabilities */}
-                <TabsList className="grid grid-cols-4 rounded-none border-b border-neutral-200 bg-neutral-50 p-1 h-12 w-full shrink-0">
+                <TabsList className="grid grid-cols-4 rounded-none border-b border-neutral-200/80 dark:border-[#262626] bg-neutral-100/70 dark:bg-[#1a1a1a] p-1 h-11 w-full shrink-0">
                   <TabsTrigger
                     value="fields"
-                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-[#242424] dark:data-active:text-white dark:data-[state=active]:bg-[#242424] dark:data-[state=active]:text-white data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Settings2 className="w-3.5 h-3.5" />
                     <span>Fields</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="styling"
-                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-[#242424] dark:data-active:text-white dark:data-[state=active]:bg-[#242424] dark:data-[state=active]:text-white data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Palette className="w-3.5 h-3.5" />
                     <span>Style</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
-                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-[#242424] dark:data-active:text-white dark:data-[state=active]:bg-[#242424] dark:data-[state=active]:text-white data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Settings className="w-3.5 h-3.5" />
                     <span>Settings</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="integrations"
-                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-white dark:data-active:text-neutral-900 data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
+                    className="rounded-lg data-active:bg-white data-active:text-neutral-900 data-[state=active]:bg-white data-[state=active]:text-neutral-900 dark:data-active:bg-[#242424] dark:data-active:text-white dark:data-[state=active]:bg-[#242424] dark:data-[state=active]:text-white data-active:shadow-2xs text-[11px] font-bold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 flex items-center justify-center gap-1.5 h-full cursor-pointer transition-all"
                   >
                     <Link2 className="w-3.5 h-3.5" />
                     <span>Endpoint</span>
@@ -513,28 +513,28 @@ export default function BuilderPage() {
                   value="settings"
                   className="flex-1 overflow-y-auto p-5 mt-0 focus-visible:outline-none text-left space-y-5"
                 >
-                  <div className="space-y-1 border-b border-neutral-100 pb-3">
-                    <h3 className="text-sm font-bold text-brand-charcoal font-heading">Form Settings</h3>
-                    <p className="text-xs text-neutral-500">Configure form categorization and metadata</p>
+                  <div className="space-y-1 border-b border-neutral-100 dark:border-[#262626] pb-3">
+                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white font-heading">Form Settings</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Configure form categorization and metadata</p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700">Form Title</label>
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Form Title</label>
                       <input
                         type="text"
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-semibold text-brand-charcoal outline-none focus:border-brand-orange focus:bg-white transition-all"
+                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700">Category Tag</label>
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Category Tag</label>
                       <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-semibold text-brand-charcoal outline-none focus:border-brand-orange focus:bg-white transition-all cursor-pointer"
+                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all cursor-pointer"
                       >
                         <option value="contact">Contact & Leads</option>
                         <option value="survey">Surveys & Questionnaires</option>
@@ -546,13 +546,13 @@ export default function BuilderPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700">Form Description</label>
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Form Description</label>
                       <textarea
                         rows={3}
                         value={formDescription}
                         onChange={(e) => setFormDescription(e.target.value)}
                         placeholder="Brief summary of what this form collects..."
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-normal text-brand-charcoal outline-none focus:border-brand-orange focus:bg-white transition-all resize-none"
+                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-normal text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all resize-none"
                       />
                     </div>
                   </div>
@@ -563,34 +563,34 @@ export default function BuilderPage() {
                   value="integrations"
                   className="flex-1 overflow-y-auto p-5 mt-0 focus-visible:outline-none text-left space-y-5"
                 >
-                  <div className="space-y-1 border-b border-neutral-100 pb-3">
-                    <h3 className="text-sm font-bold text-brand-charcoal font-heading">Integration & Endpoints</h3>
-                    <p className="text-xs text-neutral-500">Connect your form anywhere with a standard POST URL</p>
+                  <div className="space-y-1 border-b border-neutral-100 dark:border-[#262626] pb-3">
+                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white font-heading">Integration & Endpoints</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Connect your form anywhere with a standard POST URL</p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider font-mono">
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider font-mono">
                         POST Endpoint URL
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           readOnly
                           value={endpointUrl}
-                          className="flex-1 px-3 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-800 select-all outline-none"
+                          className="flex-1 px-3 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-mono text-neutral-800 dark:text-neutral-200 select-all outline-none"
                         />
                         <button
                           onClick={() => handleCopyEndpoint(endpointUrl)}
-                          className="h-9 px-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 hover:text-neutral-900 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 shrink-0"
+                          className="h-9 px-3.5 rounded-xl border border-neutral-200/90 dark:border-[#2a2a2a] bg-white dark:bg-[#202020] hover:bg-neutral-50 dark:hover:bg-[#252525] text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 shrink-0"
                         >
-                          {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-neutral-500" />}
+                          {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />}
                           <span>{copiedText ? 'Copied' : 'Copy'}</span>
                         </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-neutral-700">HTML Form Example</label>
+                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">HTML Form Example</label>
                       <CodeBlock
                         language="html"
                         filename="index.html"
@@ -604,9 +604,9 @@ export default function BuilderPage() {
                     </div>
 
                     {currentFormId && (
-                      <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2">
+                      <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-[#181818] border border-neutral-200 dark:border-[#262626] space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-brand-charcoal">Public Hosted Page</span>
+                          <span className="text-xs font-bold text-neutral-900 dark:text-white">Public Hosted Page</span>
                           <a
                             href={liveFormHref}
                             target="_blank"
@@ -617,7 +617,7 @@ export default function BuilderPage() {
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-[11px] text-neutral-500 font-mono break-all">
+                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono break-all">
                           {liveFormFullUrl}
                         </p>
                       </div>
@@ -668,7 +668,7 @@ export default function BuilderPage() {
                         }}
                         className={`h-full flex items-center cursor-pointer transition-colors relative ${
                           canvasView === 'code'
-                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-neutral-900'
+                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-neutral-900'
                             : 'text-neutral-400 hover:text-neutral-700 font-medium'
                         }`}
                       >
@@ -678,7 +678,7 @@ export default function BuilderPage() {
                         onClick={() => setCanvasView('preview')}
                         className={`h-full flex items-center cursor-pointer transition-colors relative ${
                           canvasView === 'preview'
-                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-neutral-900'
+                            ? 'font-bold text-neutral-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-neutral-900'
                             : 'text-neutral-400 hover:text-neutral-700 font-medium'
                         }`}
                       >
@@ -692,7 +692,7 @@ export default function BuilderPage() {
                 <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                   {canvasView === 'preview' ? (
                     <div
-                      className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-start text-brand-charcoal relative transition-colors duration-300 ${
+                      className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-start text-neutral-900 relative transition-colors duration-300 ${
                         styling.theme === 'dark'
                           ? 'bg-[#0b0f17]'
                           : styling.theme === 'modern' || !styling.theme

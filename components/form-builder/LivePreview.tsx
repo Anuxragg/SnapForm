@@ -506,7 +506,7 @@ export default function LivePreview({
     subLabelColor = 'text-neutral-600';
     titleColor = 'text-neutral-950 font-extrabold';
     descColor = 'text-neutral-500 font-medium';
-    cardClass = `backdrop-blur-3xl bg-white/45 border border-white/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12),0_10px_20px_-5px_rgba(0,0,0,0.04),inset_0_1.5px_2px_rgba(255,255,255,0.9),inset_0_-1.5px_2px_rgba(0,0,0,0.03)] ${radiusClass} p-6 sm:p-8 relative overflow-hidden`;
+    cardClass = `backdrop-blur-3xl bg-white/80 border border-white/90 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08),0_8px_16px_-4px_rgba(0,0,0,0.03),inset_0_1.5px_2px_rgba(255,255,255,0.95)] ${radiusClass} p-6 sm:p-8 relative overflow-hidden`;
   }
 
   // 3. Calculate Input Field Variant
@@ -519,7 +519,7 @@ export default function LivePreview({
     inputClass += 'border-2 border-black bg-white text-neutral-900 font-medium focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]';
   } else {
     // Liquid Glass
-    inputClass += 'bg-white/50 backdrop-blur-xl border border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.02)] text-neutral-900 placeholder:text-neutral-400 hover:bg-white/65 focus:bg-white/85 focus:border-white focus:ring-4 focus:ring-brand-orange/20';
+    inputClass += 'bg-white/90 border border-neutral-200/90 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:border-brand-orange focus:ring-4 focus:ring-brand-orange/15';
   }
 
   // 4. Calculate Button Style

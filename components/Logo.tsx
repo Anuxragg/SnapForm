@@ -59,14 +59,14 @@ export default function Logo({
   showText = true,
   badgeText,
   className = '',
-  textClassName = 'text-2xl font-black tracking-tight text-brand-charcoal',
+  textClassName = 'text-2xl font-black tracking-tight text-brand-charcoal dark:text-white',
   iconContainerClassName = '',
   iconClassName = '',
 }: LogoProps) {
   const content = (
     <div className={`flex items-center gap-2 group cursor-pointer select-none ${className}`}>
       {/* Brand Icon inside sleek dark/contrast container */}
-      <div className={`w-8 h-8 rounded-xl bg-brand-charcoal flex items-center justify-center text-white shadow-sm ${iconContainerClassName}`}>
+      <div className={`w-8 h-8 rounded-xl bg-brand-charcoal flex items-center justify-center text-white shadow-sm shrink-0 ${iconContainerClassName}`}>
         <SnapFormIcon className={iconClassName || "w-4 h-6 text-white"} fill="#ffffff" />
       </div>
 
@@ -74,7 +74,7 @@ export default function Logo({
         <span className={`flex items-center gap-1.5 leading-none font-heading font-semibold ${textClassName}`}>
           <span>SnapForm</span>
           {badgeText && (
-            <span className="text-[8px] font-bold text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono uppercase">
+            <span className="text-[8px] font-bold text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-1.5 py-0.5 rounded tracking-widest leading-none font-mono uppercase">
               {badgeText}
             </span>
           )}
