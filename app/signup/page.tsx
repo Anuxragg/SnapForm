@@ -40,9 +40,9 @@ function SignupForm() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     }
-  }, [user, router]);
+  }, [user]);
 
   useEffect(() => {
     const errorParam = searchParams.get('error');

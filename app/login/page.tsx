@@ -22,9 +22,11 @@ function LoginForm() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      const returnUrl = searchParams.get('returnUrl');
+      const target = returnUrl && returnUrl.startsWith('/') ? returnUrl : '/dashboard';
+      window.location.href = target;
     }
-  }, [user, router]);
+  }, [user, searchParams]);
 
   useEffect(() => {
     const errorParam = searchParams.get('error');
@@ -50,7 +52,9 @@ function LoginForm() {
     try {
       const success = await login(email, password);
       if (success) {
-        router.push('/dashboard');
+        const returnUrl = searchParams.get('returnUrl');
+        const target = returnUrl && returnUrl.startsWith('/') ? returnUrl : '/dashboard';
+        window.location.href = target;
       } else {
         setError('Invalid email or password');
       }
