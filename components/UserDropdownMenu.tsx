@@ -149,7 +149,7 @@ export default function UserDropdownMenu({
           onClick={() => setIsOpen(!isOpen)}
           aria-label="User account menu"
           aria-expanded={isOpen}
-          className="w-8 h-8 rounded-full bg-brand-orange hover:brightness-110 active:scale-95 text-white text-xs font-bold flex items-center justify-center transition-all cursor-pointer shadow-md shadow-brand-orange/20 select-none overflow-hidden"
+          className="w-8 h-8 rounded-full bg-neutral-800 text-white text-xs font-bold flex items-center justify-center transition-colors cursor-pointer select-none overflow-hidden border border-neutral-700/80 hover:border-neutral-500"
           title={user.email}
         >
           {hasValidAvatar ? (
@@ -160,7 +160,7 @@ export default function UserDropdownMenu({
               className="w-full h-full object-cover"
             />
           ) : (
-            initials[0] || 'A'
+            <span>{initials[0] || 'A'}</span>
           )}
         </button>
       ) : (
