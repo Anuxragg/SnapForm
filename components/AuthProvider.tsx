@@ -22,6 +22,7 @@ interface AuthContextType {
   closeAuthModal: () => void;
   authModalOpen: boolean;
   authModalMode: 'login' | 'signup';
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,24 +44,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthModalOpen(false);
   };
 
-  // Check active session on mount
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.user) {
-            setUser(json.user);
-          }
+  const checkSession = async () => {
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.user) {
+          setUser(json.user);
+          try {
+            localStorage.setItem('snapform_user', JSON.stringify(json.user));
+          } catch {}
+          return;
         }
-      } catch (err) {
-        console.warn('Silent session check failed (anonymous state).');
-      } finally {
-        setLoading(false);
       }
+      // If not authenticated, clear user
+      setUser(null);
+      try {
+        localStorage.removeItem('snapform_user');
+      } catch {}
+    } catch (err) {
+      console.warn('Silent session check failed (anonymous state).');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Check active session on mount & listen to cross-tab auth state changes
+  useEffect(() => {
+    // Optimistically hydrate cached user from localStorage for instant smooth UX
+    try {
+      const cached = localStorage.getItem('snapform_user');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.id && parsed.email) {
+          setUser(parsed);
+        }
+      }
+    } catch {}
+
     checkSession();
+
+    // Cross-tab synchronization
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'snapform_user') {
+        if (e.newValue) {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch {}
+        } else {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -68,12 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
         setUser(data.user);
+        try {
+          localStorage.setItem('snapform_user', JSON.stringify(data.user));
+        } catch {}
         toast.success(`Welcome back, ${data.user.name}!`);
         closeAuthModal();
         return true;
@@ -92,12 +141,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
         setUser(data.user);
+        try {
+          localStorage.setItem('snapform_user', JSON.stringify(data.user));
+        } catch {}
         toast.success(`Account created! Welcome, ${data.user.name}!`);
         closeAuthModal();
         return true;
@@ -113,9 +166,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      const res = await fetch('/api/auth/logout', { 
+        method: 'POST',
+        credentials: 'include',
+      });
       if (res.ok) {
         setUser(null);
+        try {
+          localStorage.removeItem('snapform_user');
+        } catch {}
         toast.success('Logged out successfully');
         // Redirect cleanly to login page
         window.location.href = '/login';
@@ -137,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         closeAuthModal,
         authModalOpen,
         authModalMode,
+        refreshSession: checkSession,
       }}
     >
       {children}

@@ -22,7 +22,6 @@ import {
   Tag,
 } from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
-import { SnapFormIcon } from '@/components/Logo';
 
 const categoryLabels: Record<string, string> = {
   contact: 'Contact & Leads',
@@ -627,13 +626,6 @@ function HostedFormContent() {
 
       <footer className="py-8 text-center">
         <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-2">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-neutral-200 text-[11px] text-neutral-500 hover:text-neutral-900 transition-colors shadow-2xs font-medium"
-          >
-            <SnapFormIcon className="w-3 h-3 text-brand-orange" fill="#ff4f19" />
-            Powered by <strong className="text-neutral-900 font-bold">SnapForm</strong>
-          </Link>
           <p className="text-[11px] text-neutral-400">
             Never submit confidential credentials through public forms. 256-bit TLS encrypted.
           </p>

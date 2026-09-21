@@ -3,13 +3,22 @@ import { getSession, setSessionCookie, clearSessionCookie } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json(
         { success: false, message: 'Not authenticated' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+        }
       );
     }
 
@@ -20,20 +29,32 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'User no longer exists' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+        }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        provider: user.provider,
+    return NextResponse.json(
+      {
+        success: true,
+        user: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          provider: user.provider,
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Error during me API execution:', error);
     return NextResponse.json(
@@ -42,7 +63,12 @@ export async function GET() {
         message: 'Failed to retrieve active session',
         error: error.message,
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
     );
   }
 }
@@ -83,12 +109,11 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Refresh session cookie with updated name & avatar
+    // Refresh session cookie with updated name
     await setSessionCookie({
       id: updatedUser._id.toString(),
       email: updatedUser.email,
       name: updatedUser.name,
-      avatar: updatedUser.avatar,
       provider: updatedUser.provider,
       expiresAt: session.expiresAt || (Date.now() + 1000 * 60 * 60 * 24 * 7),
     });

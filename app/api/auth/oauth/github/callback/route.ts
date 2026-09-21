@@ -46,7 +46,6 @@ export async function GET(req: NextRequest) {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
-      avatar: user.avatar,
       provider: 'github',
       expiresAt,
     });

@@ -51,7 +51,6 @@ export interface ISessionPayload {
   id: string;
   email: string;
   name: string;
-  avatar?: string;
   provider?: string;
   expiresAt: number;
 }
@@ -82,15 +81,16 @@ export function decryptSession(token: string): ISessionPayload | null {
     if (parts.length !== 3) return null;
     
     const [ivHex, encryptedHex, tagHex] = parts;
+    if (!ivHex || !encryptedHex || !tagHex) return null;
+
     const key = getEncryptionKey();
     const iv = Buffer.from(ivHex, 'hex');
     const tag = Buffer.from(tagHex, 'hex');
-    const encrypted = Buffer.from(encryptedHex, 'hex');
     
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
     
-    let decrypted = decipher.update(encrypted as any, undefined, 'utf8');
+    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     
     const payload = JSON.parse(decrypted) as ISessionPayload;
@@ -124,16 +124,35 @@ export async function getSession(): Promise<ISessionPayload | null> {
 }
 
 /**
- * Next.js Helper to set the authenticated session cookie
+ * Next.js Helper to set the authenticated session cookie.
+ * Strictly enforces a lightweight payload (under 200 bytes) to stay safely below the 4096-byte RFC cookie limit.
  */
-export async function setSessionCookie(payload: ISessionPayload): Promise<void> {
-  const token = encryptSession(payload);
+export async function setSessionCookie(payload: {
+  id: string;
+  email: string;
+  name?: string;
+  provider?: string;
+  expiresAt: number;
+  avatar?: string;
+}): Promise<void> {
+  const minimalPayload: ISessionPayload = {
+    id: String(payload.id),
+    email: String(payload.email || '').trim().toLowerCase(),
+    name: String(payload.name || '').slice(0, 80),
+    provider: payload.provider ? String(payload.provider) : 'credentials',
+    expiresAt: payload.expiresAt,
+  };
+
+  const token = encryptSession(minimalPayload);
   const cookieStore = await cookies();
+  const maxAge = Math.max(0, Math.floor((payload.expiresAt - Date.now()) / 1000));
+  
   cookieStore.set('snapform_session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
+    maxAge: maxAge || 60 * 60 * 24 * 7,
     expires: new Date(payload.expiresAt),
   });
 }
@@ -143,5 +162,13 @@ export async function setSessionCookie(payload: ISessionPayload): Promise<void> 
  */
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
+  cookieStore.set('snapform_session', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
   cookieStore.delete('snapform_session');
 }

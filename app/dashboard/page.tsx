@@ -1374,11 +1374,8 @@ export default function DashboardPage() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-charcoal dark:text-white group-hover:text-brand-orange transition-colors">
+                          <span className="text-sm font-bold text-brand-charcoal dark:text-white transition-colors">
                             {form.name}
-                          </span>
-                          <span className="text-[10px] font-semibold uppercase font-mono px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange">
-                            {form.category}
                           </span>
                         </div>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
