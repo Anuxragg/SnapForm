@@ -28,7 +28,7 @@ export default function PrivacyPage() {
   return (
     <div className="relative min-h-screen bg-black text-white font-sans flex flex-col antialiased selection:bg-brand-orange selection:text-white">
       {/* Navbar */}
-      <Navbar />
+      <Navbar forceDark />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 pt-32 sm:pt-40 pb-24 flex-1 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start justify-between">
         

@@ -139,7 +139,7 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-black text-white overflow-x-hidden font-sans flex flex-col antialiased">
       <HomeShaderBackground />
-      <Navbar />
+      <Navbar forceDark />
 
       <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-8 sm:pb-16 flex-1 flex flex-col items-center">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-6 sm:pb-10">
