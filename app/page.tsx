@@ -151,7 +151,7 @@ export default function LandingPage() {
               <BreathingText className="text-white">
                 SnapForm
               </BreathingText>{' '}
-              delivers fast, type-safe React forms.
+              builds, hosts, and scales your forms in seconds.
             </h1>
           </div>
 
