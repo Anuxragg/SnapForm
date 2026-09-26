@@ -21,6 +21,7 @@ import {
   Search,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   CheckCircle2,
   AlertCircle,
@@ -280,6 +281,79 @@ function StepPackageBox({ packages, isDev = false }: { packages: string; isDev?:
       >
         <code>{cmd}</code>
       </div>
+    </div>
+  );
+}
+
+function DocNavCards({
+  prev,
+  next,
+  onNavigate,
+}: {
+  prev?: { id: SectionId; title: string; subtitle: string };
+  next?: { id: SectionId; title: string; subtitle: string } | { href: string; title: string; subtitle: string };
+  onNavigate: (id: SectionId) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 border-t border-brand-border/60 dark:border-[#2e2e2e]">
+      {prev ? (
+        <button
+          onClick={() => {
+            onNavigate(prev.id);
+            document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="group flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border border-neutral-200 dark:border-[#282828] bg-[#f8f8f9] dark:bg-[#181818] hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100/70 dark:hover:bg-[#202020] transition-colors cursor-pointer text-left shadow-2xs"
+        >
+          <ChevronLeft className="w-4 h-4 text-neutral-400 dark:text-neutral-500 group-hover:text-brand-charcoal dark:group-hover:text-white transition-colors shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-brand-charcoal dark:text-neutral-100 group-hover:text-brand-orange transition-colors truncate">
+              {prev.title}
+            </p>
+            <p className="text-xs font-normal text-neutral-500 dark:text-[lab(66.128_-0.0000298023_0.0000119209)] truncate">
+              {prev.subtitle}
+            </p>
+          </div>
+        </button>
+      ) : (
+        <div className="hidden sm:block" />
+      )}
+
+      {next ? (
+        'href' in next ? (
+          <Link
+            href={next.href}
+            className="group flex items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-xl border border-neutral-200 dark:border-[#282828] bg-[#f8f8f9] dark:bg-[#181818] hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100/70 dark:hover:bg-[#202020] transition-colors cursor-pointer text-left shadow-2xs"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-brand-charcoal dark:text-neutral-100 group-hover:text-brand-orange transition-colors truncate">
+                {next.title}
+              </p>
+              <p className="text-xs font-normal text-neutral-500 dark:text-[lab(66.128_-0.0000298023_0.0000119209)] truncate">
+                {next.subtitle}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400 dark:text-neutral-500 group-hover:text-brand-charcoal dark:group-hover:text-white transition-colors shrink-0" />
+          </Link>
+        ) : (
+          <button
+            onClick={() => {
+              onNavigate(next.id);
+              document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="group flex items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-xl border border-neutral-200 dark:border-[#282828] bg-[#f8f8f9] dark:bg-[#181818] hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100/70 dark:hover:bg-[#202020] transition-colors cursor-pointer text-left shadow-2xs"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-brand-charcoal dark:text-neutral-100 group-hover:text-brand-orange transition-colors truncate">
+                {next.title}
+              </p>
+              <p className="text-xs font-normal text-neutral-500 dark:text-[lab(66.128_-0.0000298023_0.0000119209)] truncate">
+                {next.subtitle}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400 dark:text-neutral-500 group-hover:text-brand-charcoal dark:group-hover:text-white transition-colors shrink-0" />
+          </button>
+        )
+      ) : null}
     </div>
   );
 }
@@ -602,18 +676,15 @@ SnapForm solves both ends of the form lifecycle:
                   </ul>
                 </div>
 
-                {/* Next section button */}
-                <div className="flex items-center justify-end pt-4 border-t border-brand-border/60 dark:border-[#2e2e2e]">
-                  <button
-                    onClick={() => {
-                      setActiveSection('installation');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    Next: Installation & Setup <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  next={{
+                    id: 'installation',
+                    title: 'Installation & Setup',
+                    subtitle: 'Install dependencies & add components',
+                  }}
+                  onNavigate={setActiveSection}
+                />
               </div>
             )}
 
@@ -840,50 +911,20 @@ SnapForm solves both ends of the form lifecycle:
                   </div>
                 </div>
 
-                {/* Dual Navigation Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <button
-                    onClick={() => {
-                      setActiveSection('overview');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="group flex items-center justify-between p-4 rounded-2xl border border-brand-border dark:border-[#2e2e2e] bg-[#f8f8f9] dark:bg-[#222222] hover:border-brand-orange/40 hover:bg-neutral-100 dark:hover:bg-[#272727] transition-all cursor-pointer text-left shadow-2xs"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-neutral-200/70 dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 text-neutral-600 dark:text-neutral-300 group-hover:text-brand-orange transition-colors">
-                        <ChevronRight className="w-4 h-4 rotate-180" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-brand-charcoal dark:text-white group-hover:text-brand-orange transition-colors">
-                          Introduction
-                        </p>
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                          Overview & full-stack architecture
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setActiveSection('frontend');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="group flex items-center justify-between p-4 rounded-2xl border border-brand-border dark:border-[#2e2e2e] bg-[#f8f8f9] dark:bg-[#222222] hover:border-brand-orange/40 hover:bg-neutral-100 dark:hover:bg-[#272727] transition-all cursor-pointer text-left shadow-2xs"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-brand-charcoal dark:text-white group-hover:text-brand-orange transition-colors">
-                        React Component (.tsx)
-                      </p>
-                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                        Pure React 19 form component with Hook Form
-                      </p>
-                    </div>
-                    <div className="w-8 h-8 rounded-xl bg-neutral-200/70 dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 text-neutral-600 dark:text-neutral-300 group-hover:text-brand-orange transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </button>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  prev={{
+                    id: 'overview',
+                    title: 'Introduction',
+                    subtitle: 'Overview & full-stack architecture',
+                  }}
+                  next={{
+                    id: 'frontend',
+                    title: 'React Component (.tsx)',
+                    subtitle: 'Pure React 19 form component with Hook Form',
+                  }}
+                  onNavigate={setActiveSection}
+                />
 
               </div>
             )}
@@ -912,26 +953,20 @@ SnapForm solves both ends of the form lifecycle:
                   showLineNumbers={true}
                 />
 
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    onClick={() => {
-                      setActiveSection('installation');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white cursor-pointer"
-                  >
-                    ← Installation
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveSection('validation');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    Next: Zod Validation Schema <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  prev={{
+                    id: 'installation',
+                    title: 'Installation & Setup',
+                    subtitle: 'Install dependencies & add components',
+                  }}
+                  next={{
+                    id: 'validation',
+                    title: 'Zod Validation Schema',
+                    subtitle: 'Type-safe schema definitions for client & server',
+                  }}
+                  onNavigate={setActiveSection}
+                />
               </div>
             )}
 
@@ -968,26 +1003,20 @@ SnapForm solves both ends of the form lifecycle:
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    onClick={() => {
-                      setActiveSection('frontend');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white cursor-pointer"
-                  >
-                    ← Frontend Component
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveSection('backend');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    Next: Next.js App Router Route <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  prev={{
+                    id: 'frontend',
+                    title: 'React Component (.tsx)',
+                    subtitle: 'Pure React 19 form component',
+                  }}
+                  next={{
+                    id: 'backend',
+                    title: 'Next.js App Router Route',
+                    subtitle: 'Server route handlers with Zod validation',
+                  }}
+                  onNavigate={setActiveSection}
+                />
               </div>
             )}
 
@@ -1015,26 +1044,20 @@ SnapForm solves both ends of the form lifecycle:
                   showLineNumbers={true}
                 />
 
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    onClick={() => {
-                      setActiveSection('validation');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white cursor-pointer"
-                  >
-                    ← Zod Schema
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveSection('html-ingestion');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    Next: HTML / Fetch Ingestion <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  prev={{
+                    id: 'validation',
+                    title: 'Zod Validation Schema',
+                    subtitle: 'Single source of truth validation',
+                  }}
+                  next={{
+                    id: 'html-ingestion',
+                    title: 'HTML & Fetch Ingestion',
+                    subtitle: 'Direct endpoint ingestion with zero JS',
+                  }}
+                  onNavigate={setActiveSection}
+                />
               </div>
             )}
 
@@ -1062,22 +1085,20 @@ SnapForm solves both ends of the form lifecycle:
                   showLineNumbers={true}
                 />
 
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    onClick={() => {
-                      setActiveSection('backend');
-                      document.getElementById('docs-content-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-brand-charcoal dark:hover:text-white cursor-pointer"
-                  >
-                    ← Next.js API Route
-                  </button>
-                  <Link href="/dashboard">
-                    <button className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer">
-                      Go to Dashboard <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </Link>
-                </div>
+                {/* Navigation Cards */}
+                <DocNavCards
+                  prev={{
+                    id: 'backend',
+                    title: 'Next.js App Router Route',
+                    subtitle: 'Server route handlers with Zod validation',
+                  }}
+                  next={{
+                    href: '/dashboard',
+                    title: 'Go to Dashboard',
+                    subtitle: 'Manage forms & view live submissions',
+                  }}
+                  onNavigate={setActiveSection}
+                />
               </div>
             )}
 
