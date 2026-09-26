@@ -38,11 +38,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Verify OTP verification status
+    // 3. Require a verified, unexpired OTP
     const otpRecord = await EmailOtp.findOne({ email: normalizedEmail });
-    if (otpRecord && !otpRecord.verified) {
+    if (!otpRecord || !otpRecord.verified || otpRecord.expiresAt.getTime() <= Date.now()) {
       return NextResponse.json(
-        { success: false, message: 'Please verify your email with the OTP code first' },
+        { success: false, message: 'Please verify your email with a valid OTP code first' },
         { status: 400 }
       );
     }
@@ -85,13 +85,13 @@ export async function POST(req: NextRequest) {
         email: user.email,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error during signup API execution:', error);
     return NextResponse.json(
       {
         success: false,
         message: 'Signup failed due to internal error',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
