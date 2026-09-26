@@ -56,7 +56,7 @@ export default async function Image() {
             letterSpacing: '0.04em',
           }}
         >
-          ⚡ React Form Compiler & Headless Backend
+          🚀 Instant Form Builder & Cloud Hosting
         </div>
 
         {/* Brand Logo & Name */}
@@ -139,7 +139,7 @@ export default async function Image() {
             marginBottom: '36px',
           }}
         >
-          Visual form compiler that outputs production-grade React components, type-safe Zod schemas, and serverless handlers.
+          Build and host forms instantly with live response tracking, then export clean React & Zod code when you need it.
         </div>
 
         {/* Feature Pills */}
@@ -150,7 +150,7 @@ export default async function Image() {
             alignItems: 'center',
           }}
         >
-          {['Visual Builder', 'Zod Schema Export', 'Next.js & Tailwind', 'Spam Protection'].map((tag) => (
+          {['Instant Form Hosting', 'Live Responses', 'Anti-Spam Shield', 'React & Zod Export'].map((tag) => (
             <div
               key={tag}
               style={{
