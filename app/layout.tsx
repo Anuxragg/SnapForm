@@ -58,19 +58,19 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/icon.svg",
-        width: 512,
-        height: 512,
-        alt: "SnapForm Logo",
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "SnapForm — React Form Compiler & Builder",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "SnapForm — React Form Compiler & Builder",
     description:
       "Visual form compiler that outputs production-grade React components, type-safe Zod schemas, and Next.js route handlers with headless endpoints.",
-    images: ["/icon.svg"],
+    images: ["/opengraph-image"],
     creator: "@snapform",
   },
   robots: {
