@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import EmailOtp from '@/models/EmailOtp';
-import { generateSalt, hashPassword, setSessionCookie } from '@/lib/auth';
+import { generateSalt, hashPassword, isPasswordWithinLimit, setSessionCookie } from '@/lib/auth';
 import { validateStandardEmailAsync } from '@/lib/emailValidator';
 
 export async function POST(req: NextRequest) {
@@ -18,9 +18,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!password || typeof password !== 'string' || password.length < 6) {
+    if (
+      typeof password !== 'string' ||
+      Array.from(password).length < 6 ||
+      !isPasswordWithinLimit(password)
+    ) {
       return NextResponse.json(
-        { success: false, message: 'Password must be at least 6 characters' },
+        { success: false, message: 'Password must be between 6 and 128 characters' },
         { status: 400 }
       );
     }
@@ -49,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Create user
     const salt = generateSalt();
-    const passwordHash = hashPassword(password, salt);
+    const passwordHash = await hashPassword(password, salt);
     const userName = name && typeof name === 'string' && name.trim().length > 0
       ? name.trim()
       : normalizedEmail.split('@')[0];

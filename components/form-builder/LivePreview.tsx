@@ -11,16 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import {
-  Mail,
-  CreditCard,
-  Sparkles,
-  Calendar,
-  UserPlus,
-  MessageSquare,
-  Briefcase,
-  Tag,
-} from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
 import { z } from 'zod';
 
@@ -40,16 +30,7 @@ const categoryLabels: Record<string, string> = {
   registration: 'Event Registration',
   feedback: 'User Feedback',
   application: 'Job Application',
-};
-
-const categoryIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  contact: Mail,
-  payment: CreditCard,
-  survey: Sparkles,
-  booking: Calendar,
-  registration: UserPlus,
-  feedback: MessageSquare,
-  application: Briefcase,
+  custom: 'Custom Form',
 };
 
 function LivePreviewForm({
@@ -579,43 +560,16 @@ export default function LivePreview({
         </div>
       ) : (
         <div className={`${cardClass} transition-all duration-300`}>
-          <div className="text-left mb-6 space-y-2">
+          <div className="text-left mb-6 pb-5 border-b border-neutral-200/80 dark:border-neutral-700/70 space-y-2">
             {formCategory && (
-              <div className="flex items-center">
-                {(() => {
-                  const CategoryIcon = categoryIcons[formCategory] || Tag;
-                  return (
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide ${
-                        isNeobrutalist
-                          ? 'border-2 border-black bg-black text-white rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] uppercase text-[10px] font-black'
-                          : isMinimal
-                            ? 'border border-neutral-900 bg-neutral-100 text-neutral-900 font-mono rounded-none uppercase text-[10px] font-bold tracking-widest'
-                            : isDarkTheme
-                              ? 'rounded-full bg-[#181f2c]/90 backdrop-blur-md text-neutral-200 border border-neutral-700/80 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                              : 'rounded-full bg-white/90 backdrop-blur-md text-neutral-800 border border-white shadow-[0_4px_14px_-2px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]'
-                      }`}
-                    >
-                      <CategoryIcon
-                        className={`w-3.5 h-3.5 shrink-0 ${
-                          isNeobrutalist ? 'text-white' : isMinimal ? 'text-neutral-900' : ''
-                        }`}
-                        style={
-                          !isNeobrutalist && !isMinimal
-                            ? { color: primaryColor }
-                            : undefined
-                        }
-                      />
-                      <span className="leading-tight">{categoryLabels[formCategory] || formCategory}</span>
-                    </span>
-                  );
-                })()}
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                {categoryLabels[formCategory] || formCategory}
               </div>
             )}
-            <h2 className={`text-2xl font-bold tracking-tight ${titleColor} font-heading leading-tight pt-0.5`}>
+            <h2 className={`text-xl sm:text-2xl font-semibold tracking-tight ${titleColor} leading-tight pt-0.5`}>
               {formName || 'Crafted Form'}
             </h2>
-            <p className={`text-xs sm:text-[13px] ${descColor} leading-relaxed`}>
+            <p className={`text-sm ${descColor} leading-6 max-w-prose`}>
               {formDescription || 'Please fill out the form details below.'}
             </p>
           </div>

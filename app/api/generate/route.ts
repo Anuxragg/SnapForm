@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateReactComponent } from '@/lib/generators/componentGenerator';
 import { generateZodSchema } from '@/lib/generators/zodGenerator';
 import { generateApiRoute } from '@/lib/generators/apiGenerator';
+import { validateGeneratorInput } from '@/lib/generators/validation';
 import JSZip from 'jszip';
 
 export const runtime = 'nodejs';
@@ -42,6 +43,15 @@ export async function POST(req: NextRequest) {
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json(
         { success: false, message: 'Invalid or missing prompt description' },
+        { status: 400 }
+      );
+    }
+
+    try {
+      validateGeneratorInput(fields, { theme, primaryColor: '#ff4f19' });
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, message: error instanceof Error ? error.message : 'Invalid form fields' },
         { status: 400 }
       );
     }

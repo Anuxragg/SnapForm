@@ -151,30 +151,35 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                 key={field.id}
                 className={`group rounded-2xl border transition-all duration-200 bg-white dark:bg-[#1C1C1C] overflow-hidden ${
                   isOpen
-                    ? 'border-neutral-300 dark:border-[#383838] shadow-sm'
-                    : 'border-neutral-200/90 dark:border-[#262626] hover:border-neutral-300 dark:hover:border-[#333333]'
+                    ? 'border-orange-200 dark:border-orange-900/50 shadow-md shadow-orange-950/[0.04]'
+                    : 'border-neutral-200/90 dark:border-[#262626] hover:border-neutral-300 dark:hover:border-[#383838] hover:shadow-sm'
                 }`}
               >
                 {/* Field Accordion Trigger Header */}
                 <div
-                  className="flex items-center justify-between px-3.5 py-3 cursor-pointer select-none transition-colors hover:bg-neutral-50/70 dark:hover:bg-[#222222]"
+                  className="flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer select-none transition-colors hover:bg-neutral-50/70 dark:hover:bg-[#222222]"
                   onClick={() => toggleAccordion(field.id)}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {/* Index Number */}
-                    <span className="w-5 h-5 rounded-md bg-neutral-100 dark:bg-[#252525] text-[10px] font-mono font-bold text-neutral-500 dark:text-neutral-400 flex items-center justify-center shrink-0">
-                      {String(idx + 1).padStart(2, '0')}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className={`w-9 h-9 text-xs font-semibold flex items-center justify-center shrink-0 transition-colors ${
+                      isOpen
+                        ? 'text-neutral-700 dark:text-neutral-200'
+                        : 'text-neutral-500 dark:text-neutral-400'
+                    }`}>
+                      {idx + 1}
                     </span>
 
-                    {/* Label and details */}
-                    <div className="text-left min-w-0">
+                    <div className="text-left min-w-0 space-y-1">
+                      <span className="block text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                        {field.label || 'Unnamed Field'}
+                      </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-neutral-900 dark:text-white truncate">
-                          {field.label || 'Unnamed Field'}
+                        <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500">
+                          {FIELD_TYPES.find((type) => type.value === field.type)?.label || 'Form field'}
                         </span>
                         {field.required && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shrink-0">
-                            Required
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300">
+                            <span className="w-1 h-1 rounded-full bg-orange-500" /> Required
                           </span>
                         )}
                       </div>
@@ -182,37 +187,37 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                   </div>
 
                   {/* Actions & Chevron */}
-                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       disabled={idx === 0}
                       onClick={() => handleMoveField(idx, 'up')}
-                      className="w-6 h-6 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#282828] disabled:opacity-20 disabled:hover:bg-transparent flex items-center justify-center cursor-pointer transition-colors"
+                      className="w-8 h-8 rounded-xl border border-transparent text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-[#282828] disabled:opacity-25 disabled:hover:bg-transparent flex items-center justify-center cursor-pointer transition-colors"
                       title="Move Up"
                     >
-                      <ChevronUp className="w-3.5 h-3.5" />
+                      <ChevronUp className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
                       disabled={idx === fields.length - 1}
                       onClick={() => handleMoveField(idx, 'down')}
-                      className="w-6 h-6 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#282828] disabled:opacity-20 disabled:hover:bg-transparent flex items-center justify-center cursor-pointer transition-colors"
+                      className="w-8 h-8 rounded-xl border border-transparent text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-[#282828] disabled:opacity-25 disabled:hover:bg-transparent flex items-center justify-center cursor-pointer transition-colors"
                       title="Move Down"
                     >
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <ChevronDown className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveField(idx)}
-                      className="w-6 h-6 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 flex items-center justify-center cursor-pointer transition-colors ml-0.5"
+                      className="w-8 h-8 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 flex items-center justify-center cursor-pointer transition-colors"
                       title="Delete Field"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="w-6 h-6 rounded-lg text-neutral-400 flex items-center justify-center ml-0.5">
+                    <div className={`w-8 h-8 rounded-xl bg-neutral-50 dark:bg-[#252525] text-neutral-400 flex items-center justify-center ml-1 transition-colors ${isOpen ? 'text-orange-600 dark:text-orange-300' : ''}`}>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 text-neutral-700 dark:text-neutral-200' : ''
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180' : ''
                         }`}
                       />
                     </div>
@@ -232,17 +237,7 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                           type="text"
                           value={field.label}
                           placeholder="e.g. Full Name"
-                          onChange={(e) => {
-                            const newLabel = e.target.value;
-                            // Generate safe slug id if previous id was default field_X or derived
-                            const slug = newLabel
-                              .toLowerCase()
-                              .trim()
-                              .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
-                              .replace(/[^a-zA-Z0-9_]/g, '');
-                            const safeId = slug || field.id || `field_${idx + 1}`;
-                            handleUpdateField(idx, { label: newLabel, id: safeId });
-                          }}
+                          onChange={(e) => handleUpdateField(idx, { label: e.target.value })}
                           className="h-8.5 rounded-xl border-neutral-200/90 dark:border-[#2c2c2c] bg-white dark:bg-[#1F1F1F] text-xs text-neutral-900 dark:text-white"
                         />
                       </div>
@@ -283,6 +278,32 @@ export default function FieldEditor({ fields, onChange }: FieldEditorProps) {
                             className="text-[10px] font-semibold text-neutral-900 dark:text-white hover:underline cursor-pointer flex items-center gap-1"
                           >
                             <Plus className="w-3 h-3" /> Add Option
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-1 rounded-lg bg-neutral-100 dark:bg-[#181818] p-1">
+                          <button
+                            type="button"
+                            aria-pressed={field.type === 'radio'}
+                            onClick={() => handleUpdateField(idx, { type: 'radio' })}
+                            className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                              field.type === 'radio'
+                                ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#303030] dark:text-white'
+                                : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'
+                            }`}
+                          >
+                            Choose one
+                          </button>
+                          <button
+                            type="button"
+                            aria-pressed={field.type === 'checkbox'}
+                            onClick={() => handleUpdateField(idx, { type: 'checkbox' })}
+                            className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                              field.type === 'checkbox'
+                                ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#303030] dark:text-white'
+                                : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200'
+                            }`}
+                          >
+                            Choose multiple
                           </button>
                         </div>
                         {(!field.options || field.options.length === 0) ? (

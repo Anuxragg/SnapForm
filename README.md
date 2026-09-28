@@ -85,8 +85,11 @@ npm install
 
 ### 4. Setup Environment Variables
 Create a `.env.local` or `.env` file in the root directory:
-```env
-# MongoDB Connection URI (Local or Atlas)
+  ```env
+  # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  SESSION_SECRET=replace-with-a-random-value-at-least-32-bytes-long
+
+  # MongoDB Connection URI (Local or Atlas)
 MONGODB_URI=mongodb://localhost:27017/snapform
 ```
 

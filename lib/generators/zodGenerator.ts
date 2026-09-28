@@ -1,7 +1,11 @@
 import { IFormField } from '@/models/FormTemplate';
+import { toJsIdentifier, toJsString, validateGeneratorInput } from '@/lib/generators/validation';
 
 export function generateZodSchema(fields: IFormField[], formName: string = 'Form'): string {
-  const schemaName = `${formName.replace(/\s+/g, '')}Schema`;
+  validateGeneratorInput(fields);
+  if (typeof formName !== 'string' || formName.length > 200) throw new Error('Form name must be a string of at most 200 characters');
+  const componentName = toJsIdentifier(formName, 'Form');
+  const schemaName = `${componentName}Schema`;
   
   let fieldsCode = fields
     .map((field) => {
@@ -24,23 +28,22 @@ export function generateZodSchema(fields: IFormField[], formName: string = 'Form
           if (field.required) {
             const minLen = field.validation?.minLength ?? 1;
             const minMsg = minLen > 1
-              ? `'${field.label} must be at least ${minLen} characters'`
-              : `'${field.label} is required'`;
+              ? toJsString(`${field.label} must be at least ${minLen} characters`)
+              : toJsString(`${field.label} is required`);
             fieldValidation += `.min(${minLen}, ${minMsg})`;
           } else if (field.validation?.minLength) {
             // Optional but has a min: enforce when value is provided
-            fieldValidation += `.min(${field.validation.minLength}, 'Minimum length is ${field.validation.minLength}')`;
+            fieldValidation += `.min(${field.validation.minLength}, ${toJsString(`Minimum length is ${field.validation.minLength}`)})`;
           }
 
           // Max length
           if (field.validation?.maxLength) {
-            fieldValidation += `.max(${field.validation.maxLength}, 'Maximum length is ${field.validation.maxLength}')`;
+            fieldValidation += `.max(${field.validation.maxLength}, ${toJsString(`Maximum length is ${field.validation.maxLength}`)})`;
           }
 
           // Regex pattern
           if (field.validation?.pattern) {
-            const safePattern = field.validation.pattern.replace(/\\/g, '\\\\');
-            fieldValidation += `.regex(/${safePattern}/, 'Invalid format')`;
+            fieldValidation += `.regex(new RegExp(${toJsString(field.validation.pattern)}), 'Invalid format')`;
           }
 
           // Optional: allow empty string or undefined
@@ -53,7 +56,7 @@ export function generateZodSchema(fields: IFormField[], formName: string = 'Form
         case 'select':
         case 'radio':
           if (field.options && field.options.length > 0) {
-            const formattedOptions = field.options.map(opt => `'${opt.replace(/'/g, "\\'")}'`).join(', ');
+            const formattedOptions = field.options.map(toJsString).join(', ');
             if (field.required) {
               fieldValidation = `z.enum([${formattedOptions}], { required_error: 'Please select an option' })`;
             } else {
@@ -89,7 +92,7 @@ export function generateZodSchema(fields: IFormField[], formName: string = 'Form
           if (field.required) {
             fieldValidation = `z.any().refine((files) => {
     return files instanceof FileList && files.length > 0;
-  }, '${field.label} is required')`;
+  }, ${toJsString(`${field.label} is required`)})`;
           } else {
             fieldValidation = `z.any().optional()`;
           }
@@ -99,7 +102,7 @@ export function generateZodSchema(fields: IFormField[], formName: string = 'Form
           fieldValidation = `z.string()`;
       }
       
-      return `  ${field.id}: ${fieldValidation},`;
+    return `  ${toJsString(field.id)}: ${fieldValidation},`;
     })
     .join('\n');
 
@@ -109,6 +112,6 @@ export const ${schemaName} = z.object({
 ${fieldsCode}
 });
 
-export type ${formName.replace(/\s+/g, '')}Input = z.infer<typeof ${schemaName}>;
+export type ${componentName}Input = z.infer<typeof ${schemaName}>;
 `;
 }

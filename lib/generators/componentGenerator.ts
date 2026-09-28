@@ -1,4 +1,5 @@
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
+import { toJsIdentifier, toJsString, validateGeneratorInput } from '@/lib/generators/validation';
 
 export function generateReactComponent(
   fields: IFormField[],
@@ -7,7 +8,10 @@ export function generateReactComponent(
   description?: string,
   category?: string
 ): string {
-  const componentName = formName.replace(/[^a-zA-Z0-9]/g, '') || 'CustomForm';
+  validateGeneratorInput(fields, styling);
+  if (typeof formName !== 'string' || formName.length > 200) throw new Error('Form name must be a string of at most 200 characters');
+  if (description !== undefined && (typeof description !== 'string' || description.length > 2000)) throw new Error('Description must be a string of at most 2000 characters');
+  const componentName = toJsIdentifier(formName, 'CustomForm');
   const schemaName = `${componentName}Schema`;
   const inputName = `${componentName}Input`;
   
@@ -88,6 +92,8 @@ export function generateReactComponent(
 
   const fieldsMarkup = fields
     .map((field) => {
+      const fieldId = toJsString(field.id);
+      const errorRef = `errors[${fieldId}]`;
       const requiredAsterisk = field.required ? ' <span className="text-red-500">*</span>' : '';
       
       let fieldElement = '';
@@ -97,18 +103,18 @@ export function generateReactComponent(
         case 'email':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="${labelClass}">
-            ${field.label}${requiredAsterisk}
+          <Label htmlFor={${fieldId}} className="${labelClass}">
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Input
-            id="${field.id}"
+            id={${fieldId}}
             type="${field.type === 'email' ? 'email' : 'text'}"
-            placeholder="${field.placeholder || ''}"
+            placeholder={${toJsString(field.placeholder || '')}}
             className="${inputClass}"
-            {...register('${field.id}')}
+            {...register(${fieldId})}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           break;
@@ -116,38 +122,38 @@ export function generateReactComponent(
         case 'textarea':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="${labelClass}">
-            ${field.label}${requiredAsterisk}
+          <Label htmlFor={${fieldId}} className="${labelClass}">
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Textarea
-            id="${field.id}"
-            placeholder="${field.placeholder || ''}"
+            id={${fieldId}}
+            placeholder={${toJsString(field.placeholder || '')}}
             className="min-h-[100px] ${inputClass}"
-            {...register('${field.id}')}
+            {...register(${fieldId})}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           break;
           
         case 'select':
           const selectOptions = (field.options || [])
-            .map((opt) => `                <SelectItem value="${opt}">${opt}</SelectItem>`)
+            .map((opt) => `                <SelectItem value={${toJsString(opt)}}>{${toJsString(opt)}}</SelectItem>`)
             .join('\n');
             
           fieldElement = `
         <div className="space-y-2">
           <Label className="${labelClass}">
-            ${field.label}${requiredAsterisk}
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Controller
             control={control}
-            name="${field.id}"
+            name={${fieldId}}
             render={({ field: { onChange, value } }) => (
               <Select onValueChange={onChange} value={value}>
                 <SelectTrigger className="${inputClass}">
-                  <SelectValue placeholder="${field.placeholder || 'Select an option'}" />
+                  <SelectValue placeholder={${toJsString(field.placeholder || 'Select an option')}} />
                 </SelectTrigger>
                 <SelectContent>
 ${selectOptions}
@@ -155,8 +161,8 @@ ${selectOptions}
               </Select>
             )}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           break;
@@ -166,9 +172,9 @@ ${selectOptions}
             .map((opt) => {
               const optId = `${field.id}-${opt.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
               return `              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="${opt}" id="${optId}" />
-                <Label htmlFor="${optId}" className="${subLabelClass}">
-                  ${opt}
+                <RadioGroupItem value={${toJsString(opt)}} id={${toJsString(optId)}} />
+                <Label htmlFor={${toJsString(optId)}} className="${subLabelClass}">
+                  {${toJsString(opt)}}
                 </Label>
               </div>`;
             })
@@ -177,19 +183,19 @@ ${selectOptions}
           fieldElement = `
         <div className="space-y-2">
           <Label className="${labelClass}">
-            ${field.label}${requiredAsterisk}
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Controller
             control={control}
-            name="${field.id}"
+            name={${fieldId}}
             render={({ field: { onChange, value } }) => (
               <RadioGroup onValueChange={onChange} value={value} className="flex flex-col space-y-2 mt-1">
 ${radioItems}
               </RadioGroup>
             )}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           break;
@@ -199,21 +205,21 @@ ${radioItems}
             // Multi-checkbox rendering
             const checkboxItems = field.options
               .map((opt) => {
-                const optEscaped = opt.replace(/'/g, "\\'");
-                return `              <div key="${opt}" className="flex items-row items-start space-x-3 space-y-0">
+                const optionValue = toJsString(opt);
+                return `              <div key={${optionValue}} className="flex items-row items-start space-x-3 space-y-0">
                 <Checkbox
-                  checked={value?.includes('${optEscaped}')}
+                  checked={value?.includes(${optionValue})}
                   onCheckedChange={(checked) => {
                     const currentValues = value || [];
                     if (checked) {
-                      onChange([...currentValues, '${optEscaped}']);
+                      onChange([...currentValues, ${optionValue}]);
                     } else {
-                      onChange(currentValues.filter((val: string) => val !== '${optEscaped}'));
+                      onChange(currentValues.filter((val: string) => val !== ${optionValue}));
                     }
                   }}
                 />
                 <Label className="${subLabelClass}">
-                  ${opt}
+                  {${optionValue}}
                 </Label>
               </div>`;
               })
@@ -222,19 +228,19 @@ ${radioItems}
             fieldElement = `
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-neutral-700">
-            ${field.label}${requiredAsterisk}
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Controller
             control={control}
-            name="${field.id}"
+            name={${fieldId}}
             render={({ field: { onChange, value = [] } }) => (
               <div className="flex flex-col space-y-3 mt-1">
 ${checkboxItems}
               </div>
             )}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           } else {
@@ -243,17 +249,17 @@ ${checkboxItems}
         <div className="flex flex-row items-start space-x-3 space-y-0 py-2">
           <Controller
             control={control}
-            name="${field.id}"
+            name={${fieldId}}
             render={({ field: { onChange, value } }) => (
-              <Checkbox checked={value} onCheckedChange={onChange} id="${field.id}" />
+              <Checkbox checked={value} onCheckedChange={onChange} id={${fieldId}} />
             )}
           />
           <div className="space-y-1 leading-none">
-            <Label htmlFor="${field.id}" className="${labelClass} cursor-pointer">
-              ${field.label}${requiredAsterisk}
+            <Label htmlFor={${fieldId}} className="${labelClass} cursor-pointer">
+              {${toJsString(field.label)}}${requiredAsterisk}
             </Label>
-            {errors.${field.id} && (
-              <p className="text-xs font-medium text-red-500 mt-1">{errors.${field.id}?.message}</p>
+            {${errorRef} && (
+              <p className="text-xs font-medium text-red-500 mt-1">{${errorRef}?.message}</p>
             )}
           </div>
         </div>`;
@@ -263,17 +269,17 @@ ${checkboxItems}
         case 'file':
           fieldElement = `
         <div className="space-y-2">
-          <Label htmlFor="${field.id}" className="${labelClass}">
-            ${field.label}${requiredAsterisk}
+          <Label htmlFor={${fieldId}} className="${labelClass}">
+            {${toJsString(field.label)}}${requiredAsterisk}
           </Label>
           <Input
-            id="${field.id}"
+            id={${fieldId}}
             type="file"
             className="cursor-pointer ${inputClass}"
-            {...register('${field.id}')}
+            {...register(${fieldId})}
           />
-          {errors.${field.id} && (
-            <p className="text-xs font-medium text-red-500">{errors.${field.id}?.message}</p>
+          {${errorRef} && (
+            <p className="text-xs font-medium text-red-500">{${errorRef}?.message}</p>
           )}
         </div>`;
           break;
@@ -365,10 +371,10 @@ export default function ${componentName}() {
     <Card className="${cardClass}">
       <CardHeader className="space-y-1.5">
         <CardTitle className="text-2xl font-bold tracking-tight text-neutral-900">
-          ${formName}
+          {${toJsString(formName)}}
         </CardTitle>
         <CardDescription className="text-neutral-500">
-          ${description ? description.replace(/"/g, '\\"') : 'Please fill out the form details below.'}
+          {${toJsString(description || 'Please fill out the form details below.')}}
         </CardDescription>
       </CardHeader>
       
@@ -381,7 +387,7 @@ ${fieldsMarkup}
           <Button
             type="submit"
             disabled={isSubmitting}
-            style={{ backgroundColor: '${styling.primaryColor}' }}
+            style={{ backgroundColor: ${toJsString(styling.primaryColor)} }}
             className="${buttonClass}"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Form'}

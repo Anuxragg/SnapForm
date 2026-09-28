@@ -547,28 +547,28 @@ export default function BuilderPage() {
                   value="settings"
                   className="flex-1 overflow-y-auto p-5 mt-0 focus-visible:outline-none text-left space-y-5"
                 >
-                  <div className="space-y-1 border-b border-neutral-100 dark:border-[#262626] pb-3">
-                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white font-heading">Form Settings</h3>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Configure form categorization and metadata</p>
+                  <div className="space-y-1 border-b border-neutral-200/80 dark:border-[#262626] pb-4">
+                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">Form Settings</h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">Set the form title, category, and description.</p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-4 p-4 rounded-2xl border border-neutral-200/80 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] shadow-xs">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Form Title</label>
+                      <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">Form Title</label>
                       <input
                         type="text"
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all"
+                        className="w-full h-10 px-3 rounded-xl bg-neutral-50/70 dark:bg-[#181818] border border-neutral-200 dark:border-[#2a2a2a] text-sm font-medium text-neutral-900 dark:text-white outline-none focus:border-neutral-400 dark:focus:border-neutral-500 focus:bg-white dark:focus:bg-[#1f1f1f] transition-colors"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Category Tag</label>
+                      <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">Category</label>
                       <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-semibold text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all cursor-pointer"
+                        className="w-full h-10 px-3 rounded-xl bg-neutral-50/70 dark:bg-[#181818] border border-neutral-200 dark:border-[#2a2a2a] text-sm font-medium text-neutral-900 dark:text-white outline-none focus:border-neutral-400 dark:focus:border-neutral-500 focus:bg-white dark:focus:bg-[#1f1f1f] transition-colors cursor-pointer"
                       >
                         <option value="contact">Contact & Leads</option>
                         <option value="survey">Surveys & Questionnaires</option>
@@ -580,13 +580,13 @@ export default function BuilderPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Form Description</label>
+                      <label className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">Description</label>
                       <textarea
-                        rows={3}
+                        rows={4}
                         value={formDescription}
                         onChange={(e) => setFormDescription(e.target.value)}
                         placeholder="Brief summary of what this form collects..."
-                        className="w-full px-3.5 py-2 rounded-xl bg-neutral-50 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-[#2a2a2a] text-xs font-normal text-neutral-900 dark:text-white outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-[#1f1f1f] transition-all resize-none"
+                        className="w-full px-3 py-2.5 rounded-xl bg-neutral-50/70 dark:bg-[#181818] border border-neutral-200 dark:border-[#2a2a2a] text-sm font-normal leading-5 text-neutral-900 dark:text-white outline-none focus:border-neutral-400 dark:focus:border-neutral-500 focus:bg-white dark:focus:bg-[#1f1f1f] transition-colors resize-y"
                       />
                     </div>
                   </div>

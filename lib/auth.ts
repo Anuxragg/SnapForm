@@ -1,18 +1,24 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
+import sessionSecret from '@/lib/session-secret';
 
-// Cryptographic configuration
-const ITERATIONS = 1000;
-const KEY_LEN = 64;
-const DIGEST = 'sha512';
+// Password hashing configuration
+const PBKDF2_ITERATIONS = 600_000;
+const PASSWORD_KEY_LEN = 32;
+const PASSWORD_DIGEST = 'sha256';
+const LEGACY_PBKDF2_ITERATIONS = 1_000;
+const LEGACY_PASSWORD_KEY_LEN = 64;
+const LEGACY_PASSWORD_DIGEST = 'sha512';
+const MAX_PASSWORD_CHARACTERS = 128;
+const MAX_PASSWORD_BYTES = 1_024;
+const PASSWORD_HASH_PREFIX = `pbkdf2-sha256$${PBKDF2_ITERATIONS}$`;
 const ALGORITHM = 'aes-256-gcm';
 const IV_LEN = 12; // 96 bits for GCM is standard and optimal
 const TAG_LEN = 16; // 128-bit authentication tag
 
-// Generate a secure 32-byte key from whatever SESSION_SECRET environment variable is defined
+// Derive a fixed-length encryption key from the required session secret.
 function getEncryptionKey(): Buffer {
-  const secret = process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback';
-  return crypto.createHash('sha256').update(secret).digest();
+  return crypto.createHash('sha256').update(sessionSecret).digest();
 }
 
 /**
@@ -22,29 +28,71 @@ export function generateSalt(): string {
   return crypto.randomBytes(16).toString('hex');
 }
 
-/**
- * Hash a password using PBKDF2Sync
- */
-export function hashPassword(password: string, salt: string): string {
-  return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LEN, DIGEST).toString('hex');
+export function isPasswordWithinLimit(password: string): boolean {
+  return Array.from(password).length <= MAX_PASSWORD_CHARACTERS &&
+    Buffer.byteLength(password, 'utf8') <= MAX_PASSWORD_BYTES;
 }
 
-/**
- * Verify password against stored hash with timing-safe comparison
- */
-export function verifyPassword(password: string, salt: string, storedHash: string): boolean {
-  try {
-    if (!password || !salt || !storedHash) return false;
-    const calculatedHash = hashPassword(password, salt);
-    const calculatedBuffer = Buffer.from(calculatedHash, 'hex');
-    const storedBuffer = Buffer.from(storedHash, 'hex');
-    if (calculatedBuffer.length !== storedBuffer.length) {
-      return false;
-    }
-    return crypto.timingSafeEqual(calculatedBuffer, storedBuffer);
-  } catch {
-    return false;
+function derivePasswordKey(
+  password: string,
+  salt: string,
+  iterations: number,
+  keyLength: number,
+  digest: string
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    crypto.pbkdf2(password, salt, iterations, keyLength, digest, (error, derivedKey) => {
+      if (error) reject(error);
+      else resolve(derivedKey);
+    });
+  });
+}
+
+export async function hashPassword(password: string, salt: string): Promise<string> {
+  if (typeof password !== 'string' || !isPasswordWithinLimit(password)) {
+    throw new Error('Password must not exceed 128 characters or 1024 bytes');
   }
+  if (!salt) throw new Error('Password salt is required');
+
+  const derivedKey = await derivePasswordKey(
+    password,
+    salt,
+    PBKDF2_ITERATIONS,
+    PASSWORD_KEY_LEN,
+    PASSWORD_DIGEST
+  );
+  return `${PASSWORD_HASH_PREFIX}${derivedKey.toString('hex')}`;
+}
+
+export function isCurrentPasswordHash(storedHash: string): boolean {
+  return storedHash.startsWith(PASSWORD_HASH_PREFIX);
+}
+
+export async function verifyPassword(password: string, salt: string, storedHash: string): Promise<boolean> {
+  if (typeof password !== 'string' || !isPasswordWithinLimit(password) || !salt || !storedHash) return false;
+
+  let iterations: number;
+  let keyLength: number;
+  let digest: string;
+  let expectedHash: string;
+
+  if (storedHash.startsWith(PASSWORD_HASH_PREFIX)) {
+    iterations = PBKDF2_ITERATIONS;
+    keyLength = PASSWORD_KEY_LEN;
+    digest = PASSWORD_DIGEST;
+    expectedHash = storedHash.slice(PASSWORD_HASH_PREFIX.length);
+    if (!/^[a-f\d]{64}$/i.test(expectedHash)) return false;
+  } else {
+    iterations = LEGACY_PBKDF2_ITERATIONS;
+    keyLength = LEGACY_PASSWORD_KEY_LEN;
+    digest = LEGACY_PASSWORD_DIGEST;
+    expectedHash = storedHash;
+    if (!/^[a-f\d]{128}$/i.test(expectedHash)) return false;
+  }
+
+  const calculatedHash = await derivePasswordKey(password, salt, iterations, keyLength, digest);
+  const storedBuffer = Buffer.from(expectedHash, 'hex');
+  return calculatedHash.length === storedBuffer.length && crypto.timingSafeEqual(calculatedHash, storedBuffer);
 }
 
 export interface ISessionPayload {

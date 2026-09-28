@@ -154,6 +154,13 @@ export async function POST(req: NextRequest) {
     let existingTemplate: any = null;
 
     if (targetId && typeof targetId === 'string' && !targetId.endsWith('-starter')) {
+      if (!session || !session.id) {
+        return NextResponse.json(
+          { success: false, message: 'Authentication required to update a template' },
+          { status: 401 }
+        );
+      }
+
       const queryConditions: any[] = [
         { shortId: targetId },
         { shortId: targetId.replace(/^sf_/, '') },
@@ -162,11 +169,14 @@ export async function POST(req: NextRequest) {
       if (mongoose.Types.ObjectId.isValid(targetId)) {
         queryConditions.push({ _id: targetId });
       }
-      const findQuery: any = { $or: queryConditions };
-      if (session && session.id) {
-        findQuery.userId = session.id;
-      }
+      const findQuery: any = { $or: queryConditions, userId: session.id };
       existingTemplate = await FormTemplate.findOne(findQuery);
+      if (!existingTemplate) {
+        return NextResponse.json(
+          { success: false, message: 'Form template not found or unauthorized to update' },
+          { status: 404 }
+        );
+      }
     }
 
     if (existingTemplate) {
@@ -178,9 +188,6 @@ export async function POST(req: NextRequest) {
           : existingTemplate.description;
       existingTemplate.fields = fields;
       existingTemplate.styling = cleanStyling;
-      if (session && session.id && !existingTemplate.userId) {
-        existingTemplate.userId = session.id;
-      }
       await existingTemplate.save();
 
       return NextResponse.json({
@@ -279,4 +286,3 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
-

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/db';
 import User, { IUser } from '@/models/User';
+import sessionSecret from '@/lib/session-secret';
 
 export interface OAuthUserData {
   email: string;
@@ -52,11 +53,10 @@ export function getAppBaseUrl(requestUrl?: string): string {
  * Create a signed CSRF state token
  */
 export function createOAuthState(provider: 'google' | 'github', returnUrl: string = '/dashboard'): string {
-  const secret = (process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback').replace(/[\r\n\t\s]+/g, '');
   const timestamp = Date.now();
   const nonce = crypto.randomBytes(16).toString('hex');
   const payload = JSON.stringify({ provider, returnUrl, timestamp, nonce });
-  const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  const hmac = crypto.createHmac('sha256', sessionSecret).update(payload).digest('hex');
   return Buffer.from(JSON.stringify({ payload, hmac })).toString('base64url');
 }
 
@@ -67,8 +67,7 @@ export function verifyOAuthState(stateStr: string, provider: 'google' | 'github'
   try {
     const raw = Buffer.from(stateStr, 'base64url').toString('utf8');
     const { payload, hmac } = JSON.parse(raw);
-    const secret = (process.env.SESSION_SECRET || 'snapform_secure_session_secret_32_bytes_fallback').replace(/[\r\n\t\s]+/g, '');
-    const expectedHmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    const expectedHmac = crypto.createHmac('sha256', sessionSecret).update(payload).digest('hex');
 
     if (hmac !== expectedHmac) {
       return { valid: false, returnUrl: '/dashboard' };

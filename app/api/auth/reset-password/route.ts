@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import PasswordResetToken from '@/models/PasswordResetToken';
-import { hashPassword, generateSalt } from '@/lib/auth';
+import { hashPassword, generateSalt, isPasswordWithinLimit } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email, token, password } = body;
 
-    if (!email || !token || !password) {
+    if (!email || !token || typeof password !== 'string' || !password) {
       return NextResponse.json(
         { success: false, message: 'Email, token, and new password are required.' },
         { status: 400 }
@@ -19,17 +19,18 @@ export async function POST(req: NextRequest) {
     const cleanEmail = email.trim().toLowerCase();
 
     // Validate password complexity
-    const hasMinLength = password.length >= 8;
+    const hasMinLength = Array.from(password).length >= 8;
+    const withinLengthLimit = isPasswordWithinLimit(password);
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSymbol = /[^a-zA-Z0-9]/.test(password);
 
-    if (!hasMinLength || !hasLetter || !hasNumber || !hasSymbol) {
+    if (!hasMinLength || !withinLengthLimit || !hasLetter || !hasNumber || !hasSymbol) {
       return NextResponse.json(
         {
           success: false,
           message:
-            'Password must be at least 8 characters long and contain letters, numbers, and symbols.',
+            'Password must be 8 to 128 characters long and contain letters, numbers, and symbols.',
         },
         { status: 400 }
       );
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     // Generate new salt and hash new password
     const newSalt = generateSalt();
-    const newPasswordHash = hashPassword(password, newSalt);
+    const newPasswordHash = await hashPassword(password, newSalt);
 
     user.passwordHash = newPasswordHash;
     user.salt = newSalt;

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
-import { verifyPassword, setSessionCookie } from '@/lib/auth';
+import {
+  generateSalt,
+  hashPassword,
+  isCurrentPasswordHash,
+  isPasswordWithinLimit,
+  setSessionCookie,
+  verifyPassword,
+} from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,9 +16,15 @@ export async function POST(req: NextRequest) {
     const { email, password } = body;
 
     // 1. Validate inputs
-    if (!email || !password) {
+    if (!email || typeof password !== 'string' || !password) {
       return NextResponse.json(
         { success: false, message: 'Please provide both email and password' },
+        { status: 400 }
+      );
+    }
+    if (!isPasswordWithinLimit(password)) {
+      return NextResponse.json(
+        { success: false, message: 'Password must not exceed 128 characters' },
         { status: 400 }
       );
     }
@@ -36,12 +49,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isValidPassword = verifyPassword(password, user.salt, user.passwordHash);
+    const isValidPassword = await verifyPassword(password, user.salt, user.passwordHash);
     if (!isValidPassword) {
       return NextResponse.json(
         { success: false, message: 'Invalid email or password' },
         { status: 401 }
       );
+    }
+
+    if (!isCurrentPasswordHash(user.passwordHash)) {
+      const salt = generateSalt();
+      user.passwordHash = await hashPassword(password, salt);
+      user.salt = salt;
+      await user.save();
     }
 
     // 4. Set session cookie (valid for 7 days)
