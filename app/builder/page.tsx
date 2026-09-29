@@ -27,6 +27,7 @@ import {
   Download,
   Loader2,
   X,
+  Trash2,
   FileCode2,
   RotateCw,
   Eye,
@@ -45,6 +46,8 @@ import CodeBlock from '@/components/CodeBlock';
 import UserDropdownMenu from '@/components/UserDropdownMenu';
 import AccountModal from '@/components/AccountModal';
 
+const LIVE_PREVIEW_STORAGE_KEY = 'snapform-live-preview';
+
 export default function BuilderPage() {
   const router = useRouter();
   const { user, loading, logout, openAuthModal } = useAuth();
@@ -62,6 +65,11 @@ export default function BuilderPage() {
   const [submissionsList, setSubmissionsList] = useState<any[]>([]);
   const [fetchingSubmissions, setFetchingSubmissions] = useState(false);
   const [selectedSubmissionDetail, setSelectedSubmissionDetail] = useState<any | null>(null);
+  const [pendingDeleteTemplate, setPendingDeleteTemplate] = useState<ISeedFormTemplate | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState(false);
+  const [cleanFormSnapshot, setCleanFormSnapshot] = useState<string | null>(null);
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+  const [savingBeforeTemplateChange, setSavingBeforeTemplateChange] = useState(false);
 
   const promptedForAuthRef = useRef(false);
 
@@ -81,6 +89,21 @@ export default function BuilderPage() {
   const [fields, setFields] = useState<IFormField[]>([]);
   const [styling, setStyling] = useState<IFormStyling>({ theme: 'modern', primaryColor: '#ff4f19' });
   const [savedFormId, setSavedFormId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedTemplate) return;
+
+    window.localStorage.setItem(
+      LIVE_PREVIEW_STORAGE_KEY,
+      JSON.stringify({
+        name: formName || 'Untitled Form',
+        description: formDescription,
+        category: formCategory,
+        fields,
+        styling,
+      })
+    );
+  }, [selectedTemplate, formName, formDescription, formCategory, fields, styling]);
 
   const [generatedCode, setGeneratedCode] = useState<{
     component: string;
@@ -112,6 +135,7 @@ export default function BuilderPage() {
                 styling: {
                   theme: t.styling?.theme || 'modern',
                   primaryColor: t.styling?.primaryColor || '#ff4f19',
+                  headerImage: t.styling?.headerImage || '',
                 },
                 userId: t.userId,
               });
@@ -131,13 +155,22 @@ export default function BuilderPage() {
   const applyTemplate = useCallback((template: ISeedFormTemplate) => {
     const safeFields = Array.isArray(template.fields) ? (template.fields as IFormField[]) : [];
     const safeTheme = template.styling?.theme || 'modern';
+    const safeStyling = {
+      theme: safeTheme as any,
+      primaryColor: template.styling?.primaryColor || '#ff4f19',
+      headerImage: template.styling?.headerImage || '',
+    };
+    const safeName = template.name || 'My Form';
+    const safeCategory = template.category || 'contact';
+    const safeDescription = template.description || '';
     setSelectedTemplate(template);
-    setFormName(template.name || 'My Form');
-    setFormCategory(template.category || 'contact');
-    setFormDescription(template.description || '');
+    setFormName(safeName);
+    setFormCategory(safeCategory);
+    setFormDescription(safeDescription);
     setFields(safeFields);
     setGeneratedCode(null);
-    setStyling({ theme: safeTheme as any, primaryColor: template.styling?.primaryColor || '#ff4f19' });
+    setStyling(safeStyling);
+    setCleanFormSnapshot(JSON.stringify({ name: safeName, category: safeCategory, description: safeDescription, fields: safeFields, styling: safeStyling }));
     setSavedFormId((template as any).shortId || (template as any)._id || null);
   }, []);
 
@@ -220,7 +253,27 @@ export default function BuilderPage() {
   };
 
   const handleDeselectTemplate = () => {
+    const currentSnapshot = JSON.stringify({ name: formName, category: formCategory, description: formDescription, fields, styling });
+    if (cleanFormSnapshot !== null && currentSnapshot !== cleanFormSnapshot) {
+      setShowUnsavedChangesDialog(true);
+      return;
+    }
     window.history.back();
+  };
+
+  const discardChangesAndChangeTemplate = () => {
+    setShowUnsavedChangesDialog(false);
+    window.history.back();
+  };
+
+  const saveChangesAndChangeTemplate = async () => {
+    setSavingBeforeTemplateChange(true);
+    const saved = await handleSaveForm();
+    setSavingBeforeTemplateChange(false);
+    if (saved) {
+      setShowUnsavedChangesDialog(false);
+      window.history.back();
+    }
   };
 
   // ─── Code Generation ──────────────────────────────────────────────────────────
@@ -245,14 +298,14 @@ export default function BuilderPage() {
   }, [fields, styling, formName]);
 
   // ─── Save / Update Form in Database ───────────────────────────────────────────
-  const handleSaveForm = async () => {
+  const handleSaveForm = async (): Promise<boolean> => {
     if (!user) {
       toast.warning('Please Sign In to save forms to your profile!');
       openAuthModal('login');
-      return;
+      return false;
     }
 
-    if (fields.length === 0) return;
+    if (fields.length === 0) return false;
 
     setSavingTemplate(true);
     try {
@@ -275,14 +328,53 @@ export default function BuilderPage() {
         if (json.data?.shortId || json.data?._id) {
           setSavedFormId(json.data.shortId || json.data._id);
         }
+        setCleanFormSnapshot(JSON.stringify({ name: formName, category: formCategory, description: formDescription, fields, styling }));
         setRefreshCounter((prev) => prev + 1);
+        return true;
       } else {
         toast.error(json.message || 'Failed to save template');
+        return false;
       }
     } catch (err) {
       toast.error('Network error while saving template');
+      return false;
     } finally {
       setSavingTemplate(false);
+    }
+  };
+
+  const handleDeleteSavedTemplate = async (template: ISeedFormTemplate) => {
+    const templateId = template._id;
+    if (!templateId) {
+      toast.error('Could not identify this saved form');
+      return;
+    }
+    setPendingDeleteTemplate(template);
+  };
+
+  const confirmDeleteSavedTemplate = async () => {
+    if (!pendingDeleteTemplate?._id) return;
+    const templateId = pendingDeleteTemplate._id;
+    setDeletingTemplate(true);
+
+    try {
+      const res = await fetch(`/api/templates?id=${encodeURIComponent(templateId)}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        toast.error(json.message || 'Failed to delete saved form');
+        return;
+      }
+
+      setTemplates((current) => current.filter((item) => item._id !== templateId));
+      setRefreshCounter((current) => current + 1);
+      setPendingDeleteTemplate(null);
+      toast.success('Saved form deleted');
+    } catch {
+      toast.error('Network error while deleting saved form');
+    } finally {
+      setDeletingTemplate(false);
     }
   };
 
@@ -338,11 +430,7 @@ export default function BuilderPage() {
     'sf_sample';
   const endpointUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/form/${currentFormId}`;
 
-  const liveFormQuery = styling
-    ? `?theme=${styling.theme || 'modern'}&primaryColor=${encodeURIComponent(styling.primaryColor || '#ff4f19')}`
-    : '';
-  const liveFormHref = savedFormId ? `/form/${savedFormId}` : `/form/${currentFormId}${liveFormQuery}`;
-  const liveFormFullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${liveFormHref}`;
+  const liveFormHref = '/form/preview';
 
   return (
     <div className="h-screen bg-neutral-50 dark:bg-[#121212] text-neutral-900 dark:text-neutral-100 font-sans flex flex-col antialiased overflow-hidden selection:bg-brand-orange selection:text-white">
@@ -365,7 +453,7 @@ export default function BuilderPage() {
               <div className="text-neutral-300 dark:text-neutral-700 select-none hidden sm:block">|</div>
               <button
                 onClick={handleDeselectTemplate}
-                className="h-8 px-2 sm:px-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-orange dark:hover:text-brand-orange hover:bg-neutral-50 dark:hover:bg-[#252525] border border-neutral-200/90 dark:border-[#2a2a2a] flex items-center gap-1 cursor-pointer transition-all text-xs font-semibold shadow-2xs"
+                className="h-8 px-2 sm:px-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-[#252525] border border-neutral-200/90 dark:border-[#2a2a2a] flex items-center gap-1 cursor-pointer transition-all text-xs font-semibold shadow-2xs"
                 title="Change Template"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -450,6 +538,7 @@ export default function BuilderPage() {
               <TemplateSelector
                 templates={templates}
                 onSelect={handleSelectTemplate}
+                onDelete={handleDeleteSavedTemplate}
                 isLoading={templatesLoading}
               />
             </div>
@@ -590,6 +679,52 @@ export default function BuilderPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-3 p-4 rounded-2xl border border-neutral-200/80 dark:border-[#2a2a2a] bg-white dark:bg-[#1C1C1C] shadow-xs">
+                    <div>
+                      <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200">Header Image</label>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">Optional image displayed at the top of your form. Max 2 MB.</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0];
+                        event.currentTarget.value = '';
+                        if (!file) return;
+                        if (!file.type.startsWith('image/')) {
+                          toast.error('Choose an image file');
+                          return;
+                        }
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast.error('Image must be 2 MB or smaller');
+                          return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result === 'string') {
+                            setStyling((current) => ({ ...current, headerImage: reader.result as string }));
+                          }
+                        };
+                        reader.onerror = () => toast.error('Could not read this image');
+                        reader.readAsDataURL(file);
+                      }}
+                      className="block w-full text-xs text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-lg file:border file:border-neutral-200 dark:file:border-[#383838] file:bg-neutral-50 dark:file:bg-[#222] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-neutral-700 dark:file:text-neutral-200 hover:file:bg-neutral-100 dark:hover:file:bg-[#2a2a2a]"
+                    />
+                    {styling.headerImage && (
+                      <div className="space-y-2">
+                        <img src={styling.headerImage} alt="Form header preview" className="h-28 w-full rounded-xl border border-neutral-200 dark:border-[#303030] object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setStyling((current) => ({ ...current, headerImage: '' }))}
+                          className="text-xs font-medium text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"
+                        >
+                          Remove image
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
 
                 {/* Tab 4: Integrations & Endpoint Setup */}
@@ -637,25 +772,6 @@ export default function BuilderPage() {
                       />
                     </div>
 
-                    {currentFormId && (
-                      <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-[#181818] border border-neutral-200 dark:border-[#262626] space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-neutral-900 dark:text-white">Public Hosted Page</span>
-                          <a
-                            href={liveFormHref}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1"
-                          >
-                            <span>Open</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono break-all">
-                          {liveFormFullUrl}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </TabsContent>
               </Tabs>
@@ -726,13 +842,8 @@ export default function BuilderPage() {
                 <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                   {canvasView === 'preview' ? (
                     <div
-                      className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-start text-neutral-900 relative transition-colors duration-300 ${
-                        styling.theme === 'dark'
-                          ? 'bg-[#0b0f17]'
-                          : styling.theme === 'modern' || !styling.theme
-                            ? 'bg-gradient-to-tr from-slate-100/90 via-violet-50/50 to-orange-50/40'
-                            : 'bg-neutral-50/60'
-                      }`}
+                      className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 flex flex-col items-center justify-start text-neutral-900 relative transition-colors duration-300 ${styling.theme === 'dark' ? 'bg-[#1a1e29]' : 'bg-[#fbfbfd]'}`}
+                      style={{ backgroundColor: `color-mix(in srgb, ${styling.primaryColor || '#ff4f19'} 8%, ${styling.theme === 'dark' ? '#1a1e29' : '#fbfbfd'})` }}
                     >
                       <LivePreview
                         fields={fields}
@@ -758,6 +869,94 @@ export default function BuilderPage() {
           </div>
         )}
       </main>
+
+      {showUnsavedChangesDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="unsaved-template-title"
+            className="w-full max-w-md rounded-2xl border border-neutral-200 dark:border-[#303030] bg-white dark:bg-[#1b1b1b] p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            <h2 id="unsaved-template-title" className="text-base font-bold text-neutral-900 dark:text-white">
+              Save your progress?
+            </h2>
+            <p className="mt-1.5 text-sm leading-5 text-neutral-500 dark:text-neutral-400">
+              Your changes will be lost if you switch templates without saving.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={savingBeforeTemplateChange || savingTemplate}
+                onClick={() => setShowUnsavedChangesDialog(false)}
+                className="h-9 rounded-xl border border-neutral-200 dark:border-[#383838] px-3.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-[#252525] disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Keep editing
+              </button>
+              <button
+                type="button"
+                disabled={savingBeforeTemplateChange || savingTemplate}
+                onClick={discardChangesAndChangeTemplate}
+                className="h-9 rounded-xl px-3.5 text-sm font-semibold text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-[#252525] disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                disabled={savingBeforeTemplateChange || savingTemplate || fields.length === 0}
+                onClick={saveChangesAndChangeTemplate}
+                className="h-9 rounded-xl bg-neutral-900 px-3.5 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 disabled:opacity-60 transition-colors cursor-pointer"
+              >
+                {savingBeforeTemplateChange ? 'Saving…' : 'Save and change'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingDeleteTemplate && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deletingTemplate) setPendingDeleteTemplate(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-template-title"
+            className="w-full max-w-sm rounded-2xl border border-neutral-200 dark:border-[#303030] bg-white dark:bg-[#1b1b1b] p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <h2 id="delete-template-title" className="text-base font-bold text-neutral-900 dark:text-white">
+              Delete saved form?
+            </h2>
+            <p className="mt-1.5 text-sm leading-5 text-neutral-500 dark:text-neutral-400">
+              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{pendingDeleteTemplate.name}</span> will be permanently deleted. This can’t be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={deletingTemplate}
+                onClick={() => setPendingDeleteTemplate(null)}
+                className="h-9 rounded-xl border border-neutral-200 dark:border-[#383838] px-3.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-[#252525] disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deletingTemplate}
+                onClick={confirmDeleteSavedTemplate}
+                className="h-9 rounded-xl bg-red-600 px-3.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors cursor-pointer"
+              >
+                {deletingTemplate ? 'Deleting…' : 'Delete form'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           3. SUBMISSIONS MODAL

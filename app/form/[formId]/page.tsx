@@ -7,21 +7,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Send,
   RotateCcw,
   ArrowRight,
-  ShieldCheck,
   ChevronDown,
-  Mail,
-  CreditCard,
-  Sparkles,
-  Calendar,
-  UserPlus,
-  MessageSquare,
-  Briefcase,
-  Tag,
 } from 'lucide-react';
 import { IFormField, IFormStyling } from '@/models/FormTemplate';
+
+const LIVE_PREVIEW_STORAGE_KEY = 'snapform-live-preview';
 
 const categoryLabels: Record<string, string> = {
   contact: 'Contact & Leads',
@@ -31,16 +23,6 @@ const categoryLabels: Record<string, string> = {
   registration: 'Event Registration',
   feedback: 'User Feedback',
   application: 'Job Application',
-};
-
-const categoryIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  contact: Mail,
-  payment: CreditCard,
-  survey: Sparkles,
-  booking: Calendar,
-  registration: UserPlus,
-  feedback: MessageSquare,
-  application: Briefcase,
 };
 
 interface PublicFormData {
@@ -74,6 +56,51 @@ function HostedFormContent() {
   useEffect(() => {
     if (!formId) return;
 
+    if (formId === 'preview') {
+      const applyDraft = (draftValue: string | null) => {
+        if (!draftValue) {
+          setForm(null);
+          setError('Open this preview from the form builder while editing.');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const draft = JSON.parse(draftValue);
+          const draftFields = Array.isArray(draft.fields) ? draft.fields : [];
+          setForm({
+            id: 'preview',
+            name: draft.name || 'Untitled Form',
+            description: draft.description || '',
+            category: draft.category || 'custom',
+            fields: draftFields,
+            styling: draft.styling || { theme: 'modern', primaryColor: '#ff4f19' },
+          });
+          setFormData((currentData) => {
+            const nextData: Record<string, any> = {};
+            draftFields.forEach((field: IFormField) => {
+              nextData[field.id] = currentData[field.id] ?? (field.type === 'checkbox' ? false : '');
+            });
+            return nextData;
+          });
+          setError(null);
+          setLoading(false);
+        } catch {
+          setForm(null);
+          setError('The live preview could not read the current draft.');
+          setLoading(false);
+        }
+      };
+
+      setLoading(true);
+      applyDraft(window.localStorage.getItem(LIVE_PREVIEW_STORAGE_KEY));
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === LIVE_PREVIEW_STORAGE_KEY) applyDraft(event.newValue);
+      };
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
+
     async function loadForm() {
       try {
         setLoading(true);
@@ -82,6 +109,10 @@ function HostedFormContent() {
         const json = await res.json();
 
         if (!res.ok || !json.success) {
+          if (res.status === 404) {
+            setError(json.message || 'Form not found');
+            return;
+          }
           throw new Error(json.message || 'Form not found');
         }
 
@@ -172,6 +203,11 @@ function HostedFormContent() {
       return;
     }
 
+    if (formId === 'preview') {
+      setSubmitError('This is a preview. Save the form to collect responses.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await fetch(`/api/form/${formId}`, {
@@ -252,8 +288,9 @@ function HostedFormContent() {
 
   // Dynamic styling calculation with query param override support
   const styling: IFormStyling = {
-    primaryColor: colorOverride || form?.styling?.primaryColor || '#ff4f19',
-    theme: themeOverride || form?.styling?.theme || 'modern',
+    primaryColor: (formId === 'preview' ? form?.styling?.primaryColor : colorOverride || form?.styling?.primaryColor) || '#ff4f19',
+    theme: (formId === 'preview' ? form?.styling?.theme : themeOverride || form?.styling?.theme) || 'modern',
+    headerImage: form?.styling?.headerImage || '',
     borderRadius: form?.styling?.borderRadius || 'rounded',
     inputVariant: form?.styling?.inputVariant || 'outlined',
     buttonStyle: form?.styling?.buttonStyle || 'solid',
@@ -281,29 +318,25 @@ function HostedFormContent() {
     buttonRadiusClass = 'rounded-2xl';
   }
 
-  let labelColor = 'text-neutral-700 font-bold';
+  let labelColor = isDarkTheme ? 'text-neutral-200 font-medium' : 'text-neutral-800 font-medium';
   let titleColor = 'text-neutral-900 font-heading';
   let descColor = 'text-neutral-500';
 
   let cardClass = '';
   if (isDarkTheme) {
-    labelColor = 'text-neutral-200';
     titleColor = 'text-white';
     descColor = 'text-neutral-400';
-    cardClass = `border border-neutral-800 bg-[#131722] ${radiusClass} shadow-2xl p-6 sm:p-10 text-white`;
+    cardClass = `border border-neutral-800 bg-[#090b10] ${radiusClass} shadow-2xl p-6 sm:p-10 text-white`;
   } else if (isNeobrutalist) {
-    labelColor = 'text-black font-extrabold uppercase text-xs';
     titleColor = 'text-black font-black uppercase tracking-tight';
     descColor = 'text-neutral-600';
     cardClass = `border-2 border-black bg-white ${radiusClass} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-10`;
   } else if (isMinimal) {
-    labelColor = 'text-neutral-900 font-mono font-bold uppercase text-[11px] tracking-widest';
     titleColor = 'text-neutral-950 font-mono font-bold tracking-tight';
     descColor = 'text-neutral-500 font-mono text-xs';
     cardClass = `border-2 border-neutral-900 bg-white ${radiusClass} shadow-none p-6 sm:p-10`;
   } else {
     // Liquid Glass
-    labelColor = 'text-neutral-800 font-bold';
     titleColor = 'text-neutral-900 font-extrabold';
     descColor = 'text-neutral-500';
     cardClass = `backdrop-blur-3xl bg-white/55 border border-white/85 ${radiusClass} shadow-[0_25px_60px_-15px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.04),inset_0_1.5px_2px_rgba(255,255,255,1)] p-6 sm:p-10 relative overflow-hidden`;
@@ -312,7 +345,7 @@ function HostedFormContent() {
   const primaryColor = styling.primaryColor || '#ff4f19';
 
   let buttonInlineStyle: React.CSSProperties = {};
-  let buttonClass = `w-full sm:w-auto px-8 py-3 font-bold transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${buttonRadiusClass} `;
+  let buttonClass = `w-full sm:w-auto px-6 py-2.5 font-bold transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${buttonRadiusClass} `;
 
   if (isNeobrutalist) {
     buttonInlineStyle = {
@@ -328,7 +361,6 @@ function HostedFormContent() {
   } else if (isDarkTheme) {
     buttonInlineStyle = {
       backgroundColor: primaryColor,
-      boxShadow: `0 8px 25px -4px ${primaryColor}77, inset 0 1px 1px rgba(255,255,255,0.3)`,
     };
     buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative';
   } else {
@@ -341,69 +373,35 @@ function HostedFormContent() {
   }
 
   // Input styling
-  let baseInputClass = `w-full px-3.5 py-2.5 text-xs sm:text-sm font-sans outline-none transition-all duration-150 ${inputRadiusClass} `;
-  if (isDarkTheme) {
-    baseInputClass += 'bg-[#181d28] border border-neutral-700 text-white focus:border-brand-orange';
-  } else if (isMinimal) {
-    baseInputClass += 'bg-neutral-50/80 border border-neutral-300 text-neutral-900 font-mono text-xs placeholder:text-neutral-400 hover:border-neutral-900 focus:border-neutral-900 focus:bg-white';
-  } else if (isNeobrutalist) {
-    baseInputClass += 'border-2 border-black bg-white text-neutral-900 focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]';
-  } else {
-    // Liquid Glass
-    baseInputClass += 'bg-white/50 backdrop-blur-xl border border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus:bg-white/85 focus:border-white focus:ring-4 focus:ring-brand-orange/20 text-neutral-900 placeholder:text-neutral-400';
-  }
+  const baseInputClass = `w-full py-2.5 text-sm font-sans outline-none transition-all duration-150 bg-transparent border-0 border-b ${isDarkTheme ? 'border-neutral-700 text-neutral-100 placeholder:text-neutral-500' : 'border-neutral-300 text-neutral-900 placeholder:text-neutral-400'} rounded-none shadow-none px-0 focus:border-brand-orange focus:ring-0`;
 
   return (
-    <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0d1017] text-white' : 'bg-[#fbfbfd] text-neutral-900'} font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white`}>
+    <div
+      className={`min-h-screen ${isDarkTheme ? 'bg-[#1a1e29] text-white' : 'bg-[#fbfbfd] text-neutral-900'} font-sans antialiased flex flex-col justify-between py-10 sm:py-14 px-4 sm:px-6 selection:bg-brand-orange selection:text-white`}
+      style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 8%, ${isDarkTheme ? '#1a1e29' : '#fbfbfd'})` }}
+    >
       <main className="max-w-2xl w-full mx-auto">
-        <div className={`${cardClass} transition-all`}>
-          <div className={`border-b ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} pb-5 mb-7`}>
+        <div className={`${cardClass} transition-all overflow-hidden`}>
+          {styling.headerImage && (
+            <img
+              src={styling.headerImage}
+              alt={`${form.name} header`}
+              className="-mt-6 -mx-6 mb-6 h-36 w-[calc(100%_+_3rem)] max-w-none object-cover sm:-mt-10 sm:-mx-10 sm:h-44 sm:w-[calc(100%_+_5rem)]"
+            />
+          )}
+          <div className={`text-left mb-6 pb-5 border-b ${isDarkTheme ? 'border-neutral-700/70' : 'border-neutral-200/80'} space-y-2`}>
             {form.category && (
-              <div className="flex items-center mb-2">
-                {(() => {
-                  const CategoryIcon = categoryIcons[form.category] || Tag;
-                  return (
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide ${
-                        isNeobrutalist
-                          ? 'border-2 border-black bg-black text-white rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] uppercase text-[10px] font-black'
-                          : isMinimal
-                            ? 'border border-neutral-900 bg-neutral-100 text-neutral-900 font-mono rounded-none uppercase text-[10px] font-bold tracking-widest'
-                            : isDarkTheme
-                              ? 'rounded-full bg-[#181f2c]/90 backdrop-blur-md text-neutral-200 border border-neutral-700/80 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                              : 'rounded-full bg-white/90 backdrop-blur-md text-neutral-800 border border-white shadow-[0_4px_14px_-2px_rgba(0,0,0,0.08),0_2px_4px_-1px_rgba(0,0,0,0.04)]'
-                      }`}
-                    >
-                      <CategoryIcon
-                        className={`w-3.5 h-3.5 shrink-0 ${
-                          isNeobrutalist ? 'text-white' : isMinimal ? 'text-neutral-900' : ''
-                        }`}
-                        style={
-                          !isNeobrutalist && !isMinimal
-                            ? { color: primaryColor }
-                            : undefined
-                        }
-                      />
-                      <span className="leading-tight">{categoryLabels[form.category] || form.category}</span>
-                    </span>
-                  );
-                })()}
+              <div className={`text-[11px] font-semibold uppercase tracking-wider ${isDarkTheme ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                {categoryLabels[form.category] || form.category}
               </div>
             )}
-            <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${titleColor} font-heading`}>
+            <h1 className={`text-xl sm:text-2xl font-semibold tracking-tight ${titleColor} leading-tight pt-0.5`}>
               {form.name}
             </h1>
 
-            {form.description && (
-              <p className={`text-xs sm:text-[13px] ${descColor} mt-2 leading-relaxed font-sans`}>
-                {form.description}
-              </p>
-            )}
-
-            <div className={`mt-4 pt-3 border-t ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} flex items-center justify-between text-[11px] ${descColor} font-medium`}>
-              <span>Please complete the questions below</span>
-              <span><span className="text-red-500">*</span> Required fields</span>
-            </div>
+            <p className={`text-sm ${descColor} leading-6 max-w-prose`}>
+              {form.description || 'Please fill out the form details below.'}
+            </p>
           </div>
 
           {submitted ? (
@@ -461,12 +459,10 @@ function HostedFormContent() {
                       <input
                         type={field.type}
                         value={value}
-                        placeholder={field.placeholder || 'Your answer'}
+                        placeholder="Your answer"
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`${baseInputClass} ${
-                          hasError
-                            ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
-                            : ''
+                          hasError ? 'border-b-red-500 focus:border-red-500' : ''
                         }`}
                         disabled={submitting}
                       />
@@ -476,12 +472,10 @@ function HostedFormContent() {
                       <textarea
                         rows={4}
                         value={value}
-                        placeholder={field.placeholder || 'Provide details here...'}
+                        placeholder="Your answer"
                         onChange={(e) => handleInputChange(field.id, e.target.value)}
                         className={`${baseInputClass} resize-y leading-relaxed ${
-                          hasError
-                            ? 'bg-red-50/50 border border-red-300 text-neutral-900 focus:ring-2 focus:ring-red-100'
-                            : ''
+                          hasError ? 'border-b-red-500 focus:border-red-500' : ''
                         }`}
                         disabled={submitting}
                       />
@@ -493,9 +487,7 @@ function HostedFormContent() {
                           value={value}
                           onChange={(e) => handleInputChange(field.id, e.target.value)}
                           className={`${baseInputClass} pr-10 appearance-none cursor-pointer ${
-                            hasError
-                              ? 'bg-red-50/50 border border-red-300 text-neutral-900'
-                              : ''
+                            hasError ? 'border-b-red-500 text-red-600' : ''
                           }`}
                           disabled={submitting}
                         >
@@ -594,12 +586,7 @@ function HostedFormContent() {
                 );
               })}
 
-              <div className={`pt-4 border-t ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} flex flex-col sm:flex-row items-center justify-between gap-4`}>
-                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Protected with anti-spam honeypot</span>
-                </div>
-
+              <div className={`pt-4 border-t ${isDarkTheme ? 'border-neutral-800' : 'border-neutral-100'} flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4`}>
                 <button
                   type="submit"
                   disabled={submitting}
@@ -611,12 +598,17 @@ function HostedFormContent() {
                       <Loader2 className="w-4 h-4 animate-spin text-brand-orange" />
                       Submitting Application...
                     </>
-                  ) : (
-                    <>
-                      <span>Submit Response</span>
-                      <Send className="w-3.5 h-3.5" />
-                    </>
+                    ) : (
+                    <span>Submit Response</span>
                   )}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  disabled={submitting}
+                  className={`text-xs font-medium underline underline-offset-2 transition-colors disabled:opacity-50 ${isDarkTheme ? 'text-neutral-400 hover:text-white' : 'text-neutral-500 hover:text-neutral-900'}`}
+                >
+                  Clear form
                 </button>
               </div>
             </form>
@@ -624,11 +616,22 @@ function HostedFormContent() {
         </div>
       </main>
 
-      <footer className="py-8 text-center">
-        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-2">
-          <p className="text-[11px] text-neutral-400">
-            Never submit confidential credentials through public forms. 256-bit TLS encrypted.
+      <footer className={`py-8 text-center ${isDarkTheme ? 'text-neutral-400' : 'text-neutral-500'}`}>
+        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-3">
+          <p className="text-[11px]">
+            Never submit passwords or other sensitive information through public forms.
           </p>
+          <p className="text-[11px]">
+            This form is hosted by SnapForm for the form owner. Your response will be shared with them.
+          </p>
+          <div className="flex items-center gap-2 text-[11px]">
+            <Link href="/terms" className="underline underline-offset-2 hover:text-brand-orange">Terms of Service</Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-brand-orange">Privacy Policy</Link>
+          </div>
+          <Link href="/" className={`mt-1 text-lg font-semibold tracking-tight ${isDarkTheme ? 'text-neutral-300' : 'text-neutral-600'}`}>
+            SnapForm
+          </Link>
         </div>
       </footer>
     </div>

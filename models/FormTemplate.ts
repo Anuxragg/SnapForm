@@ -19,6 +19,7 @@ export interface IFormField {
 export interface IFormStyling {
   theme: 'minimal' | 'modern' | 'neobrutalist' | 'dark';
   primaryColor: string;
+  headerImage?: string;
   borderRadius?: 'sharp' | 'subtle' | 'rounded' | 'pill';
   inputVariant?: 'outlined' | 'filled' | 'underline';
   buttonStyle?: 'solid' | 'gradient' | 'outline' | 'shadow';
@@ -73,6 +74,7 @@ const FormStylingSchema = new Schema<IFormStyling>({
     default: 'modern',
   },
   primaryColor: { type: String, default: '#ff4f19' },
+  headerImage: { type: String, default: '' },
   borderRadius: { type: String, enum: ['sharp', 'subtle', 'rounded', 'pill'], default: 'rounded' },
   inputVariant: { type: String, enum: ['outlined', 'filled', 'underline'], default: 'outlined' },
   buttonStyle: { type: String, enum: ['solid', 'gradient', 'outline', 'shadow'], default: 'solid' },

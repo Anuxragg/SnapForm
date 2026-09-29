@@ -38,7 +38,6 @@ export default function UserDropdownMenu({
   const { theme, setTheme } = useTheme();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [soundsEnabled, setSoundsEnabled] = useState(true);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -291,7 +290,7 @@ export default function UserDropdownMenu({
 
           <div className="h-px bg-[#f4f4f5] dark:bg-[#27272a] my-1" />
 
-          {/* Section 3: Theme & Sounds */}
+          {/* Section 3: Theme */}
           <div className="px-2.5 py-1.5 space-y-2 text-[12px] font-normal leading-[16px]">
             {/* Theme Toggle */}
             <div className="flex items-center justify-between">
@@ -331,23 +330,6 @@ export default function UserDropdownMenu({
                   <Moon className="w-3.5 h-3.5" />
                 </button>
               </div>
-            </div>
-
-            {/* Sounds Toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-[#71717a] dark:text-neutral-400">Sounds</span>
-              <button
-                type="button"
-                onClick={() => setSoundsEnabled(!soundsEnabled)}
-                className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${soundsEnabled ? 'bg-[#2563eb]' : 'bg-[#e4e4e7] dark:bg-[#2e2e33]'
-                  }`}
-                aria-label="Toggle sounds"
-              >
-                <div
-                  className={`w-4 h-4 rounded-full bg-white shadow-xs transition-transform duration-200 ${soundsEnabled ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                />
-              </button>
             </div>
           </div>
 

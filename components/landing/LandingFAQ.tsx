@@ -44,7 +44,7 @@ export default function LandingFAQ() {
         <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-semibold leading-[1.15] text-white tracking-tight">
           Frequently Asked <span className="text-brand-orange">Questions</span>
         </h2>
-        <p className="font-subtext text-xs sm:text-[14px] font-normal leading-[20px] sm:leading-[22px] text-white/80 max-w-md mx-auto">
+        <p className="font-subtext text-xs sm:text-[14px] font-normal leading-5 sm:leading-5.5 text-white/80 max-w-md mx-auto">
           Everything you need to know about SnapForm compilation, hosting, type safety, and spam protection.
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function LandingFAQ() {
             <div
               key={faq.question}
               className={`transition-colors duration-200 ${
-                isOpen ? 'bg-white/[0.03]' : 'hover:bg-white/[0.015]'
+                isOpen ? 'bg-white/3' : 'hover:bg-white/1.5'
               }`}
             >
               <button

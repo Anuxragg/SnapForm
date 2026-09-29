@@ -14,28 +14,19 @@ import {
   Briefcase,
   Layers,
   FileText,
-  Zap,
   ChevronDown,
   Check,
   Filter,
+  Trash2,
 } from 'lucide-react';
 import { ISeedFormTemplate, PREDEFINED_TEMPLATES } from '@/lib/templates';
 
 interface TemplateSelectorProps {
   templates?: ISeedFormTemplate[];
   onSelect: (template: ISeedFormTemplate) => void;
+  onDelete?: (template: ISeedFormTemplate) => void;
   isLoading?: boolean;
 }
-
-const categoryIcons: Record<string, React.ElementType> = {
-  contact: Mail,
-  payment: CreditCard,
-  survey: BarChart3,
-  booking: Calendar,
-  registration: UserCheck,
-  feedback: MessageSquareQuote,
-  application: Briefcase,
-};
 
 const FILTER_TABS = [
   { id: 'all', label: 'All Categories', icon: Layers },
@@ -87,6 +78,7 @@ const BLANK_TEMPLATE: ISeedFormTemplate = {
 export default function TemplateSelector({
   templates = PREDEFINED_TEMPLATES,
   onSelect,
+  onDelete,
   isLoading = false,
 }: TemplateSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -284,9 +276,6 @@ export default function TemplateSelector({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTemplates.map((template) => {
-            const isCustom = !!(template as any).userId;
-            const Icon = isCustom ? Sparkles : (categoryIcons[template.category] || Mail);
-
             return (
               <div
                 key={`${template.id || template.name}-${template.category}-${(template as any)._id || ''}`}
@@ -296,23 +285,22 @@ export default function TemplateSelector({
                 onKeyDown={(e) => e.key === 'Enter' && onSelect(template)}
                 className="group relative rounded-2xl bg-white dark:bg-[#1C1C1C] border border-neutral-200/80 dark:border-[#282828] p-5 flex flex-col justify-between cursor-pointer transition-shadow duration-200 hover:shadow-xl hover:shadow-neutral-300/40 dark:hover:shadow-black/60"
               >
+                {(template as any).userId && onDelete && (
+                  <button
+                    type="button"
+                    aria-label={`Delete ${template.name}`}
+                    title="Delete saved form"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDelete(template);
+                    }}
+                    onKeyDown={(event) => event.stopPropagation()}
+                    className="absolute right-3 top-3 z-10 rounded-lg p-2 text-neutral-400 opacity-0 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 group-hover:opacity-100 dark:hover:bg-red-950/40 dark:hover:text-red-400 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="space-y-3.5">
-                  {/* Top Row: Icon + Category Badge + Field Count */}
-                  <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-[#252525] border border-neutral-200/60 dark:border-[#333333] text-neutral-800 dark:text-neutral-200 flex items-center justify-center">
-                      <Icon className="w-4 h-4" />
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-[#252525] text-neutral-700 dark:text-neutral-300 border border-neutral-200/60 dark:border-[#333333]">
-                        {isCustom ? 'Saved' : template.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-500">
-                        {template.fields.length} fields
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Title & Description */}
                   <div>
                     <h3 className="text-sm font-bold text-neutral-900 dark:text-white font-heading group-hover:text-neutral-900 dark:group-hover:text-white">
@@ -326,10 +314,7 @@ export default function TemplateSelector({
 
                 {/* Bottom Footer */}
                 <div className="pt-3.5 border-t border-neutral-100 dark:border-[#27272a] mt-4 flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
-                  <span className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-brand-orange" />
-                    Open in Studio
-                  </span>
+                  <span>Open in Studio</span>
                   <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-[#282828] group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-neutral-900 flex items-center justify-center transition-all group-hover:translate-x-1">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>

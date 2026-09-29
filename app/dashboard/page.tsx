@@ -94,6 +94,7 @@ export default function DashboardPage() {
   const [savedForms, setSavedForms] = useState<SavedForm[]>([]);
   const [fetchingForms, setFetchingForms] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteForm, setPendingDeleteForm] = useState<SavedForm | null>(null);
 
   // Active form for sidebar selection
   const [activeFormIndex, setActiveFormIndex] = useState(0);
@@ -495,10 +496,6 @@ export default function DashboardPage() {
 
   // Handle Form Delete
   const handleDeleteForm = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this form? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       setDeletingId(id);
       const res = await fetch(`/api/templates?id=${id}`, {
@@ -509,6 +506,7 @@ export default function DashboardPage() {
       if (json.success) {
         toast.success(json.message || 'Form deleted successfully!');
         setSavedForms((prev) => prev.filter((f) => f._id !== id));
+        setPendingDeleteForm(null);
       } else {
         toast.error(json.message || 'Failed to delete form');
       }
@@ -1416,7 +1414,7 @@ export default function DashboardPage() {
                           <span>Submissions</span>
                         </button>
                         <button
-                          onClick={() => handleDeleteForm(form._id)}
+                          onClick={() => setPendingDeleteForm(form)}
                           disabled={deletingId === form._id}
                           className="p-2 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer disabled:opacity-50"
                           title="Delete form"
@@ -1428,6 +1426,50 @@ export default function DashboardPage() {
                   );
                 })
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingDeleteForm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deletingId) setPendingDeleteForm(null);
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-form-title"
+            className="w-full max-w-sm rounded-2xl border border-neutral-200 dark:border-[#303030] bg-white dark:bg-[#1b1b1b] p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <h2 id="delete-form-title" className="text-base font-bold text-neutral-900 dark:text-white">
+              Delete this form?
+            </h2>
+            <p className="mt-1.5 text-sm leading-5 text-neutral-500 dark:text-neutral-400">
+              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{pendingDeleteForm.name}</span> will be permanently deleted. This can’t be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={deletingId === pendingDeleteForm._id}
+                onClick={() => setPendingDeleteForm(null)}
+                className="h-9 rounded-xl border border-neutral-200 dark:border-[#383838] px-3.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-[#252525] disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deletingId === pendingDeleteForm._id}
+                onClick={() => handleDeleteForm(pendingDeleteForm._id)}
+                className="h-9 rounded-xl bg-red-600 px-3.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors cursor-pointer"
+              >
+                {deletingId === pendingDeleteForm._id ? 'Deleting…' : 'Delete form'}
+              </button>
             </div>
           </div>
         </div>

@@ -42,6 +42,7 @@ function LivePreviewForm({
   buttonClass,
   buttonInlineStyle,
   isDarkTheme,
+  isMinimal,
 }: {
   fields: IFormField[];
   styling: IFormStyling;
@@ -51,6 +52,7 @@ function LivePreviewForm({
   buttonClass: string;
   buttonInlineStyle: React.CSSProperties;
   isDarkTheme: boolean;
+  isMinimal: boolean;
 }) {
   const dynamicSchema = useMemo(() => {
     const shape: Record<string, z.ZodTypeAny> = {};
@@ -183,7 +185,7 @@ function LivePreviewForm({
                   <Input
                     id={`preview-${fieldId}`}
                     type={field.type === 'email' ? 'email' : 'text'}
-                    placeholder={field.placeholder || ''}
+                    placeholder="Your answer"
                     className={inputClass}
                     {...register(fieldId)}
                   />
@@ -203,7 +205,7 @@ function LivePreviewForm({
                   </Label>
                   <Textarea
                     id={`preview-${fieldId}`}
-                    placeholder={field.placeholder || ''}
+                    placeholder="Your answer"
                     className={`min-h-[100px] ${inputClass}`}
                     {...register(fieldId)}
                   />
@@ -458,32 +460,28 @@ export default function LivePreview({
 
   // 2. Calculate Theme & Card styling
   let cardClass = '';
-  let labelColor = 'text-neutral-700 font-bold';
-  let subLabelColor = 'text-neutral-600';
+  let labelColor = isDarkTheme ? 'text-neutral-200 font-medium' : 'text-neutral-800 font-medium';
+  let subLabelColor = isDarkTheme ? 'text-neutral-300' : 'text-neutral-700';
   let titleColor = 'text-neutral-900';
   let descColor = 'text-neutral-500';
 
   if (isDarkTheme) {
-    labelColor = 'text-neutral-200 font-semibold';
     subLabelColor = 'text-neutral-300';
     titleColor = 'text-white';
     descColor = 'text-neutral-400';
-    cardClass = `border border-neutral-800 bg-[#121620] text-white ${radiusClass} shadow-2xl p-6 sm:p-8`;
+    cardClass = `border border-neutral-800 bg-[#090b10] text-white ${radiusClass} shadow-2xl p-6 sm:p-8`;
   } else if (isNeobrutalist) {
-    labelColor = 'text-black font-extrabold uppercase text-xs tracking-wider';
     subLabelColor = 'text-neutral-800 font-bold';
     titleColor = 'text-black font-black uppercase tracking-tight';
     descColor = 'text-neutral-600 font-medium';
     cardClass = `border-2 border-black bg-white ${radiusClass} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-8`;
   } else if (isMinimal) {
-    labelColor = 'text-neutral-900 font-mono font-bold uppercase text-[11px] tracking-widest';
-    subLabelColor = 'text-neutral-700 font-mono text-xs';
+    subLabelColor = 'text-neutral-700';
     titleColor = 'text-neutral-950 font-mono font-bold tracking-tight text-xl';
     descColor = 'text-neutral-500 font-mono text-xs';
     cardClass = `border-2 border-neutral-900 bg-white ${radiusClass} shadow-none p-6 sm:p-10`;
   } else {
     // Liquid Glass
-    labelColor = 'text-neutral-800 font-bold';
     subLabelColor = 'text-neutral-600';
     titleColor = 'text-neutral-950 font-extrabold';
     descColor = 'text-neutral-500 font-medium';
@@ -491,17 +489,7 @@ export default function LivePreview({
   }
 
   // 3. Calculate Input Field Variant
-  let inputClass = `${inputRadiusClass} transition-all `;
-  if (isDarkTheme) {
-    inputClass += 'bg-[#181f2c] border border-neutral-700/80 text-white placeholder:text-neutral-500 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20';
-  } else if (isMinimal) {
-    inputClass += 'bg-neutral-50/80 border border-neutral-300 text-neutral-900 font-mono text-xs placeholder:text-neutral-400 hover:border-neutral-900 focus:border-neutral-900 focus:bg-white focus:ring-0';
-  } else if (isNeobrutalist) {
-    inputClass += 'border-2 border-black bg-white text-neutral-900 font-medium focus:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]';
-  } else {
-    // Liquid Glass
-    inputClass += 'bg-white/90 border border-neutral-200/90 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:border-brand-orange focus:ring-4 focus:ring-brand-orange/15';
-  }
+  const inputClass = `${inputRadiusClass} transition-all bg-transparent border-0 border-b ${isDarkTheme ? 'border-neutral-700 text-neutral-100 placeholder:text-neutral-500' : 'border-neutral-300 text-neutral-900 placeholder:text-neutral-400'} rounded-none shadow-none text-sm px-0 focus-visible:border-brand-orange focus-visible:ring-0`;
 
   // 4. Calculate Button Style
   let buttonClass = `w-full font-bold transition-all duration-200 cursor-pointer ${buttonRadiusClass} py-2.5 h-11 `;
@@ -523,7 +511,6 @@ export default function LivePreview({
   } else if (isDarkTheme) {
     buttonInlineStyle = {
       backgroundColor: primaryColor,
-      boxShadow: `0 8px 25px -4px ${primaryColor}77, inset 0 1px 1px rgba(255,255,255,0.3)`,
     };
     buttonClass += 'text-white hover:opacity-95 active:scale-[0.99] relative';
   } else {
@@ -559,7 +546,14 @@ export default function LivePreview({
           <p className="text-xs text-neutral-400 mt-1">Configure fields in the visual panel to visualize in real-time.</p>
         </div>
       ) : (
-        <div className={`${cardClass} transition-all duration-300`}>
+        <div className={`${cardClass} transition-all duration-300 overflow-hidden`}>
+          {styling.headerImage && (
+            <img
+              src={styling.headerImage}
+              alt={`${formName || 'Form'} header`}
+              className="-mt-6 -mx-6 mb-6 h-36 w-[calc(100%_+_3rem)] max-w-none object-cover sm:-mt-8 sm:-mx-8 sm:h-44 sm:w-[calc(100%_+_4rem)]"
+            />
+          )}
           <div className="text-left mb-6 pb-5 border-b border-neutral-200/80 dark:border-neutral-700/70 space-y-2">
             {formCategory && (
               <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
@@ -584,6 +578,7 @@ export default function LivePreview({
             buttonClass={buttonClass}
             buttonInlineStyle={buttonInlineStyle}
             isDarkTheme={isDarkTheme}
+            isMinimal={isMinimal}
           />
         </div>
       )}
