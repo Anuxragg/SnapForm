@@ -37,7 +37,14 @@ export interface RateLimitResult {
 function getRedisRateLimiter(options: RateLimitOptions): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    const missing = [
+      !url && 'UPSTASH_REDIS_REST_URL',
+      !token && 'UPSTASH_REDIS_REST_TOKEN',
+    ].filter(Boolean);
+    console.error(`Rate limit store is not configured. Missing: ${missing.join(', ')}`);
+    return null;
+  }
 
   redis ??= new Redis({ url, token });
   const key = `${options.limit}:${options.windowMs}`;
