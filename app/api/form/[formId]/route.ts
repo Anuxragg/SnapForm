@@ -87,10 +87,17 @@ export async function POST(
     const clientIp = getClientIp(request);
     const { formId } = await params;
 
-    const rateLimit = checkRateLimit(`form_sub_${clientIp}`, {
+    const rateLimit = await checkRateLimit(`form_sub_${clientIp}`, {
       limit: 60,
       windowMs: 60 * 1000,
     });
+
+    if (!rateLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Submissions are temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
 
     if (!rateLimit.allowed) {
       return NextResponse.json(

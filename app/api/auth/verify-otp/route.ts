@@ -20,10 +20,16 @@ export async function POST(req: NextRequest) {
     const cleanCode = code.trim();
 
     // Rate Limiting: Max 5 verification attempts per 10 minutes to prevent OTP brute-forcing
-    const verifyLimit = checkRateLimit(`verify_otp:${clientIp}_${normalizedEmail}`, {
+    const verifyLimit = await checkRateLimit(`verify_otp:${clientIp}_${normalizedEmail}`, {
       limit: 5,
       windowMs: 10 * 60 * 1000,
     });
+    if (!verifyLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Verification is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
     if (!verifyLimit.allowed) {
       return NextResponse.json(
         {

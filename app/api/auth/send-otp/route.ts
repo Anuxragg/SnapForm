@@ -14,10 +14,16 @@ export async function POST(req: NextRequest) {
     const { email, name } = body;
 
     // 1. IP Rate Limiting
-    const ipLimit = checkRateLimit(`send_otp_ip:${clientIp}`, {
+    const ipLimit = await checkRateLimit(`send_otp_ip:${clientIp}`, {
       limit: 5,
       windowMs: 10 * 60 * 1000,
     });
+    if (!ipLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Verification is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
     if (!ipLimit.allowed) {
       return NextResponse.json(
         {
@@ -40,10 +46,16 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Rate limit specifically on the target email address
-    const emailLimit = checkRateLimit(`send_otp_email:${normalizedEmail}`, {
+    const emailLimit = await checkRateLimit(`send_otp_email:${normalizedEmail}`, {
       limit: 3,
       windowMs: 10 * 60 * 1000,
     });
+    if (!emailLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Verification is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
     if (!emailLimit.allowed) {
       return NextResponse.json(
         {

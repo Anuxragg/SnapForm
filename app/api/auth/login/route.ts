@@ -9,19 +9,57 @@ import {
   setSessionCookie,
   verifyPassword,
 } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const ipLimit = await checkRateLimit(`login:ip:${clientIp}`, {
+      limit: 30,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!ipLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Login is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { success: false, message: 'Too many login attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(ipLimit.resetInSeconds) } }
+      );
+    }
+
     const body = await req.json();
     const { email, password } = body;
 
     // 1. Validate inputs
-    if (!email || typeof password !== 'string' || !password) {
+    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
       return NextResponse.json(
         { success: false, message: 'Please provide both email and password' },
         { status: 400 }
       );
     }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const credentialsLimit = await checkRateLimit(`login:credentials:${clientIp}:${normalizedEmail}`, {
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!credentialsLimit.available) {
+      return NextResponse.json(
+        { success: false, message: 'Login is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
+    if (!credentialsLimit.allowed) {
+      return NextResponse.json(
+        { success: false, message: 'Too many login attempts for these credentials. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(credentialsLimit.resetInSeconds) } }
+      );
+    }
+
     if (!isPasswordWithinLimit(password)) {
       return NextResponse.json(
         { success: false, message: 'Password must not exceed 128 characters' },
@@ -32,7 +70,6 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
 
     // 2. Find user
-    const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return NextResponse.json(
