@@ -182,7 +182,7 @@ export type ContactInput =
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-2.5 sm:p-5 md:p-8 bg-[#F5F4F0] rounded-[20px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none">
+    <div className="w-full p-2.5 sm:p-5 md:p-8 bg-[#F5F4F0] rounded-[20px] sm:rounded-[30px] border border-neutral-300/60 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] select-none">
       <div
         ref={containerRef}
         className="w-full relative overflow-hidden"

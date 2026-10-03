@@ -19,9 +19,9 @@ import HeroDashboardPreview from '@/components/HeroDashboardPreview';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HomeShaderBackground from '@/components/HomeShaderBackground';
-import BreathingText from '@/components/fancy/text/breathing-text';
 import IntegrateSplitPreview from '@/components/landing/IntegrateSplitPreview';
 import LandingFAQ from '@/components/landing/LandingFAQ';
+import { AnimatedGradientText } from '@/components/velora/animated-gradient-text';
 
 interface FeatureCard {
   icon: React.ElementType;
@@ -141,54 +141,56 @@ export default function LandingPage() {
       <HomeShaderBackground />
       <Navbar forceDark />
 
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 pb-8 sm:pb-16 flex-1 flex flex-col items-center">
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 sm:space-y-5 pb-6 sm:pb-10">
-          <div className="space-y-2.5">
-            <span className="text-[10px] font-bold font-mono text-white/90 uppercase tracking-[0.2em] inline-block animate-pulse px-3 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm">
-              COMPILER IS SPEED FOR DEV
-            </span>
-            <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] tracking-tight text-white max-w-xl mx-auto drop-shadow-md">
-              <BreathingText className="text-white">
-                SnapForm
-              </BreathingText>{' '}
-              builds, hosts, and scales your forms in seconds.
-            </h1>
-          </div>
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 lg:pt-[220px] pb-8 sm:pb-16 flex-1 flex flex-col items-stretch">
+        <div className="flex flex-col items-start text-left w-full max-w-6xl mx-auto space-y-5 sm:space-y-6 pb-8 sm:pb-12">
+          <h1
+            className="text-[40px] leading-[42px] sm:text-[52px] sm:leading-[54px] lg:text-[64px] lg:leading-[64px] font-[510] tracking-[-0.045em] text-[#f7f8f8] max-w-[1120px]"
+            style={{ fontFamily: '"Inter Variable", var(--font-inter), "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif' }}
+          >
+            <AnimatedGradientText>SnapForm</AnimatedGradientText> builds, hosts, and scales your forms in seconds.
+          </h1>
 
-          <p className="font-subtext text-xs sm:text-[13px] md:text-sm font-normal leading-[20px] sm:leading-[21px] text-white/85 max-w-lg mx-auto drop-shadow-sm">
-            Build, validate, and host production-ready React forms in seconds with zero backend hassle.
-          </p>
+          <div className="w-full flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+            <p
+              className="text-[15px] leading-6 font-normal text-[#8a8f98] max-w-3xl"
+              style={{ fontFamily: '"Inter Variable", var(--font-inter), "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif' }}
+            >
+              Build, validate, and host production-ready React forms in seconds with zero backend hassle.
+            </p>
 
-          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-3 pt-1 w-full sm:w-auto">
-            <Link href="/dashboard">
-              <button className="rounded-[7px] sm:rounded-[8px] bg-brand-orange hover:bg-brand-orange-hover text-white text-xs sm:text-[13px] font-semibold px-3.5 sm:px-5 h-8 sm:h-9 flex items-center justify-center shadow-md transition-colors duration-200 cursor-pointer">
+            <div className="flex flex-row items-center justify-start sm:justify-end gap-2.5 sm:gap-3 shrink-0">
+              <Link href="/dashboard" className="text-sm sm:text-base font-semibold text-white/90 hover:text-white transition-colors">
                 Hosting Form
-              </button>
-            </Link>
-            <Link href="/builder">
-              <button className="rounded-[7px] sm:rounded-[8px] bg-neutral-900/90 backdrop-blur-xl border border-white/10 text-white hover:bg-neutral-800/90 text-xs sm:text-[13px] font-semibold px-3.5 sm:px-5 h-8 sm:h-9 shadow-md transition-colors duration-200 flex items-center justify-center cursor-pointer">
-                Form Templates
-              </button>
-            </Link>
+              </Link>
+              <Link href="/builder" className="inline-flex items-center gap-1.5 text-sm sm:text-base text-white/55 hover:text-white/80 transition-colors">
+                <span>Form Templates</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="w-full max-w-4xl lg:max-w-5xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <HeroDashboardPreview />
         </div>
       </main>
 
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-16 pb-8 sm:pb-16 border-t border-white/10 text-center flex flex-col items-center">
-        <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-[44px] font-semibold leading-[1.15] text-white tracking-tight mb-2.5 sm:mb-4">
-          Integrate <span className="text-brand-orange">this afternoon</span>
-        </h2>
-        <p className="font-subtext text-xs sm:text-[14px] font-normal leading-[20px] sm:leading-[22px] text-white/90 max-w-md mx-auto mb-5 sm:mb-8">
-          Explore production-ready form templates with instant type-safe code.
-        </p>
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-8 sm:pb-16 border-t border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mb-10 sm:mb-16">
+          <h2 className="font-heading text-4xl sm:text-5xl lg:text-[56px] font-medium leading-[1.02] tracking-tight text-white max-w-md">
+            Intake<br />and integrations
+          </h2>
+          <div className="max-w-xl md:pt-1">
+            <p className="font-subtext text-lg sm:text-xl font-normal leading-relaxed text-white/75">
+              Turn form responses and customer feedback into actionable submissions, validated and routed to the right place.
+            </p>
+            <Link href="/docs" className="inline-flex items-center gap-2 mt-8 text-sm text-white/55 hover:text-white transition-colors">
+              Learn more <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
         <IntegrateSplitPreview />
       </section>
-
-      <LandingFAQ />
 
       <section id="features" className="relative z-10 w-full bg-black/85 backdrop-blur-3xl border-t border-white/10 pt-10 sm:pt-24 pb-16 sm:pb-24">
         <div className="max-w-7xl mx-auto px-6">
@@ -222,6 +224,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <LandingFAQ />
 
       <Footer />
     </div>
