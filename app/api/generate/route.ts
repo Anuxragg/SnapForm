@@ -4,6 +4,7 @@ import { generateZodSchema } from '@/lib/generators/zodGenerator';
 import { generateApiRoute } from '@/lib/generators/apiGenerator';
 import { validateGeneratorInput } from '@/lib/generators/validation';
 import JSZip from 'jszip';
+import { apiErrorResponse } from '@/lib/apiRequest';
 
 export const runtime = 'nodejs';
 
@@ -155,8 +156,8 @@ Input fields config to build: ${JSON.stringify(fields, null, 2)}
           routeCode = parsed.route;
           usedAI = true;
         }
-      } catch (err: any) {
-        console.warn('Gemini API call failed, falling back to local compilers:', err.message);
+      } catch (err: unknown) {
+        console.warn('Gemini API call failed, falling back to local compilers:', err);
       }
     } else {
       console.warn('GEMINI_API_KEY environment variable is not defined. Using local compiler fallbacks.');
@@ -192,15 +193,7 @@ Input fields config to build: ${JSON.stringify(fields, null, 2)}
       },
       downloadUrl,
     });
-  } catch (error: any) {
-    console.error('Error generating form code in POST endpoint:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to generate form code suite',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error generating form code in POST endpoint:', error, 'Failed to generate form code suite.');
   }
 }

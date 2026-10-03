@@ -4,6 +4,7 @@ import FormSubmission from '@/models/FormSubmission';
 import { getSession } from '@/lib/auth';
 import { resolveForm } from '@/lib/formResolver';
 import mongoose from 'mongoose';
+import { apiErrorResponse } from '@/lib/apiRequest';
 
 export const runtime = 'nodejs';
 
@@ -55,11 +56,7 @@ export async function GET(
         submittedAt: s.submittedAt,
       })),
     });
-  } catch (error: any) {
-    console.error('Error fetching form submissions:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to retrieve submissions', error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error fetching form submissions:', error, 'Failed to retrieve submissions.');
   }
 }

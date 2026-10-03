@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
+import { apiErrorResponse } from '@/lib/apiRequest';
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,15 +35,7 @@ export async function GET(req: NextRequest) {
       count: createdTemplates.length,
       templates: createdTemplates,
     });
-  } catch (error: any) {
-    console.error('Error seeding database:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Database seeding failed',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error seeding database:', error, 'Database seeding failed.');
   }
 }

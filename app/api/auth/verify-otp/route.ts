@@ -2,22 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import EmailOtp from '@/models/EmailOtp';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { apiErrorResponse, parseJsonBody, requestSchemas } from '@/lib/apiRequest';
 
 export async function POST(req: NextRequest) {
   try {
     const clientIp = getClientIp(req);
-    const body = await req.json();
-    const { email, code } = body;
-
-    if (!email || !code) {
-      return NextResponse.json(
-        { success: false, message: 'Email and verification code are required' },
-        { status: 400 }
-      );
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const cleanCode = code.trim();
+    const parsedBody = await parseJsonBody(req, requestSchemas.verifyOtp);
+    if (!parsedBody.success) return parsedBody.response;
+    const { email: normalizedEmail, code: cleanCode } = parsedBody.data;
 
     // Rate Limiting: Max 5 verification attempts per 10 minutes to prevent OTP brute-forcing
     const verifyLimit = await checkRateLimit(`verify_otp:${clientIp}_${normalizedEmail}`, {
@@ -80,15 +72,7 @@ export async function POST(req: NextRequest) {
       message: 'Email successfully verified!',
       email: normalizedEmail,
     });
-  } catch (error: any) {
-    console.error('Error verifying OTP:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Verification failed. Please try again.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error verifying OTP:', error, 'Verification failed. Please try again.');
   }
 }

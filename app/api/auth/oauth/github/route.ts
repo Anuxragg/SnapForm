@@ -18,11 +18,11 @@ export async function GET(req: NextRequest) {
 
     const authUrl = getGithubOAuthUrl(redirectUri, state);
     return NextResponse.redirect(authUrl);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('GitHub OAuth init error:', error);
     const baseUrl = getAppBaseUrl(req.url);
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error.message || 'Failed to start GitHub OAuth')}`, baseUrl)
+      new URL(`/login?error=${encodeURIComponent('Failed to start GitHub authentication')}`, baseUrl)
     );
   }
 }

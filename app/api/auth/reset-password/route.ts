@@ -3,20 +3,13 @@ import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import PasswordResetToken from '@/models/PasswordResetToken';
 import { hashPassword, generateSalt, isPasswordWithinLimit } from '@/lib/auth';
+import { apiErrorResponse, parseJsonBody, requestSchemas } from '@/lib/apiRequest';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email, token, password } = body;
-
-    if (!email || !token || typeof password !== 'string' || !password) {
-      return NextResponse.json(
-        { success: false, message: 'Email, token, and new password are required.' },
-        { status: 400 }
-      );
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
+    const parsedBody = await parseJsonBody(req, requestSchemas.resetPassword);
+    if (!parsedBody.success) return parsedBody.response;
+    const { email: cleanEmail, token, password } = parsedBody.data;
 
     // Validate password complexity
     const hasMinLength = Array.from(password).length >= 8;
@@ -82,15 +75,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Your password has been successfully reset. You can now log in.',
     });
-  } catch (error: any) {
-    console.error('Error during reset-password:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to reset password. Please try again.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during reset-password:', error, 'Failed to reset password. Please try again.');
   }
 }

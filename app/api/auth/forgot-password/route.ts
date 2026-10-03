@@ -4,21 +4,13 @@ import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import PasswordResetToken from '@/models/PasswordResetToken';
 import { sendPasswordResetEmail } from '@/lib/emailService';
+import { apiErrorResponse, parseJsonBody, requestSchemas } from '@/lib/apiRequest';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email } = body;
-
-    // Strict validation
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json(
-        { success: false, message: 'Please provide a valid email address.' },
-        { status: 400 }
-      );
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
+    const parsedBody = await parseJsonBody(req, requestSchemas.forgotPassword);
+    if (!parsedBody.success) return parsedBody.response;
+    const cleanEmail = parsedBody.data.email;
 
     await connectToDatabase();
 
@@ -54,15 +46,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'If an account exists with this email, a password reset link has been sent.',
     });
-  } catch (error: any) {
-    console.error('Error during forgot-password request:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Unable to process your password reset request at this time.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during forgot-password request:', error, 'Unable to process your password reset request at this time.');
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiErrorResponse } from '@/lib/apiRequest';
 import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import FormSubmission from '@/models/FormSubmission';
@@ -248,11 +249,7 @@ export async function GET(req: NextRequest) {
         timeSeries: buckets,
       },
     });
-  } catch (error: any) {
-    console.error('Failed to fetch analytics:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to retrieve analytics', error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Failed to fetch analytics:', error, 'Failed to retrieve analytics.');
   }
 }

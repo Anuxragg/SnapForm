@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { clearSessionCookie } from '@/lib/auth';
+import { apiErrorResponse } from '@/lib/apiRequest';
 
 export async function POST() {
   try {
@@ -8,15 +9,7 @@ export async function POST() {
       success: true,
       message: 'Logged out successfully!',
     });
-  } catch (error: any) {
-    console.error('Error during logout API execution:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Logout failed due to internal error',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during logout API execution:', error, 'Logout failed due to an internal error.');
   }
 }

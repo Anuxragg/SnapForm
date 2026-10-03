@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession, setSessionCookie, clearSessionCookie } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
+import { apiErrorResponse } from '@/lib/apiRequest';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,21 +56,10 @@ export async function GET() {
         },
       }
     );
-  } catch (error: any) {
-    console.error('Error during me API execution:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to retrieve active session',
-        error: error.message,
-      },
-      {
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        },
-      }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during me API execution:', error, 'Failed to retrieve active session.', {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    });
   }
 }
 
@@ -128,12 +118,8 @@ export async function PATCH(req: NextRequest) {
         avatar: updatedUser.avatar,
       },
     });
-  } catch (error: any) {
-    console.error('Error updating user profile in MongoDB:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to update profile in database', error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error updating user profile in MongoDB:', error, 'Failed to update profile.');
   }
 }
 
@@ -191,16 +177,7 @@ export async function DELETE() {
       success: true,
       message: 'Account and associated data deleted successfully',
     });
-  } catch (error: any) {
-    console.error('Error during account deletion:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to delete account. Please try again.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during account deletion:', error, 'Failed to delete account. Please try again.');
   }
 }
-

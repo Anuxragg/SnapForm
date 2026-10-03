@@ -4,6 +4,7 @@ import { connectToDatabase } from '@/lib/db';
 import FormTemplate from '@/models/FormTemplate';
 import { PREDEFINED_TEMPLATES } from '@/lib/templates';
 import { getSession } from '@/lib/auth';
+import { apiErrorResponse } from '@/lib/apiRequest';
 import { generateShortId, getDeterministicShortId } from '@/lib/utils';
 
 export const runtime = 'nodejs';
@@ -37,8 +38,8 @@ export async function GET() {
       source: 'database-and-catalog',
       data: allTemplates,
     });
-  } catch (error: any) {
-    console.warn('MongoDB connection failed, falling back to static templates:', error.message);
+  } catch (error: unknown) {
+    console.warn('MongoDB connection failed, falling back to static templates:', error);
     return NextResponse.json({
       success: true,
       source: 'static-fallback',
@@ -221,16 +222,8 @@ export async function POST(req: NextRequest) {
         : 'Custom form template compiled successfully (Anonymous)!',
       data: newTemplate,
     });
-  } catch (error: any) {
-    console.error('Error saving custom template:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to save template. Please check database connection.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error saving custom template:', error, 'Failed to save template. Please try again.');
   }
 }
 
@@ -274,15 +267,7 @@ export async function DELETE(req: NextRequest) {
       success: true,
       message: 'Custom form template deleted successfully!',
     });
-  } catch (error: any) {
-    console.error('Error deleting template:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to delete template. Please check database connection.',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error deleting template:', error, 'Failed to delete template. Please try again.');
   }
 }

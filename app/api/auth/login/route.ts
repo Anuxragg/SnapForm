@@ -10,6 +10,7 @@ import {
   verifyPassword,
 } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { apiErrorResponse, parseJsonBody, requestSchemas } from '@/lib/apiRequest';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,18 +32,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { email, password } = body;
-
-    // 1. Validate inputs
-    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
-      return NextResponse.json(
-        { success: false, message: 'Please provide both email and password' },
-        { status: 400 }
-      );
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
+    const parsedBody = await parseJsonBody(req, requestSchemas.login);
+    if (!parsedBody.success) return parsedBody.response;
+    const { email: normalizedEmail, password } = parsedBody.data;
     const credentialsLimit = await checkRateLimit(`login:credentials:${clientIp}:${normalizedEmail}`, {
       limit: 5,
       windowMs: 15 * 60 * 1000,
@@ -122,15 +114,7 @@ export async function POST(req: NextRequest) {
         provider: user.provider || 'credentials',
       },
     });
-  } catch (error: any) {
-    console.error('Error during login API execution:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Login failed due to internal error',
-        error: error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error during login API execution:', error, 'Login failed due to an internal error.');
   }
 }

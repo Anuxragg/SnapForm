@@ -6,12 +6,14 @@ import EmailOtp from '@/models/EmailOtp';
 import { validateStandardEmailAsync } from '@/lib/emailValidator';
 import { sendVerificationOtpEmail } from '@/lib/emailService';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
+import { apiErrorResponse, parseJsonBody, requestSchemas } from '@/lib/apiRequest';
 
 export async function POST(req: NextRequest) {
   try {
     const clientIp = getClientIp(req);
-    const body = await req.json();
-    const { email, name } = body;
+    const parsedBody = await parseJsonBody(req, requestSchemas.sendOtp);
+    if (!parsedBody.success) return parsedBody.response;
+    const { email, name } = parsedBody.data;
 
     // 1. IP Rate Limiting
     const ipLimit = await checkRateLimit(`send_otp_ip:${clientIp}`, {
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = email;
 
     // Rate limit specifically on the target email address
     const emailLimit = await checkRateLimit(`send_otp_email:${normalizedEmail}`, {
@@ -100,15 +102,7 @@ export async function POST(req: NextRequest) {
         ? { devCode: emailResult.devCode }
         : {}),
     });
-  } catch (error: any) {
-    console.error('Error sending verification OTP:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to send verification code. Please try again.',
-        error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
-      },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error sending verification OTP:', error, 'Failed to send verification code. Please try again.');
   }
 }

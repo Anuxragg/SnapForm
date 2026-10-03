@@ -6,6 +6,52 @@ import FormSubmission from '@/models/FormSubmission';
 import mongoose from 'mongoose';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 import { resolveForm } from '@/lib/formResolver';
+import { apiErrorResponse } from '@/lib/apiRequest';
+
+const MAX_SUBMISSION_BYTES = 1024 * 1024;
+const SUBMISSION_CONTROL_FIELDS = new Set(['_gotcha', '_honeypot', 'bot_trap', '_bot']);
+
+async function getBoundedRequest(request: NextRequest): Promise<Request> {
+  const contentLength = Number(request.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > MAX_SUBMISSION_BYTES) {
+    throw new Error('SUBMISSION_TOO_LARGE');
+  }
+
+  if (!request.body) return new Request(request.url, { method: request.method, headers: request.headers });
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > MAX_SUBMISSION_BYTES) {
+      await reader.cancel();
+      throw new Error('SUBMISSION_TOO_LARGE');
+    }
+    chunks.push(value);
+  }
+
+  return new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: Buffer.concat(chunks),
+  });
+}
+
+function isSafeSameOriginRedirect(value: string, requestUrl: string): URL | null {
+  if (!value.startsWith('/') || value.startsWith('//') || value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) {
+    return null;
+  }
+
+  try {
+    const target = new URL(value, requestUrl);
+    return target.origin === new URL(requestUrl).origin ? target : null;
+  } catch {
+    return null;
+  }
+}
 
 // Public Hosted Form API Route
 export const runtime = 'nodejs';
@@ -69,12 +115,8 @@ export async function GET(
         isPredefined: resolved.isPredefined,
       },
     });
-  } catch (error: any) {
-    console.error('Error fetching public form:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to load form', error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error fetching public form:', error, 'Failed to load form.');
   }
 }
 
@@ -111,12 +153,24 @@ export async function POST(
 
     let rawData: Record<string, any> = {};
     const contentType = request.headers.get('content-type') || '';
+    let boundedRequest: Request;
+    try {
+      boundedRequest = await getBoundedRequest(request);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'SUBMISSION_TOO_LARGE') {
+        return NextResponse.json(
+          { success: false, message: 'Submission is too large. Maximum size is 1 MB.' },
+          { status: 413 }
+        );
+      }
+      throw error;
+    }
 
     if (contentType.includes('application/json')) {
       try {
-        const body = await request.json();
-        if (body && typeof body === 'object') {
-          rawData = body.data && typeof body.data === 'object' ? body.data : body;
+        const body = await boundedRequest.json();
+        if (body && typeof body === 'object' && !Array.isArray(body)) {
+          rawData = body.data && typeof body.data === 'object' && !Array.isArray(body.data) ? body.data : body;
         }
       } catch (e) {
         return NextResponse.json(
@@ -129,7 +183,7 @@ export async function POST(
       contentType.includes('multipart/form-data')
     ) {
       try {
-        const formData = await request.formData();
+        const formData = await boundedRequest.formData();
         for (const [key, value] of formData.entries()) {
           rawData[key] = value;
         }
@@ -141,13 +195,13 @@ export async function POST(
       }
     } else {
       try {
-        const body = await request.json();
-        if (body && typeof body === 'object') {
-          rawData = body.data && typeof body.data === 'object' ? body.data : body;
+        const body = await boundedRequest.json();
+        if (body && typeof body === 'object' && !Array.isArray(body)) {
+          rawData = body.data && typeof body.data === 'object' && !Array.isArray(body.data) ? body.data : body;
         }
       } catch {
         try {
-          const formData = await request.formData();
+          const formData = await boundedRequest.formData();
           for (const [key, value] of formData.entries()) {
             rawData[key] = value;
           }
@@ -158,7 +212,7 @@ export async function POST(
       }
     }
 
-    if (!rawData || typeof rawData !== 'object') {
+    if (!rawData || typeof rawData !== 'object' || Array.isArray(rawData)) {
       return NextResponse.json(
         { success: false, message: 'Invalid submission data provided' },
         { status: 400 }
@@ -185,6 +239,58 @@ export async function POST(
     const formFields = resolved.fields || [];
     const isDbForm = !resolved.isPredefined && Boolean(resolved.dbId);
     const targetTemplateId = resolved.dbId ? new mongoose.Types.ObjectId(resolved.dbId) : null;
+
+    const acceptedFieldNames = new Set<string>();
+    for (const field of formFields) {
+      if (field.id) {
+        acceptedFieldNames.add(field.id);
+        acceptedFieldNames.add(field.id.toLowerCase());
+      }
+      if (field.label) {
+        acceptedFieldNames.add(field.label);
+        acceptedFieldNames.add(field.label.toLowerCase());
+        acceptedFieldNames.add(field.label.toLowerCase().replace(/\s+/g, ''));
+      }
+      if (['fullName', 'contactName', 'name', 'user_name'].includes(field.id)) {
+        ['name', 'fullName', 'fullname', 'contactName', 'contact_name'].forEach((key) => acceptedFieldNames.add(key));
+      }
+      if (['email', 'workEmail', 'userEmail'].includes(field.id)) {
+        ['email', 'workEmail', 'userEmail', 'mail'].forEach((key) => acceptedFieldNames.add(key));
+      }
+      if (['phone', 'phoneNumber', 'mobile'].includes(field.id)) {
+        ['phone', 'phoneNumber', 'tel', 'mobile'].forEach((key) => acceptedFieldNames.add(key));
+      }
+      if (['message', 'comments', 'notes', 'inquiry'].includes(field.id)) {
+        ['message', 'comments', 'notes', 'inquiry', 'body'].forEach((key) => acceptedFieldNames.add(key));
+      }
+    }
+
+    const acceptHeader = request.headers.get('accept') || '';
+    const wantsHtmlRedirect = acceptHeader.includes('text/html') && !acceptHeader.includes('application/json');
+    const allowedControlFields = new Set(SUBMISSION_CONTROL_FIELDS);
+    if (wantsHtmlRedirect) ['_next', 'next', 'redirect'].forEach((key) => allowedControlFields.add(key));
+
+    const unknownFields = Object.keys(rawData).filter(
+      (key) => !acceptedFieldNames.has(key) && !allowedControlFields.has(key)
+    );
+    if (unknownFields.length > 0) {
+      return NextResponse.json(
+        { success: false, message: 'Submission contains fields that are not part of this form.' },
+        { status: 400 }
+      );
+    }
+
+    const nextUrl = rawData._next ?? rawData.next ?? rawData.redirect;
+    let safeRedirect: URL | null = null;
+    if (wantsHtmlRedirect && nextUrl !== undefined && nextUrl !== '') {
+      safeRedirect = typeof nextUrl === 'string' ? isSafeSameOriginRedirect(nextUrl.trim(), request.url) : null;
+      if (!safeRedirect) {
+        return NextResponse.json(
+          { success: false, message: 'Redirect must be a safe path on this site.' },
+          { status: 400 }
+        );
+      }
+    }
 
     const validationErrors: Record<string, string> = {};
     const sanitizedData: Record<string, any> = {};
@@ -299,14 +405,6 @@ export async function POST(
       sanitizedData[field.id] = val;
     }
 
-    // Include any additional unmapped fields from submission
-    for (const [key, value] of Object.entries(rawData)) {
-      if (key.startsWith('_')) continue;
-      if (sanitizedData[key] === undefined && value !== undefined && value !== '') {
-        sanitizedData[key] = typeof value === 'string' ? value.replace(/\0/g, '').trim() : value;
-      }
-    }
-
     if (Object.keys(validationErrors).length > 0) {
       return NextResponse.json(
         {
@@ -343,12 +441,8 @@ export async function POST(
     }
 
     // Support HTML form redirects if submitted from a standard browser HTML form
-    const acceptHeader = request.headers.get('accept') || '';
-    const nextUrl = rawData._next || rawData.next || rawData.redirect;
-    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
-      if (nextUrl && typeof nextUrl === 'string' && (nextUrl.startsWith('/') || nextUrl.startsWith('http'))) {
-        return NextResponse.redirect(new URL(nextUrl, request.url));
-      }
+    if (wantsHtmlRedirect) {
+      if (safeRedirect) return NextResponse.redirect(safeRedirect);
       return NextResponse.redirect(new URL(`/form/${resolved.id}?submitted=true`, request.url));
     }
 
@@ -360,11 +454,7 @@ export async function POST(
         submittedAt: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
-    console.error('Error handling form submission:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to record submission', error: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return apiErrorResponse('Error handling form submission:', error, 'Failed to record submission.');
   }
 }

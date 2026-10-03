@@ -52,10 +52,10 @@ export async function GET(req: NextRequest) {
 
     const targetUrl = returnUrl.startsWith('/') ? returnUrl : '/dashboard';
     return NextResponse.redirect(new URL(targetUrl, baseUrl));
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Google OAuth callback processing error:', err);
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(err.message || 'Failed to complete Google authentication')}`, baseUrl)
+      new URL(`/login?error=${encodeURIComponent('Failed to complete Google authentication')}`, baseUrl)
     );
   }
 }
