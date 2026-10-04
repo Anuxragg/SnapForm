@@ -141,7 +141,7 @@ export default function LandingPage() {
       <HomeShaderBackground />
       <Navbar forceDark />
 
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-32 lg:pt-[220px] pb-8 sm:pb-16 flex-1 flex flex-col items-stretch">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-32 sm:pt-32 lg:pt-[220px] pb-8 sm:pb-16 flex-1 flex flex-col items-stretch">
         <div className="flex flex-col items-start text-left w-full max-w-6xl mx-auto space-y-5 sm:space-y-6 pb-8 sm:pb-12">
           <h1
             className="text-[40px] leading-[42px] sm:text-[52px] sm:leading-[54px] lg:text-[64px] lg:leading-[64px] font-[510] tracking-[-0.045em] text-[#f7f8f8] max-w-[1120px]"
@@ -175,7 +175,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-8 sm:pb-16 border-t border-white/10">
+      <section id="intake" className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-8 sm:pb-16 border-t border-white/10 scroll-mt-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mb-10 sm:mb-16">
           <h2 className="font-heading text-4xl sm:text-5xl lg:text-[56px] font-medium leading-[1.02] tracking-tight text-white max-w-md">
             Intake<br />and integrations
@@ -189,7 +189,9 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
-        <IntegrateSplitPreview />
+        <div id="integrations" className="scroll-mt-16">
+          <IntegrateSplitPreview />
+        </div>
       </section>
 
       <section id="features" className="relative z-10 w-full bg-black/85 backdrop-blur-3xl border-t border-white/10 pt-10 sm:pt-24 pb-16 sm:pb-24">

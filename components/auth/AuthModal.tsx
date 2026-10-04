@@ -514,7 +514,7 @@ export default function AuthModal() {
                     onClick={() => openAuthModal('login')}
                     className="text-brand-orange font-bold hover:underline cursor-pointer ml-1"
                   >
-                    Sign in
+                    Log in
                   </button>
                 </>
               )}

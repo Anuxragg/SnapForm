@@ -378,7 +378,7 @@ function SignupForm() {
             <p className="text-xs text-neutral-400">
               Already have an account?{' '}
               <Link href="/login" className="text-brand-orange font-bold hover:underline cursor-pointer ml-1">
-                Sign in
+                Log in
               </Link>
             </p>
           </div>
