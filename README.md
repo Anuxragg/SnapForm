@@ -1,110 +1,108 @@
-# ⚡ SnapForm Studio
+# SnapForm
 
-> A premium, high-fidelity developer workspace and SaaS compilation engine designed to eliminate form boilerplate. Compile beautiful, type-safe React forms, Zod validation models, and Next.js backend API routes with a single click.
+SnapForm is a web app for building, validating, and hosting forms without having to hand-write the usual form boilerplate. Create forms in the visual builder, generate a ready-to-use React component and Zod schema, then save, host, and monitor submissions from your dashboard.
 
----
+## What you can do
 
-## 🚀 The Three-Layer Architecture
+- **Build forms visually** — configure fields, validation, appearance, and form settings in the builder.
+- **Generate usable code** — export a ZIP containing a React form component, a Zod schema, and a Next.js route handler. AI-assisted generation is optional; the core generator works without an AI key.
+- **Save and manage forms** — create and edit form templates in your dashboard.
+- **Host forms and collect responses** — use hosted form pages and submission endpoints, with server-side validation and spam/rate-limit protections.
+- **Review submissions and analytics** — inspect responses, view form activity, and export submissions as CSV.
+- **Manage an account** — sign up and sign in with email verification, reset passwords, and optionally configure Google or GitHub OAuth.
 
-SnapForm doesn't just build UI; it compiles complete full-stack form pipelines directly into a downloadable structure:
+## Tech stack
 
-```
-📁 form-bundle.zip/
-├── ⚛ FormComponent.tsx   # React Frontend Component (Tailwind UI + React Hook Form)
-├── 🛡 schema.ts          # Zod Validation Schema (Type safety declarations)
-└── ⚡ route.ts           # Next.js Route Handler (Secure server-side API endpoint)
-```
+- [Next.js](https://nextjs.org/) 16 App Router and React 19
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/) 4
+- [MongoDB](https://www.mongodb.com/) with Mongoose
+- [Zod](https://zod.dev/) and [React Hook Form](https://react-hook-form.com/)
+- [Upstash Redis](https://upstash.com/) for shared production rate limits
 
----
+## Run locally
 
-## ✨ Features
+### Requirements
 
-* **⚡ Interactive Studio Builder (`/builder`)**: Customize input fields, toggle validation constraints, and choose form aesthetics in real-time.
-* **🎨 Premium Visual Themes**: Switch styles instantly with design layouts:
-  * **Modern Glassmorphism**: Translucent backdrops, ambient shadows, and vibrant glowing border states.
-  * **Stark Minimalist**: Clean monochrome aesthetics, fine border lines, and sophisticated typography.
-  * **Business Corporate**: Professional rigid borders, high contrast ratios, and structural solid styling.
-* **📊 Developer Dashboard (`/dashboard`)**: Save, manage, edit, and duplicate your compiled form packages under a secure profile.
-* **🛡 Full-Stack Zod Verification**: Real-time TypeScript schema generations supporting strict type inference (`z.infer<typeof FormSchema>`) shared between client and server layers.
-* **🔐 Built-in Authentication**: Custom state management, silent session restoration, and secure password encryption using MongoDB.
+- Node.js compatible with Next.js 16
+- A MongoDB database (local or MongoDB Atlas)
+- An SMTP account for email verification and password reset
 
----
+### Setup
 
-## 🛠 Tech Stack
-
-* **Framework**: [Next.js App Router](https://nextjs.org/) (React 18+)
-* **Styling**: Vanilla [Tailwind CSS](https://tailwindcss.com/) with a curated Sand-Charcoal brand palette
-* **State & Form Management**: [React Hook Form](https://react-hook-form.com/) & [@hookform/resolvers](https://github.com/react-hook-form/resolvers)
-* **Validation Schema**: [Zod](https://zod.dev/)
-* **Database & Authentication**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) with cookie-based session handling
-* **Visual Assets**: [Lucide React Icons](https://lucide.dev/) & [Sonner Toasts](https://sonner.dev/)
-
----
-
-## 📂 Project Directory Structure
-
-```
-SnapForm/
-├── app/                  # Next.js App Router Paths
-│   ├── api/              # Core API Endpoints
-│   │   ├── auth/         # Login, Signup, and Silent Session verification routes
-│   │   ├── generate/     # AI / prompt-driven form generation
-│   │   └── templates/    # Developer saved templates CRUD endpoints
-│   ├── builder/          # SnapForm Studio (Main visual workspace)
-│   ├── dashboard/        # Dev Console (Template manager)
-│   ├── docs/             # Documentation Center & Integration Guides
-│   └── page.tsx          # High-impact landing page featuring active terminal demos
-├── components/           # Custom Reusable React Elements
-│   ├── auth/             # Secure Auth modals & state boundaries
-│   ├── form-builder/     # Main workspace components (Preview, Customizers, Output)
-│   └── ui/               # Core design system tokens (buttons, inputs, badges)
-├── lib/                  # Helper classes, database connections, and validation bridges
-├── models/               # MongoDB / Mongoose Mapped Data Schemas
-└── public/               # Static media, icons, and logo assets
-```
-
----
-
-## 🏁 Quickstart Guide
-
-Follow these steps to run SnapForm Studio locally in development mode:
-
-### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) (v18.x or greater) and a running [MongoDB](https://www.mongodb.com/) instance (either local or MongoDB Atlas cloud cluster).
-
-### 2. Clone the Repository
 ```bash
-git clone https://github.com/Anuxragg/FormCraft.git
+git clone https://github.com/Anuxragg/SnapForm.git
 cd SnapForm
-```
-
-### 3. Install Dependencies
-```bash
 npm install
 ```
 
-### 4. Setup Environment Variables
-Create a `.env.local` or `.env` file in the root directory:
-  ```env
-  # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-  SESSION_SECRET=replace-with-a-random-value-at-least-32-bytes-long
+Create a `.env.local` file in the project root:
 
-  # MongoDB Connection URI (Local or Atlas)
+```env
 MONGODB_URI=mongodb://localhost:27017/snapform
+SESSION_SECRET=replace-with-a-long-random-secret
+
+# Email verification and password reset
+SMTP_HOST=smtp.example.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-smtp-password
+SMTP_FROM=SnapForm <your-email@example.com>
+
+# Shared rate limits (configure for production and multi-instance hosting)
+UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-upstash-token
+
+# Optional: AI-assisted code generation
+GEMINI_API_KEY=your-gemini-api-key
+
+# Optional: Google and GitHub sign-in
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Optional: canonical public URL, useful for OAuth and email links
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 5. Launch the Development Server
+Generate a strong session secret, for example:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+`MONGODB_URI` and `SESSION_SECRET` are required. Configure SMTP to enable email verification and password reset. Configure Upstash Redis for persistent, shared rate limits in production; local development can use the in-memory fallback. The Gemini and OAuth variables are optional.
+
+Start the development server:
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) with your browser to experience SnapForm.
 
----
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📦 Deployment
+## Useful routes
 
-The project is structured for effortless hosting on the Vercel cloud platform:
+| Route | Description |
+| --- | --- |
+| `/` | Product landing page |
+| `/builder` | Visual form builder and code generation |
+| `/dashboard` | Saved forms, submissions, and analytics |
+| `/docs` | Documentation and integration guidance |
+| `/form/[formId]` | Hosted public form |
+| `/login` and `/signup` | Account access |
 
-1. Connect your GitHub repository to [Vercel](https://vercel.com).
-2. Configure the `MONGODB_URI` environment variable inside your project settings.
-3. Deploy! Vercel will automatically build the Next.js target build and serve your API serverless handlers.
+## Commands
+
+```bash
+npm run dev     # Start the local development server
+npm run build   # Create a production build
+npm run start   # Serve the production build
+npm run lint    # Run ESLint
+```
+
+## Deployment
+
+SnapForm can be deployed to Vercel or another platform that supports Next.js. Set the required environment variables in the deployment environment, use a reachable MongoDB database, and configure Upstash Redis for shared rate limiting across serverless instances. Add SMTP credentials to enable verification and password-reset emails. Set OAuth callback URLs to your deployed domain when enabling Google or GitHub sign-in.
