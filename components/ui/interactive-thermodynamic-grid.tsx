@@ -21,6 +21,7 @@ const ThermodynamicGrid = ({
     const container = containerRef.current;
     const ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !container || !ctx) return;
+    const context = ctx as CanvasRenderingContext2D;
 
     const cellSize = Math.max(4, resolution);
     const cooling = Math.min(0.999, Math.max(0, coolingFactor));
@@ -92,8 +93,8 @@ const ThermodynamicGrid = ({
         needsHeatInjection = false;
       }
 
-      ctx.fillStyle = '#050505';
-      ctx.fillRect(0, 0, width, height);
+      context.fillStyle = '#050505';
+      context.fillRect(0, 0, width, height);
       let hasHeat = false;
 
       for (let row = 0; row < rows; row++) {
@@ -106,11 +107,11 @@ const ThermodynamicGrid = ({
             hasHeat = true;
             const size = cellSize * (0.8 + temperature * 0.5);
             const offset = (cellSize - size) / 2;
-            ctx.fillStyle = getThermalColor(temperature);
-            ctx.fillRect(col * cellSize + offset, row * cellSize + offset, size, size);
+            context.fillStyle = getThermalColor(temperature);
+            context.fillRect(col * cellSize + offset, row * cellSize + offset, size, size);
           } else if (col % 2 === 0 && row % 2 === 0) {
-            ctx.fillStyle = '#18181b';
-            ctx.fillRect(col * cellSize + cellSize / 2 - 1, row * cellSize + cellSize / 2 - 1, 2, 2);
+            context.fillStyle = '#18181b';
+            context.fillRect(col * cellSize + cellSize / 2 - 1, row * cellSize + cellSize / 2 - 1, 2, 2);
           }
         }
       }
